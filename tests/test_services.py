@@ -44,10 +44,11 @@ class TestAgentService(unittest.TestCase):
             self.assertIn("name", agent)
             self.assertIn("type", agent)
             self.assertIn("description", agent)
-            self.assertIn("skills", agent)
+            # Support both skill_registry (new) and skills (legacy)
+            has_skills = "skills" in agent or "skill_registry" in agent
+            self.assertTrue(has_skills, f"Agent {agent['name']} missing skills or skill_registry")
             self.assertIn("dependencies", agent)
             self.assertIn("path", agent)
-            self.assertIsInstance(agent["skills"], list)
             self.assertIsInstance(agent["dependencies"], list)
 
     def test_get_agent_existing(self):
@@ -72,18 +73,28 @@ class TestAgentService(unittest.TestCase):
         self.assertIn("orchestrator_source", agent)
 
     def test_agent_validator_skills_are_validation(self):
-        """agent_validator must reference validation/ skills, not building/."""
+        """agent_validator must reference validation/ standards."""
         agent = self.service.get_agent("agent_validator")
         self.assertIsNotNone(agent)
-        for skill in agent["skills"]:
-            self.assertIn("validation", skill, f"Validator skill {skill} should reference validation/")
+        # After migration, uses skill_registry
+        if "skill_registry" in agent:
+            for entry in agent["skill_registry"]:
+                self.assertIn("validation", entry["path"], f"Validator entry {entry['name']} should reference validation/")
+        else:
+            for skill in agent.get("skills", []):
+                self.assertIn("validation", skill, f"Validator skill {skill} should reference validation/")
 
     def test_factory_ceo_skills_are_building(self):
-        """factory_ceo must reference building/ skills, not validation/."""
+        """factory_ceo must reference building/ standards."""
         agent = self.service.get_agent("factory_ceo")
         self.assertIsNotNone(agent)
-        for skill in agent["skills"]:
-            self.assertIn("building", skill, f"Builder skill {skill} should reference building/")
+        # After migration, uses skill_registry
+        if "skill_registry" in agent:
+            for entry in agent["skill_registry"]:
+                self.assertIn("building", entry["path"], f"Builder entry {entry['name']} should reference building/")
+        else:
+            for skill in agent.get("skills", []):
+                self.assertIn("building", skill, f"Builder skill {skill} should reference building/")
 
 
 class TestMCPToolService(unittest.TestCase):

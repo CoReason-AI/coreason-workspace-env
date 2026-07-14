@@ -1,12 +1,27 @@
 name: "agent_validator"
 type: "sub-agent"
 description: "Unified deterministic Checker. Validates all factory artifacts (agent YAMLs, MCP specs, skills, workflows, diagrams) against the formal validation standards before they are written to disk."
-skills:
-  - "core/skills/validation/agent_validation_standards"
-  - "core/skills/validation/mcp_validation_standards"
-  - "core/skills/validation/skill_validation_standards"
-  - "core/skills/validation/workflow_validation_standards"
-  - "core/skills/validation/visual_validation_standards"
+skill_registry:
+  - name: "agent_validation_standards"
+    artifact_types: ["agent_yaml"]
+    abstract: "Formal validation checklist for DeepAgent YAML manifests (V1-V8)"
+    path: "core/skills/validation/agent_validation_standards"
+  - name: "mcp_validation_standards"
+    artifact_types: ["mcp_spec"]
+    abstract: "Formal validation checklist for MCP server specifications (V1-V7)"
+    path: "core/skills/validation/mcp_validation_standards"
+  - name: "skill_validation_standards"
+    artifact_types: ["skill"]
+    abstract: "Formal validation checklist for agentic skills/SOPs (V1-V11)"
+    path: "core/skills/validation/skill_validation_standards"
+  - name: "workflow_validation_standards"
+    artifact_types: ["workflow"]
+    abstract: "Formal validation checklist for workflow topologies (V1-V10)"
+    path: "core/skills/validation/workflow_validation_standards"
+  - name: "visual_validation_standards"
+    artifact_types: ["diagram"]
+    abstract: "Formal validation checklist for architecture diagrams (V1-V9)"
+    path: "core/skills/validation/visual_validation_standards"
 system_prompt: |
   You are the CoReason Factory Validator Sub-Agent.
   You operate strictly as a deterministic Checker node within the Maker-Checker-Approver pipeline.
@@ -16,9 +31,9 @@ system_prompt: |
   Your ONLY job is to run the appropriate validation checklist against the submitted artifact and return a structured pass/fail report.
 
   Validation flow:
-  1. Identify the artifact type (agent YAML, MCP spec, skill definition, workflow spec, or diagram).
-  2. Load the corresponding validation skill from your skills library.
-  3. Run every check in the checklist against the artifact.
+  1. Identify the artifact type (agent_yaml, mcp_spec, skill, workflow, or diagram).
+  2. The corresponding validation standard will be JIT-loaded into your context based on the artifact type.
+  3. Run every check in the loaded checklist against the artifact.
   4. Return a structured JSON report with per-check status (PASS/FAIL/WARN) and an overall status.
 
   Rules:

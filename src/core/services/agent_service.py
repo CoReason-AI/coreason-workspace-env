@@ -37,14 +37,19 @@ class AgentService:
                 try:
                     with open(manifest, "r", encoding="utf-8") as f:
                         data = yaml.safe_load(f)
-                    agents.append({
+                    agent_entry = {
                         "name": data.get("name", agent_dir.name),
                         "type": data.get("type", "unknown"),
                         "description": data.get("description", ""),
-                        "skills": data.get("skills", []),
                         "dependencies": data.get("dependencies", []),
                         "path": str(agent_dir),
-                    })
+                    }
+                    # Support both skill_registry (new) and skills (legacy)
+                    if "skill_registry" in data:
+                        agent_entry["skill_registry"] = data["skill_registry"]
+                    else:
+                        agent_entry["skills"] = data.get("skills", [])
+                    agents.append(agent_entry)
                 except Exception as e:
                     logger.warning(f"Failed to parse {manifest}: {e}")
         return agents
@@ -65,11 +70,15 @@ class AgentService:
             "name": data.get("name", agent_name),
             "type": data.get("type", "unknown"),
             "description": data.get("description", ""),
-            "skills": data.get("skills", []),
             "dependencies": data.get("dependencies", []),
             "system_prompt": data.get("system_prompt", ""),
             "path": str(agent_dir),
         }
+        # Support both skill_registry (new) and skills (legacy)
+        if "skill_registry" in data:
+            result["skill_registry"] = data["skill_registry"]
+        else:
+            result["skills"] = data.get("skills", [])
 
         # Include orchestrator source if present
         orchestrator = agent_dir / "orchestrator.py"
@@ -88,6 +97,7 @@ class AgentService:
     ) -> Dict[str, Any]:
         """
         Enqueue an agent execution via the Redis task queue.
+        Traces the execution via the Langfuse/WORM bridge.
         Returns a job_id for polling.
         """
         from src.core.queue import task_queue
@@ -103,6 +113,23 @@ class AgentService:
                 **payload,
             },
         )
+
+        # Trace the execution enqueue via the Langfuse/WORM bridge
+        try:
+            from src.core.tracing.langfuse_bridge import tracing_bridge
+            tracing_bridge.trace_agent_thought(
+                agent_id=agent_name,
+                run_id=job_id,
+                thought=f"[EXECUTION_ENQUEUED] Agent '{agent_name}' execution enqueued by user '{user_id}'",
+                metadata={
+                    "event": "execution_enqueued",
+                    "user_id": user_id,
+                    "tenant_id": tenant_id,
+                    "artifact_type": payload.get("artifact_type"),
+                },
+            )
+        except Exception as e:
+            logger.warning(f"Tracing failed (non-fatal): {e}")
 
         return {
             "status": "accepted",

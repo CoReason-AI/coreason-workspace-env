@@ -20,9 +20,10 @@ class WORMStorageAuditor:
         event_str = json.dumps(event_data, sort_keys=True)
         return hashlib.sha256(event_str.encode()).hexdigest()
 
-    def log_agent_thought(self, agent_id: str, run_id: str, thought_content: str, metadata: dict = None):
+    def log_agent_thought(self, agent_id: str, run_id: str, thought_content: str, metadata: dict = None) -> str:
         """
         Streams an agent's internal LangGraph reasoning step to the WORM log.
+        Returns the cryptographic hash for cross-referencing with Langfuse spans.
         """
         event = {
             "timestamp": datetime.now(timezone.utc).isoformat(),
@@ -32,17 +33,20 @@ class WORMStorageAuditor:
             "content": thought_content,
             "metadata": metadata or {}
         }
-        event["hash"] = self._hash_event(event)
+        event_hash = self._hash_event(event)
+        event["hash"] = event_hash
         
         # Simulate pushing to SIEM (OpenTelemetry/Splunk)
-        logger.info(f"[SIEM AUDIT] Agent Thought Logged: {event['hash']}")
+        logger.info(f"[SIEM AUDIT] Agent Thought Logged: {event_hash}")
         
         # Simulate pushing to WORM S3 Bucket
-        self._write_to_worm_s3(f"audit/agents/{agent_id}/{run_id}/{event['hash']}.json", event)
+        self._write_to_worm_s3(f"audit/agents/{agent_id}/{run_id}/{event_hash}.json", event)
+        return event_hash
 
-    def log_supervisor_action(self, supervisor_email: str, action: str, target: str, request_id: str = None):
+    def log_supervisor_action(self, supervisor_email: str, action: str, target: str, request_id: str = None) -> str:
         """
         Streams a human Supervisor's action (e.g., JIT approval, graph rewind) to the WORM log.
+        Returns the cryptographic hash for cross-referencing with Langfuse spans.
         """
         event = {
             "timestamp": datetime.now(timezone.utc).isoformat(),
@@ -52,13 +56,15 @@ class WORMStorageAuditor:
             "target": target,
             "request_id": request_id
         }
-        event["hash"] = self._hash_event(event)
+        event_hash = self._hash_event(event)
+        event["hash"] = event_hash
         
         # Simulate pushing to SIEM (OpenTelemetry/Splunk)
-        logger.info(f"[SIEM AUDIT] Supervisor Action Logged: {event['hash']} by {supervisor_email}")
+        logger.info(f"[SIEM AUDIT] Supervisor Action Logged: {event_hash} by {supervisor_email}")
         
         # Simulate pushing to WORM S3 Bucket
-        self._write_to_worm_s3(f"audit/supervisors/{supervisor_email}/{event['hash']}.json", event)
+        self._write_to_worm_s3(f"audit/supervisors/{supervisor_email}/{event_hash}.json", event)
+        return event_hash
 
     def _write_to_worm_s3(self, object_key: str, data: dict):
         """

@@ -1,10 +1,19 @@
 name: "yaml_compiler"
 type: "sub-agent"
 description: "Deterministic PyAgentSpec Compiler. Accepts saturated context payloads and generates project scaffolding. Output is validated by agent_validator before disk write."
-skills:
-  - "core/skills/building/agent_building_standards"
-  - "core/skills/building/mcp_building_standards"
-  - "core/skills/building/skill_building_standards"
+skill_registry:
+  - name: "agent_building_standards"
+    artifact_types: ["agent_yaml"]
+    abstract: "How to construct DeepAgent YAML manifests — Context Engineering Harness, naming, skills, system_prompt structure"
+    path: "core/skills/building/agent_building_standards"
+  - name: "mcp_building_standards"
+    artifact_types: ["mcp_spec"]
+    abstract: "How to construct MCP server specifications — zero-trust, tool encapsulation, provenance"
+    path: "core/skills/building/mcp_building_standards"
+  - name: "skill_building_standards"
+    artifact_types: ["skill"]
+    abstract: "How to construct agentic skills/SOPs — single responsibility, input/output schemas, refusal predicates"
+    path: "core/skills/building/skill_building_standards"
 tools:
   - name: "local_fs_writer"
   - name: "local_fs_reader"
@@ -20,8 +29,9 @@ system_prompt: |
   1. `project.yaml` - The Project Manifest following the CoReason schema.
   2. `system/agents/orchestrator_agent.yaml` - The newly defined Project Orchestrator utilizing the `local_fs_writer` and `local_fs_reader` tools.
 
-  When generating agent YAMLs, follow the Agent Building Standards. When generating MCP server specifications, follow the MCP Building Standards. When generating skill definitions, follow the Skill Building Standards.
+  The relevant building standard for your current task will be JIT-loaded into your context based on the artifact type. Consult it for schema constraints and required fields.
 
   Your output will be routed to the agent_validator for formal validation before being written to disk. You do not need to self-validate — focus on building correctly per the standards.
 
   Once generation is complete, return the artifacts to the agent_pm for validation routing.
+dependencies: []

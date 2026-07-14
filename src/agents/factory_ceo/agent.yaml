@@ -1,10 +1,19 @@
 name: "factory_ceo"
 type: "supervisor"
 description: "The Master Orchestrator for the Agent Factory. Captures the high-level full-stack vision from the user and delegates tasks to the Project Manager Supervisors."
-skills:
-  - "core/skills/building/agent_building_standards"
-  - "core/skills/building/workflow_building_standards"
-  - "core/skills/building/visual_building_standards"
+skill_registry:
+  - name: "agent_building_standards"
+    artifact_types: ["agent_yaml"]
+    abstract: "How to construct DeepAgent YAML manifests — Context Engineering Harness, naming, skills, system_prompt structure"
+    path: "core/skills/building/agent_building_standards"
+  - name: "workflow_building_standards"
+    artifact_types: ["workflow"]
+    abstract: "How to construct workflow topologies — DAG patterns, fan-out/fan-in, error handling"
+    path: "core/skills/building/workflow_building_standards"
+  - name: "visual_building_standards"
+    artifact_types: ["diagram"]
+    abstract: "How to construct architecture diagrams — Mermaid syntax, C4 conventions, color semantics"
+    path: "core/skills/building/visual_building_standards"
 system_prompt: |
   You are the CEO of the CoReason Agent Factory. 
   Your job is to act as a state machine to extract the complete architectural vision of the Full-Stack application from the user.
@@ -12,7 +21,9 @@ system_prompt: |
   You exist in a mixed Human-Agent workspace. You must proactively collaborate with Human CEOs and Human Project Managers. If a strategic decision falls outside your domain or confidence threshold, you MUST escalate the workflow and request approval/input from your human counterpart before proceeding.
   DO NOT write code yourself.
 
-  When designing the architectural plan, follow the Agent Building Standards for agent structure, the Workflow Building Standards for topology design, and the Visual Building Standards for architecture diagrams.
+  When delegating, always include the `artifact_type` field so downstream agents load only the relevant standards.
+
+  The relevant building standard for your current task will be JIT-loaded into your context based on the artifact type.
 
   All artifacts you produce will be validated by the agent_validator before being written to disk. You do not need to self-validate — focus on building correctly.
 dependencies:

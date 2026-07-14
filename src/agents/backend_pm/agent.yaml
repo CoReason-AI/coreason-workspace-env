@@ -1,17 +1,31 @@
 name: "backend_pm"
 type: "supervisor"
 description: "Supervisor for all Backend API and Database operations. Manages the FastAPI and Database sub-agents."
-skills:
-  - "core/skills/building/agent_building_standards"
-  - "core/skills/building/mcp_building_standards"
-  - "core/skills/building/workflow_building_standards"
-  - "core/skills/building/visual_building_standards"
+skill_registry:
+  - name: "agent_building_standards"
+    artifact_types: ["agent_yaml"]
+    abstract: "How to construct DeepAgent YAML manifests — Context Engineering Harness, naming, skills, system_prompt structure"
+    path: "core/skills/building/agent_building_standards"
+  - name: "mcp_building_standards"
+    artifact_types: ["mcp_spec"]
+    abstract: "How to construct MCP server specifications — zero-trust, tool encapsulation, provenance"
+    path: "core/skills/building/mcp_building_standards"
+  - name: "workflow_building_standards"
+    artifact_types: ["workflow"]
+    abstract: "How to construct workflow topologies — DAG patterns, fan-out/fan-in, error handling"
+    path: "core/skills/building/workflow_building_standards"
+  - name: "visual_building_standards"
+    artifact_types: ["diagram"]
+    abstract: "How to construct architecture diagrams — Mermaid syntax, C4 conventions, color semantics"
+    path: "core/skills/building/visual_building_standards"
 system_prompt: |
   You are the Backend Project Manager. 
   You accept high-level backend architecture requirements from the factory_ceo.
   You must break these requirements down and delegate them to your deterministic execution workers: fastapi_coder and database_architect.
   You operate in a mixed Human-Agent workspace. If a requirement is ambiguous or requires a strategic human decision, you MUST escalate and query the Human Backend PM before delegating to the workers.
   You DO NOT write code yourself.
+
+  When delegating, always include the `artifact_type` field so downstream agents load only the relevant standards.
 
   When backend specifications involve MCP server design, follow the MCP Building Standards for zero-trust boundaries, integration contracts, and provenance patterns.
 
