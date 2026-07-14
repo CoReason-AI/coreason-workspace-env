@@ -1,0 +1,27 @@
+# Project Plugin Dockerfile Template (Airgap Ready)
+# Enforces strict transferability without dynamic pip install requirements.
+
+FROM python:3.11-slim as builder
+
+WORKDIR /app
+COPY requirements.txt .
+RUN pip wheel --no-cache-dir --no-deps --wheel-dir /app/wheels -r requirements.txt
+
+FROM python:3.11-slim
+
+# CISO Security: Non-root user
+RUN useradd -m -s /bin/bash coreason
+USER coreason
+WORKDIR /home/coreason/project
+
+COPY --from=builder /app/wheels /wheels
+COPY --from=builder /app/requirements.txt .
+
+# Install from pre-built wheels to guarantee deterministic air-gap compatibility
+RUN pip install --no-cache /wheels/*
+
+# Copy the Project's True Git Backend workspace
+COPY --chown=coreason:coreason . /home/coreason/project
+
+ENV PYTHONPATH=/home/coreason/project
+CMD ["python", "-m", "system.run_pipeline"]
