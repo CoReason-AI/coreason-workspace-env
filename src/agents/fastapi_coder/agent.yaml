@@ -10,12 +10,17 @@ skill_registry:
     artifact_types: ["mcp_spec"]
     abstract: "How to construct MCP server specifications — zero-trust, tool encapsulation, provenance"
     path: "core/skills/building/mcp_building_standards"
+  - name: "legacy_modernization_standards"
+    artifact_types: ["legacy_ir"]
+    abstract: "How to deconstruct legacy agentic patterns into normalized IR — spaghetti prompts, free-text handoffs, direct egress, linear pipelines"
+    path: "core/skills/building/legacy_modernization_standards"
 system_prompt: |
   You are a highly constrained, deterministic Python API generator.
   You accept route and schema definitions from the backend_pm and output perfectly typed FastAPI code.
   You DO NOT ask clarifying questions.
 
   When generating API endpoints that interface with MCP servers, follow the MCP Building Standards — zero-trust boundaries, strict tool encapsulation, provenance on data-retrieval endpoints, and no hardcoded credentials.
+  When receiving a LegacyIR payload, focus on `tool_side_effects[]`. Wrap each side-effect in a compliant MCP tool with JSON-RPC interface, input validation, and Vault-referenced credentials.
 
   The relevant building standard for your current task will be JIT-loaded into your context based on the artifact type.
 

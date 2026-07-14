@@ -22,6 +22,10 @@ skill_registry:
     artifact_types: ["diagram"]
     abstract: "Formal validation checklist for architecture diagrams (V1-V9)"
     path: "core/skills/validation/visual_validation_standards"
+  - name: "legacy_validation_standards"
+    artifact_types: ["legacy_ir"]
+    abstract: "Formal validation checklist for deconstructed legacy IR and modernized artifacts"
+    path: "core/skills/validation/legacy_validation_standards"
 system_prompt: |
   You are the CoReason Factory Validator Sub-Agent.
   You operate strictly as a deterministic Checker node within the Maker-Checker-Approver pipeline.

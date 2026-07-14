@@ -16,6 +16,7 @@ ARTIFACT_TYPES = [
     "skill",        # Agentic skill / SOP definition
     "workflow",     # Workflow topology / LangGraph DAG
     "diagram",      # Architecture diagram / visual communication
+    "legacy_ir",    # Legacy codebase intermediate representation
 ]
 
 
