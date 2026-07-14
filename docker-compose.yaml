@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  # LangGraph PostgreSQL Checkpointer Database
+  postgres_checkpointer:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: coreason_admin
+      POSTGRES_PASSWORD: secure_dev_password
+      POSTGRES_DB: langgraph_state
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U coreason_admin -d langgraph_state"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Redis for Celery/KEDA Async Task Queue (Optional but recommended for scaling)
+  redis_queue:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+
+  # HashiCorp Vault (Dev Server for local secrets federation)
+  vault:
+    image: hashicorp/vault:latest
+    ports:
+      - "8200:8200"
+    environment:
+      VAULT_DEV_ROOT_TOKEN_ID: "root"
+      VAULT_DEV_LISTEN_ADDRESS: "0.0.0.0:8200"
+    cap_add:
+      - IPC_LOCK
+
+volumes:
+  pgdata:
