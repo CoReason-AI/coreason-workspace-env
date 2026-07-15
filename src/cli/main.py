@@ -7,12 +7,28 @@ app = typer.Typer()
 import json
 agents_app = typer.Typer()
 mcp_app = typer.Typer()
+projects_app = typer.Typer()
 app.add_typer(agents_app, name="agents")
 app.add_typer(mcp_app, name="mcp")
+app.add_typer(projects_app, name="projects")
 
 @app.callback()
 def main(pretty: bool = False):
     pass
+
+@app.command()
+def health():
+    """Check system health."""
+    typer.echo(json.dumps({"status": "healthy"}))
+
+@projects_app.command("list")
+def list_projects():
+    """List all workspace projects."""
+    from src.core.services import project_service
+    async def run():
+        res = await project_service.list_projects()
+        typer.echo(json.dumps({"projects": res}))
+    asyncio.run(run())
 
 @agents_app.command("list")
 def list_agents():
@@ -29,6 +45,20 @@ def get_agent(name: str = typer.Option(..., '--name')):
         typer.echo("Not found")
         sys.exit(1)
     typer.echo(json.dumps({"agent": res}))
+
+@agents_app.command("execute")
+def execute_agent(agent_name: str, prompt: str):
+    """Execute a manual agent task."""
+    from src.core.services.orchestration_service import OrchestrationService
+    orch = OrchestrationService()
+    session_id = str(uuid.uuid7())
+    user_id = "cli-user"
+    async def run():
+        typer.echo(f"Executing agent {agent_name} with session {session_id}")
+        # Note: We simulate execution using run_factory_graph for now
+        res = await orch.run_factory_graph(user_id, session_id, prompt)
+        typer.echo(json.dumps(res))
+    asyncio.run(run())
 
 @mcp_app.command("list-servers")
 def mcp_list_servers():

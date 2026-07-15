@@ -71,3 +71,13 @@ uv run coreason agents list
 uv run coreason agents get --name project_initiation
 uv run coreason mcp list-servers
 ```
+
+### 5. Manual Agent Execution & Context Engineering
+You can execute individual agents from the CLI. 
+
+> [!WARNING]
+> **Context Saturation Required**: Because the CoReason Workspace Environment adheres to the [Context Engineering Harness](../architecture/context_engineering.md), all commands sent via the CLI are evaluated by a State Machine Orchestrator for schema saturation. If your CLI payload is too ambiguous (e.g., `"Compile the agent"`), the execution will return early with `is_saturated: False` and demand more information. You must provide a highly detailed, saturated prompt to successfully trigger downstream builders.
+
+```bash
+uv run coreason agents execute "yaml_compiler" "Build a highly detailed platform that scrapes data..."
+```

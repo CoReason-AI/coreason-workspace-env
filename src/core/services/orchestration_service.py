@@ -31,15 +31,17 @@ class OrchestrationService:
         from src.agents.factory_ceo.orchestrator import FactoryCeoAgent
         
         ceo = FactoryCeoAgent()
+        from langchain_core.messages import HumanMessage
         context = {
-            "messages": [],
+            "messages": [HumanMessage(content=input_data)],
             "raw_transcript": input_data
         }
         
         result = await ceo.execute(context, session_id)
         
-        # Bundle the result if it was a success
-        if result and "FAILURE" not in str(result):
+        # Bundle the result if it was a success and context was saturated
+        is_sat = result.get("is_saturated")
+        if result and "FAILURE" not in str(result) and is_sat is not False:
             # Checkpoint to Postgres to simulate AsyncPostgresSaver behavior for the exporter
             import json
             from src.core.db import get_db_pool
