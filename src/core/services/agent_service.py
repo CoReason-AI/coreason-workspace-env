@@ -64,6 +64,10 @@ class AgentService:
         except ValueError:
             return None
 
+        # Enforce a single safe directory name (no separators, traversal, or absolute paths).
+        if not agent_name or agent_name in {".", ".."} or Path(agent_name).name != agent_name:
+            return None
+
         base_dir = _AGENTS_DIR.resolve()
         agent_dir = (base_dir / agent_name).resolve()
         try:
