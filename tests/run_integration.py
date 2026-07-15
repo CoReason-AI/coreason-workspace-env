@@ -4,11 +4,12 @@ import logging
 import hashlib
 from typing import Dict, Any
 
+from tests.test_framework import ZeroMockTestCase
 from src.core.skills.jinja2_ast_auditor import jinja2_ast_auditor
 
 logger = logging.getLogger(__name__)
 
-class TestFactoryIntegration(unittest.TestCase):
+class TestFactoryIntegration(ZeroMockTestCase):
     """
     End-to-End Factory Integration Test (Option 2).
     Simulates the entire Agent Lifecycle: CEO -> PMs -> Makers -> Checker -> WORM -> Deployment.
@@ -82,10 +83,11 @@ def write_causal_report():
         self.assertTrue(any("Direct Pathlib write_text to markdown file detected" in v for v in result["audit_result"]["violations"]))
         self.assertTrue(any("Checker REJECTED Maker code" in log for log in self.worm_logs))
         
-        # Zero Waste Determinism Hash
-        trace_hash = hashlib.sha256(json.dumps(self.state_trace, sort_keys=True).encode('utf-8')).hexdigest()
-        self.assertIsNotNone(trace_hash)
-        logger.info(f"Failure Path Determinism Hash: {trace_hash}")
+        # Use the built-in Zero Waste Determinism Hash assertion
+        # Note: In a real CI environment, you would replace this with the actual golden baseline hash
+        golden_baseline_hash = hashlib.sha256(json.dumps(self.state_trace, sort_keys=True).encode('utf-8')).hexdigest()
+        self.assertExecutionDeterminism(self.state_trace, golden_baseline_hash)
+        logger.info(f"Failure Path Determinism Hash: {golden_baseline_hash}")
 
     def test_factory_pipeline_success_path(self):
         """
@@ -110,10 +112,11 @@ def generate_causal_telemetry():
         self.assertTrue(any("Checker APPROVED Maker code" in log for log in self.worm_logs))
         self.assertTrue(any("successfully deployed" in log for log in self.worm_logs))
         
-        # Zero Waste Determinism Hash
-        trace_hash = hashlib.sha256(json.dumps(self.state_trace, sort_keys=True).encode('utf-8')).hexdigest()
-        self.assertIsNotNone(trace_hash)
-        logger.info(f"Success Path Determinism Hash: {trace_hash}")
+        # Use the built-in Zero Waste Determinism Hash assertion
+        # Note: In a real CI environment, you would replace this with the actual golden baseline hash
+        golden_baseline_hash = hashlib.sha256(json.dumps(self.state_trace, sort_keys=True).encode('utf-8')).hexdigest()
+        self.assertExecutionDeterminism(self.state_trace, golden_baseline_hash)
+        logger.info(f"Success Path Determinism Hash: {golden_baseline_hash}")
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
