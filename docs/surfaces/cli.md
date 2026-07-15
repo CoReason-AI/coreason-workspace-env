@@ -39,12 +39,12 @@ The platform is natively compatible with the OCI (Open Container Initiative) sta
 
 **Pushing an Agent Bundle:**
 ```bash
-uv run coreason push_project 01J18H1P9F2M1Q6N9B9Y6W4A2B "ghcr.io/my-org/my-agent:v1.0.0"
+uv run coreason push-project 01J18H1P9F2M1Q6N9B9Y6W4A2B "ghcr.io/my-org/my-agent:v1.0.0"
 ```
 
 **Pulling an Agent Bundle:**
 ```bash
-uv run coreason pull_project "My Imported Agent" "ghcr.io/my-org/my-agent:v1.0.0" --description "Imported from staging"
+uv run coreason pull-project "My Imported Agent" "ghcr.io/my-org/my-agent:v1.0.0" --description "Imported from staging"
 ```
 
 > [!TIP]
@@ -55,12 +55,12 @@ For high-security sovereign deployments, you can manually export projects to a p
 
 **Export:**
 ```bash
-uv run coreason export_project 01J18H1P9F2M1Q6N9B9Y6W4A2B ./my_bundle.zip
+uv run coreason export-project 01J18H1P9F2M1Q6N9B9Y6W4A2B ./my_bundle.zip
 ```
 
 **Import:**
 ```bash
-uv run coreason import_project "Airgapped Agent" ./my_bundle.zip
+uv run coreason import-project "Airgapped Agent" ./my_bundle.zip
 ```
 
 ### 4. Inspection Commands
@@ -70,4 +70,14 @@ You can list active deployments and MCP servers directly from the terminal.
 uv run coreason agents list
 uv run coreason agents get --name project_initiation
 uv run coreason mcp list-servers
+```
+
+### 5. Manual Agent Execution & Context Engineering
+You can execute individual agents from the CLI. 
+
+> [!WARNING]
+> **Context Saturation Required**: Because the CoReason Workspace Environment adheres to the [Context Engineering Harness](../architecture/context_engineering.md), all commands sent via the CLI are evaluated by a State Machine Orchestrator for schema saturation. If your CLI payload is too ambiguous (e.g., `"Compile the agent"`), the execution will return early with `is_saturated: False` and demand more information. You must provide a highly detailed, saturated prompt to successfully trigger downstream builders.
+
+```bash
+uv run coreason agents execute "yaml_compiler" "Build a highly detailed platform that scrapes data..."
 ```

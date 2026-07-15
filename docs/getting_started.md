@@ -20,6 +20,12 @@ cp .env.example .env
 Open `.env` and set your `LLM_API_KEY`, `LLM_MODEL_NAME`, and `LLM_BASE_URL`. This allows you to securely swap between cloud providers or local vLLM deployments without touching the source code.
 Additionally, ensure you set `API_SECRET_TOKEN` to secure the platform endpoints, and `REDIS_QUEUE_NAME` (which defaults to `tasks`) if you are customizing the KEDA worker deployment.
 
+> [!TIP]
+> **CLI Local Overrides:** When testing the CLI locally against a running Docker Compose standalone stack, you may need to override environment variables inline so the CLI targets your local mapped ports and models instead of external defaults. For example:
+> ```powershell
+> $env:LLM_BASE_URL="http://127.0.0.1:11434/v1"; $env:LLM_MODEL_NAME="llama3"; $env:POSTGRES_PORT="5434"; uv run coreason agents execute "yaml_compiler" "Build a system..."
+> ```
+
 ## Installation
 
 ```bash

@@ -44,7 +44,9 @@ class PlatformExporter:
                     # Query the checkpointer table for finalized YAMLs
                     records = await conn.fetch("SELECT state FROM langgraph_state WHERE thread_id = $1 AND tenant_id = $2 ORDER BY id DESC LIMIT 1", safe_session_id, tenant_id)
                     if records:
-                        state = records[0]['state']
+                        state_val = records[0]['state']
+                        import json
+                        state = json.loads(state_val) if isinstance(state_val, str) else state_val
                         # Assuming state contains the generated agents dict
                         for agent_name, yaml_content in state.get("generated_agents", {}).items():
                             if not re.match(r"^[a-zA-Z0-9_-]+$", agent_name):
