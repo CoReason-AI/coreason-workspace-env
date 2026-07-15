@@ -1,0 +1,61 @@
+site_name: CoReason Workspace Environment
+site_description: Documentation for the CoReason headless agent development platform
+theme:
+  name: material
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - toc.integrate
+    - navigation.top
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+  palette:
+    - scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.magiclink
+  - pymdownx.tasklist:
+      custom_checkbox: true
+
+nav:
+  - Introduction:
+    - Home: index.md
+    - Getting Started: getting_started.md
+  - Architecture:
+    - DeepAgent Pattern: architecture/deepagent_pattern.md
+    - Context Engineering: architecture/context_engineering.md
+    - Epistemic Firewall: architecture/epistemic_firewall.md
+    - Maker-Checker Pipeline: architecture/maker_checker.md
+  - Interaction Surfaces:
+    - MCP Server: surfaces/mcp_server.md
+    - CLI: surfaces/cli.md
+    - REST API: surfaces/rest_api.md
+    - WebSocket / SSE: surfaces/websocket_sse.md
+    - Python SDK: surfaces/python_sdk.md
+  - Developer Guides:
+    - Building Skills: guides/building_skills.md
+    - Validation Rules: guides/writing_validation_rules.md
+    - Deploying: guides/deploying.md
