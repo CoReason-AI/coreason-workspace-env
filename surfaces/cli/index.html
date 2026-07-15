@@ -430,6 +430,34 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/user_guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    User Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -788,22 +816,33 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#the-nemoclaw-cli-installer-deepagents-tui-dcode" class="md-nav__link">
+  <a href="#architecture" class="md-nav__link">
     <span class="md-ellipsis">
       
-        The NemoClaw CLI Installer &amp; DeepAgents TUI (dcode)
+        Architecture
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="The NemoClaw CLI Installer &amp; DeepAgents TUI (dcode)">
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#available-commands" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Available Commands
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Available Commands">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#capabilities" class="md-nav__link">
+  <a href="#1-building-a-new-platform" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Capabilities
+        1. Building a New Platform
       
     </span>
   </a>
@@ -811,10 +850,32 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#typer-implementation" class="md-nav__link">
+  <a href="#2-oci-registry-operations" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Typer Implementation
+        2. OCI Registry Operations
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-airgapped-export-import" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Airgapped Export / Import
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-inspection-commands" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Inspection Commands
       
     </span>
   </a>
@@ -823,17 +884,6 @@
         
       </ul>
     </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#connecting-the-cli" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Connecting the CLI
-      
-    </span>
-  </a>
   
 </li>
       
@@ -1098,31 +1148,54 @@
 
 
 <h1 id="command-line-interface-cli">Command Line Interface (CLI)</h1>
-<p>The CoReason Workspace Environment mandates strict <strong>Multi-Surface Parity</strong>. The Command Line Interface is a first-class interaction surface, providing complete parity with the REST API and the Model Context Protocol (MCP).</p>
-<p>All CLI operations are natively integrated into the shared <code>src.core.services</code> layer. Anything achievable through the web dashboard or API is equally achievable in an air-gapped terminal.</p>
-<h2 id="the-nemoclaw-cli-installer-deepagents-tui-dcode">The NemoClaw CLI Installer &amp; DeepAgents TUI (<code>dcode</code>)</h2>
-<p>The environment utilizes the advanced <strong>DeepAgents Code TUI</strong> (<code>dcode</code>) as its primary terminal-based user interface, deployed and governed by the <strong>NemoClaw CLI installer</strong>. </p>
-<p>This powerful Text User Interface is invoked directly via the <code>dcode</code> shell alias. As part of the NemoClaw for Deep Agents blueprint, <code>dcode</code> runs the agent explicitly inside an NVIDIA OpenShell secure sandbox, powered by Nemotron 3 Ultra.</p>
-<p>Rather than relying on proprietary, one-off synchronous HTTP requests, <code>dcode</code> operates as a native <strong>MCP Client</strong>. It automatically discovers the platform's headless MCP server and interacts with the internal LangGraph state machine via standard tools and prompt resources.</p>
-<h3 id="capabilities">Capabilities</h3>
-<ul>
-<li><strong>Rich Interactive UI</strong>: Built on <code>textual</code>, providing an IDE-like terminal experience.</li>
-<li><strong>Agent Orchestration</strong>: Execute complex agent workflows (Maker-Checker validation pipelines) natively from the terminal.</li>
-<li><strong>Accordion Task Tracking</strong>: Agent steps, tracker task lists, and summary updates are displayed via expandable accordions, shielding you from raw log spew.</li>
-<li><strong>Real-Time State Streaming</strong>: Connects to the platform's RFC 6902 JSON Patch streams to observe deterministic workflow routing without polling.</li>
-</ul>
-<h3 id="typer-implementation">Typer Implementation</h3>
-<p>The CLI natively wraps the shared <code>orchestration_service</code> using <code>Typer</code>. For example, invoking the <code>coreason build</code> command seamlessly initiates the full Maker-Checker workflow, guaranteeing exact feature parity with the <code>/export</code> HTTP endpoints.</p>
-<p>For heavy async operations, such as <code>coreason push-project</code>, <code>coreason pull-project</code>, <code>coreason export-project</code>, and <code>coreason import-project</code>, the CLI abstracts the background polling loop entirely. It utilizes the synchronous Python SDK and wraps the execution in a gorgeous <code>rich</code> animated spinner, giving you immediate terminal feedback while the system extracts Docker images in the background. You can also pass <code>--skip-state</code> and <code>--skip-docker</code> directly to these commands.</p>
-<p>Additional operational commands include <code>coreason agents list</code>, <code>coreason agents get</code>, and <code>coreason mcp list-servers</code>, which all provide rich JSON output compliant with the API schema.</p>
-<h2 id="connecting-the-cli">Connecting the CLI</h2>
-<p>To launch the CLI and interface with your CoReason Workspace Environment:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1"># Ensure the MCP server definition (.mcp.json) is present in the workspace</span>
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="c1"># Export the API token so the CLI can authenticate with the secured platform</span>
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="nb">export</span><span class="w"> </span><span class="nv">COREASON_API_TOKEN</span><span class="o">=</span><span class="s2">&quot;coreason-dev-token&quot;</span>
-<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>uv<span class="w"> </span>run<span class="w"> </span>dcode
+<p>The CoReason Workspace Environment provides a fully-featured headless CLI built using <strong>Typer</strong>. </p>
+<p>Following the Multi-Surface Interaction Parity mandate, the CLI is a thin transport adapter over the shared <code>src.core.services</code> layer. Anything achievable via the REST API or Swagger UI is mathematically guaranteed to be achievable natively from the terminal. This ensures usability in air-gapped, CI/CD, and terminal-only execution environments.</p>
+<h2 id="architecture">Architecture</h2>
+<p>The CLI acts as a synchronous entrypoint that maps user arguments to asynchronous background execution services via <code>asyncio.run()</code>.</p>
+<pre class="mermaid"><code>flowchart TD
+    A[User Terminal] --&gt;|uv run coreason| B(Typer CLI App)
+    B --&gt;|Parses Arguments| C{Command Router}
+    C --&gt;|Project Commands| D[Project Service]
+    C --&gt;|Agent Commands| E[Agent Service]
+    C --&gt;|MCP Commands| F[MCP Tool Service]
+    D --&gt; G[(PostgreSQL)]
+    E --&gt; G
+    F --&gt; G</code></pre>
+<h2 id="available-commands">Available Commands</h2>
+<h3 id="1-building-a-new-platform">1. Building a New Platform</h3>
+<p>The core operation of the factory is building platforms using natural language intents.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>uv<span class="w"> </span>run<span class="w"> </span>coreason<span class="w"> </span>build<span class="w"> </span><span class="s2">&quot;I need an automated clinical trial matching agent platform&quot;</span><span class="w"> </span>--output-dir<span class="w"> </span>./dist
 </code></pre></div>
-<p>Since the environment operates as a headless MCP server, <code>dcode</code> abstracts away the topology complexity. Upstream operations are handled deterministically within the platform and streamed directly to your terminal.</p>
+<blockquote>
+<p>[!NOTE]
+The <code>build</code> command spins up a temporary session UUID, delegates the text payload to the <code>OrchestrationService</code>, and writes the final exported ZIP artifact to <code>--output-dir</code>.</p>
+</blockquote>
+<h3 id="2-oci-registry-operations">2. OCI Registry Operations</h3>
+<p>The platform is natively compatible with the OCI (Open Container Initiative) standard, allowing you to push and pull agent bundles directly to enterprise artifact registries (e.g. AWS ECR, GitHub Packages) exactly like Docker images.</p>
+<p><strong>Pushing an Agent Bundle:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>uv<span class="w"> </span>run<span class="w"> </span>coreason<span class="w"> </span>push_project<span class="w"> </span>01J18H1P9F2M1Q6N9B9Y6W4A2B<span class="w"> </span><span class="s2">&quot;ghcr.io/my-org/my-agent:v1.0.0&quot;</span>
+</code></pre></div></p>
+<p><strong>Pulling an Agent Bundle:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>uv<span class="w"> </span>run<span class="w"> </span>coreason<span class="w"> </span>pull_project<span class="w"> </span><span class="s2">&quot;My Imported Agent&quot;</span><span class="w"> </span><span class="s2">&quot;ghcr.io/my-org/my-agent:v1.0.0&quot;</span><span class="w"> </span>--description<span class="w"> </span><span class="s2">&quot;Imported from staging&quot;</span>
+</code></pre></div></p>
+<blockquote>
+<p>[!TIP]
+<strong>State Isolation Flags</strong>: You can append <code>--skip-state</code> or <code>--skip-docker</code> to OCI operations if you only wish to transfer the raw logic without porting the Postgres checkpointer state or compiling a new Docker image.</p>
+</blockquote>
+<h3 id="3-airgapped-export-import">3. Airgapped Export / Import</h3>
+<p>For high-security sovereign deployments, you can manually export projects to a physical <code>.zip</code> file for USB transfer.</p>
+<p><strong>Export:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>uv<span class="w"> </span>run<span class="w"> </span>coreason<span class="w"> </span>export_project<span class="w"> </span>01J18H1P9F2M1Q6N9B9Y6W4A2B<span class="w"> </span>./my_bundle.zip
+</code></pre></div></p>
+<p><strong>Import:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>uv<span class="w"> </span>run<span class="w"> </span>coreason<span class="w"> </span>import_project<span class="w"> </span><span class="s2">&quot;Airgapped Agent&quot;</span><span class="w"> </span>./my_bundle.zip
+</code></pre></div></p>
+<h3 id="4-inspection-commands">4. Inspection Commands</h3>
+<p>You can list active deployments and MCP servers directly from the terminal.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>uv<span class="w"> </span>run<span class="w"> </span>coreason<span class="w"> </span>agents<span class="w"> </span>list
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>uv<span class="w"> </span>run<span class="w"> </span>coreason<span class="w"> </span>agents<span class="w"> </span>get<span class="w"> </span>--name<span class="w"> </span>project_initiation
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>uv<span class="w"> </span>run<span class="w"> </span>coreason<span class="w"> </span>mcp<span class="w"> </span>list-servers
+</code></pre></div>
 
 
 

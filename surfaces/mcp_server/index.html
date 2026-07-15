@@ -76,7 +76,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#headless-mcp-server-deployment" class="md-skip">
+        <a href="#model-context-protocol-mcp" class="md-skip">
           Skip to content
         </a>
       
@@ -430,6 +430,34 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/user_guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    User Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -760,10 +788,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#complex-workflows-as-atomic-tools" class="md-nav__link">
+  <a href="#mcp-architecture" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Complex Workflows as Atomic Tools
+        MCP Architecture
       
     </span>
   </a>
@@ -771,10 +799,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#abstracting-topology-complexity" class="md-nav__link">
+  <a href="#inner-workings-namespaces" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Abstracting Topology Complexity
+        Inner Workings &amp; Namespaces
       
     </span>
   </a>
@@ -782,30 +810,13 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#air-gapped-interoperability" class="md-nav__link">
+  <a href="#usage-example-configuration" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Air-Gapped Interoperability
+        Usage Example (Configuration)
       
     </span>
   </a>
-  
-    <nav class="md-nav" aria-label="Air-Gapped Interoperability">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#non-blocking-portability-tools" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Non-Blocking Portability Tools
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
       
@@ -1097,27 +1108,48 @@
 
 
 
-<h1 id="headless-mcp-server-deployment">Headless MCP Server Deployment</h1>
-<p>The Model Context Protocol (MCP) has rapidly become the universal integration standard across enterprise artificial intelligence applications, functioning effectively as the "USB-C port for AI."</p>
-<p>While the vast majority of contemporary agentic frameworks are architected explicitly as <strong>MCP clients</strong> (designed to connect to external servers to consume tools), the CoReason platform differentiates itself through an inversion of control: it is designed from the ground up to be deployed natively as a <strong>headless MCP server</strong>.</p>
-<h2 id="complex-workflows-as-atomic-tools">Complex Workflows as Atomic Tools</h2>
-<p>By deploying as a native MCP server, the entire compiled LangGraph state machine—complete with its Epistemic Firewall and Maker-Checker validation loops—is exposed directly via the protocol standard.</p>
-<p>This means that upstream orchestrators, enterprise service buses, or intelligent development environments (IDEs) can dynamically discover and invoke the platform's highly complex, multi-agent workflows as if they were simple, atomic tools.</p>
-<h2 id="abstracting-topology-complexity">Abstracting Topology Complexity</h2>
-<p>The platform effectively abstracts away the sheer complexity of its internal multi-agent topology. </p>
-<p>An upstream enterprise application simply sends a standardized request to the CoReason server. The platform internally handles:
-- Pre-dispatch schema saturation
-- Distributed sub-agent delegation
-- Mathematical AST and Pydantic validation
-- Cryptographic data retrieval</p>
-<p>Once the internal Maker-Checker-Approver pipeline successfully resolves, the platform returns the verified, structured output back to the consumer via standard input/output streams (stdio), Server-Sent Events (SSE), or streamable HTTP.</p>
-<p><em>Technical Note: The MCP Server itself remains stateless; it resolves requests (such as <code>get_workspace_state</code>) by dynamically querying the underlying Postgres <code>langgraph_state</code> checkpointer. </em><em>This integration natively enforces Multi-Tenant State Isolation</em><em>, actively filtering queries by <code>tenant_id</code> to strictly prevent cross-tenant data leakage. This enables true, secure cross-process state inspection for external IDEs like Cursor.</em></p>
-<h2 id="air-gapped-interoperability">Air-Gapped Interoperability</h2>
-<p>While some observability platforms offer proprietary SaaS mechanisms to expose agents as servers, the CoReason platform embeds this capability directly into its core infrastructure. This eliminates vendor lock-in to external observability providers and allows for highly secure, air-gapped, on-premise enterprise deployments.</p>
-<h3 id="non-blocking-portability-tools">Non-Blocking Portability Tools</h3>
-<p>Unlike the SDK and CLI—which automatically block and poll on your behalf—the MCP Server exposes the Portability Engine (<code>push_project</code>, <code>pull_project</code>, <code>export_project</code>, <code>import_project</code>) completely asynchronously. </p>
-<p>When an AI agent orchestrates this platform, executing an OCI registry push of a 5GB Docker image could take 10 minutes. Rather than blocking the agent's context window, the MCP tool instantly returns a <code>job_id</code>. 
-The upstream orchestrator can continue processing other parallel tasks, manually checking the new <code>get_portability_job_status</code> tool at its discretion.</p>
+<h1 id="model-context-protocol-mcp">Model Context Protocol (MCP)</h1>
+<p>Since the CoReason platform acts as an agent-building factory, it natively exposes itself as a <strong>Model Context Protocol (MCP)</strong> server. This allows upstream AI agents, IDEs (like Cursor or Windsurf), and parent orchestrators to interface with the factory natively.</p>
+<p>The platform uses <code>FastMCP</code> to map its internal core services directly to standard MCP JSON-RPC schemas over <code>stdio</code> and <code>SSE</code>.</p>
+<h2 id="mcp-architecture">MCP Architecture</h2>
+<pre class="mermaid"><code>flowchart LR
+    A[Upstream IDE / Orchestrator] &lt;--&gt;|JSON-RPC over stdio / SSE| B(FastMCP Server)
+    B --&gt; C{Tool Routers}
+    C --&gt; D[Causal Server]
+    C --&gt; E[Memory Server]
+    C --&gt; F[Project Server]
+    D --&gt; G[(PostgreSQL)]
+    E --&gt; G
+    F --&gt; G</code></pre>
+<h2 id="inner-workings-namespaces">Inner Workings &amp; Namespaces</h2>
+<p>The MCP Server groups tools logically into domains based on the underlying capabilities of the platform:</p>
+<ol>
+<li><strong>Causal Server Tools</strong>: Allows upstream agents to map causal relationships, build diagrams, and interact with the platform's reasoning engine.</li>
+<li><strong>Memory Server Tools</strong>: Provides access to the platform's internal knowledge base and state persistence.</li>
+<li><strong>Project Tools</strong>: Directly exposes the platform's <code>build</code>, <code>push-oci</code>, and <code>export</code> capabilities to upstream agents.</li>
+</ol>
+<blockquote>
+<p>[!IMPORTANT]
+Because the MCP Server binds to the exact same <code>src.core.services</code> layer as the REST API, any action an agent takes via an MCP tool call uses the same rigorous Pydantic validation and UUIDv7 logic as if a human invoked the REST endpoint.</p>
+</blockquote>
+<h2 id="usage-example-configuration">Usage Example (Configuration)</h2>
+<p>To connect an IDE or external orchestrator to the CoReason MCP Server using the <code>stdio</code> transport, add the following configuration to your <code>mcp.json</code> or <code>claude_desktop_config.json</code>:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="p">{</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span><span class="nt">&quot;mcpServers&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">    </span><span class="nt">&quot;coreason_factory&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">      </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;uv&quot;</span><span class="p">,</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">      </span><span class="nt">&quot;args&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="w">        </span><span class="s2">&quot;run&quot;</span><span class="p">,</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="w">        </span><span class="s2">&quot;coreason-mcp&quot;</span>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="w">      </span><span class="p">],</span>
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="w">      </span><span class="nt">&quot;env&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="w">        </span><span class="nt">&quot;API_SECRET_TOKEN&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;coreason-dev-token&quot;</span>
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="w">      </span><span class="p">}</span>
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="w">  </span><span class="p">}</span>
+<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a><span class="p">}</span>
+</code></pre></div>
+<p>Once connected, your agent will natively inherit tools such as <code>build_agent_platform</code>, <code>list_active_projects</code>, and <code>export_oci_bundle</code>.</p>
 
 
 
