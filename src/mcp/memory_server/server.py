@@ -48,6 +48,14 @@ async def handle_request(request_str: str, pool) -> str:
 
         if method == "mcp_write_vectors":
             manifest = params.get("manifest", {})
+            
+            # --- FIX: Parse JSON string if sent by Pydantic model_dump_json() ---
+            if isinstance(manifest, str):
+                try:
+                    manifest = json.loads(manifest)
+                except json.JSONDecodeError:
+                    return json.dumps({"jsonrpc": "2.0", "id": msg_id, "error": {"code": -32602, "message": "Invalid JSON in manifest"}})
+
             nodes = manifest.get("nodes", [])
             edges = manifest.get("edges", [])
             inserted_nodes = 0
