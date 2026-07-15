@@ -1,10 +1,10 @@
 [build-system]
-requires = ["setuptools>=61.0"]
-build-backend = "setuptools.build_meta"
+requires = ["hatchling", "hatch-vcs"]
+build-backend = "hatchling.build"
 
 [project]
 name = "coreason-workspace-env"
-version = "2.1.0"
+dynamic = ["version"]
 description = "Scalable, Async, Multi-Tenant LangGraph Platform"
 authors = [
   { name="Gowtham A Rao, MD, PhD", email="gowtham.rao@coreason.ai" }
@@ -19,18 +19,20 @@ classifiers = [
 dependencies = [
     "fastapi>=0.100",
     "uvicorn>=0.20",
-    "asyncpg>=0.29.0",
+    "asyncpg>=0.31.0",
     "redis>=5.0",
     "pydantic-settings>=2.0",
     "langgraph>=0.0.10",
     "alembic>=1.13.0",
-    "psycopg2-binary>=2.9.0",
+    "psycopg2-binary>=2.9.12",
     "coreason-manifest>=0.98.0"
 ]
 
 [project.scripts]
 coreason = "src.cli.main:cli_entry"
 
-[tool.setuptools.packages.find]
-where = ["."]
-include = ["src*"]
+[tool.hatch.version]
+source = "vcs"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src"]
