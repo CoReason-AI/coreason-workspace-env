@@ -79,3 +79,8 @@ The validator returns a structured result:
 - [ ] Does the agent import schemas from coreason_manifest instead of declaring them locally?
 - [ ] Does the agent use uuid.uuid7() natively instead of uuid.uuid4() for primary keys?
 - [ ] **FAIL** if local schema duplication or uuid.uuid4() is found.
+
+### V9. Jinja2 Decoupling Pattern
+- [ ] Does the agent attempt to write Markdown files containing computational or empirical data directly inline (e.g., via f-strings or LLM generation)?
+- [ ] Does the agent adhere to the 3-step Jinja2 Decoupling Pattern (Emitter script -> `.md.j2` Template -> Compiler script) for empirical data?
+- [ ] **FAIL** if any Markdown reports with computed data are not utilizing the Jinja2 decoupling pattern.
