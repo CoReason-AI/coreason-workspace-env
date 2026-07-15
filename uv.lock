@@ -355,7 +355,7 @@ requires-dist = [
     { name = "coreason-manifest", specifier = ">=0.98.0" },
     { name = "dowhy", specifier = ">=0.11" },
     { name = "fastapi", specifier = ">=0.100" },
-    { name = "langgraph", specifier = ">=0.0.10" },
+    { name = "langgraph", specifier = ">=0.2.20" },
     { name = "networkx", specifier = ">=3.0" },
     { name = "pandas", specifier = ">=2.0" },
     { name = "prompt-toolkit", specifier = ">=3.0.52" },
