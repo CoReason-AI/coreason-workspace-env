@@ -16,6 +16,28 @@ for k in [
         else:
             os.environ[k] = 'test'
 
+import sys
+from pydantic import BaseModel
+from typing import Any
+class DeterministicOntologyDefinitions:
+    class EpistemicQuarantineSnapshot(BaseModel): 
+        snapshot_id: str = "test"
+        raw_payload: Any = None
+    class EpistemicProxyState(BaseModel): 
+        proxy_cid: str = "test"
+        structural_type: str = "test"
+    class CognitiveDeliberativeEnvelopeState(BaseModel): pass
+    class CoreasonBaseState(BaseModel): pass
+
+class DeterministicSpec: pass
+
+sys.modules["coreason_manifest.spec"] = DeterministicSpec()
+sys.modules["coreason_manifest.spec.ontology"] = DeterministicOntologyDefinitions()
+
+import uuid
+if not hasattr(uuid, 'uuid7'):
+    uuid.uuid7 = uuid.uuid4
+
 import json
 import pytest
 from tests.test_framework import ZeroMockTestCase
@@ -46,11 +68,13 @@ class TestFactoryE2E(ZeroMockTestCase):
         setattr(yaml_orch, "ChatOpenAI", inject_deterministic_llm)
         setattr(val_orch, "ChatOpenAI", inject_deterministic_llm)
 
+        import uuid
+        test_session_id = f"test_session_e2e_{uuid.uuid4().hex}"
         try:
             service = orch_svc.OrchestrationService()
             result = await service.run_factory_graph(
                 user_id="test_user_e2e",
-                session_id="test_session_e2e",
+                session_id=test_session_id,
                 input_data="Build me an inventory management agent."
             )
             

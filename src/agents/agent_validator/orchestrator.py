@@ -2,7 +2,7 @@ import os
 import yaml
 import logging
 from typing import Any, Dict
-from deepagents import DeepAgent
+from src.core.base_agent import DeepAgent
 from langchain_openai import ChatOpenAI
 from langchain_core.messages import SystemMessage, HumanMessage
 from pydantic import BaseModel, Field

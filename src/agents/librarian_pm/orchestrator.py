@@ -2,7 +2,7 @@ import os
 import yaml
 import logging
 from typing import Any, Dict, TypedDict
-from deepagents import DeepAgent
+from src.core.base_agent import DeepAgent
 from langgraph.graph import StateGraph, END
 
 logger = logging.getLogger(__name__)

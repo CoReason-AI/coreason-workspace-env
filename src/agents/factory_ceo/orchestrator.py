@@ -2,16 +2,16 @@ from typing import Any, Dict, TypedDict
 import uuid
 import os
 import yaml
-from deepagents import DeepAgent
+from src.core.base_agent import DeepAgent
 from langchain_openai import ChatOpenAI
 from langchain_core.messages import HumanMessage, SystemMessage
 from langgraph.graph import StateGraph, END
 
-from coreason_manifest.spec.ontology import (
+from src.core.schemas.epistemic_firewall import (
     EpistemicQuarantineSnapshot,
-    EpistemicProxyState
+    EpistemicProxyState,
+    LibrarianRoutingState
 )
-from src.core.schemas.epistemic_firewall import LibrarianRoutingState
 from src.core.db import get_db_pool
 
 import logging
@@ -133,5 +133,5 @@ class FactoryCeoAgent(DeepAgent):
         
         self.graph = self.graph_builder.compile()
 
-    def execute(self, context: dict, session_id: str = None) -> Any:
-        return self.graph.invoke(context, config={"configurable": {"thread_id": session_id or str(uuid.uuid7())}})
+    async def execute(self, context: dict, session_id: str = None) -> Any:
+        return await self.graph.ainvoke(context, config={"configurable": {"thread_id": session_id or str(uuid.uuid7())}})

@@ -1,7 +1,7 @@
 import logging
 from typing import Any
 from langgraph.graph import StateGraph, START, END
-from deepagents import DeepAgent
+from src.core.base_agent import DeepAgent
 
 from src.core.schemas.epistemic_firewall import LibrarianRoutingState
 from src.core.services import mcp_tool_service

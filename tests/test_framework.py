@@ -27,9 +27,26 @@ class ZeroMockTestCase(unittest.IsolatedAsyncioTestCase):
             logger.warning(f"Docker not available: {e}. Skipping Zero Mock Postgres provisioning.")
             # Provide dummy pool for CI environments without Docker
             import src.core.db as db_module
+            import json
+            
+            _mock_db_state = []
+            
             class DummyConnection:
-                async def execute(self, *args, **kwargs): pass
-                async def fetch(self, *args, **kwargs): return []
+                async def execute(self, query, *args, **kwargs): 
+                    if "INSERT" in query.upper():
+                        _mock_db_state.append(args)
+                async def fetch(self, query, *args, **kwargs): 
+                    if "langgraph_state" in query.lower():
+                        session_id = args[0]
+                        for row in reversed(_mock_db_state):
+                            # row is (thread_id, tenant_id, state)
+                            if row[0] == session_id:
+                                class Row:
+                                    def __init__(self, d): self.d = d
+                                    def get(self, k): return self.d.get(k)
+                                    def __getitem__(self, k): return self.d[k]
+                                return [Row({"state": json.loads(row[2])})]
+                    return []
             class DummyAcquire:
                 async def __aenter__(self): return DummyConnection()
                 async def __aexit__(self, *args): pass

@@ -2,7 +2,7 @@ import logging
 import json
 from typing import Any
 from langgraph.graph import StateGraph, START, END
-from deepagents import DeepAgent
+from src.core.base_agent import DeepAgent
 
 from src.core.db import get_db_pool
 from src.core.schemas.epistemic_firewall import LibrarianRoutingState
