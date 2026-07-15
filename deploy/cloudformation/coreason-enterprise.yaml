@@ -1,0 +1,86 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'CoReason Workspace Environment Enterprise Deployment (ECS Fargate)'
+
+Parameters:
+  VpcId:
+    Type: AWS::EC2::VPC::Id
+    Description: VPC ID where the platform will be deployed.
+  SubnetIds:
+    Type: List<AWS::EC2::Subnet::Id>
+    Description: Subnet IDs for ECS Tasks.
+  ApiSecretToken:
+    Type: String
+    NoEcho: true
+    Description: Secret token for API authentication.
+  PostgresHost:
+    Type: String
+    Description: Hostname of existing Postgres DB.
+  RedisUrl:
+    Type: String
+    Description: Connection string for existing Redis.
+
+Resources:
+  EcsCluster:
+    Type: AWS::ECS::Cluster
+    Properties:
+      ClusterName: coreason-cluster
+
+  PlatformTaskDefinition:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      Family: coreason-platform
+      Cpu: '1024'
+      Memory: '2048'
+      NetworkMode: awsvpc
+      RequiresCompatibilities:
+        - FARGATE
+      ExecutionRoleArn: !Ref ExecutionRole
+      ContainerDefinitions:
+        - Name: platform-server
+          Image: ghcr.io/coreason-ai/coreason-workspace-env:develop
+          PortMappings:
+            - ContainerPort: 8000
+          Environment:
+            - Name: API_SECRET_TOKEN
+              Value: !Ref ApiSecretToken
+            - Name: POSTGRES_HOST
+              Value: !Ref PostgresHost
+            - Name: REDIS_URL
+              Value: !Ref RedisUrl
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group: /ecs/coreason-platform
+              awslogs-region: !Ref AWS::Region
+              awslogs-stream-prefix: ecs
+
+  ExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
+
+  PlatformService:
+    Type: AWS::ECS::Service
+    Properties:
+      Cluster: !Ref EcsCluster
+      ServiceName: coreason-api
+      TaskDefinition: !Ref PlatformTaskDefinition
+      DesiredCount: 2
+      LaunchType: FARGATE
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: ENABLED
+          Subnets: !Ref SubnetIds
+
+Outputs:
+  ClusterName:
+    Description: Name of the ECS cluster
+    Value: !Ref EcsCluster

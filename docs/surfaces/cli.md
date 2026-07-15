@@ -27,6 +27,8 @@ To launch the CLI and interface with your CoReason Workspace Environment:
 
 ```bash
 # Ensure the MCP server definition (.mcp.json) is present in the workspace
+# Export the API token so the CLI can authenticate with the secured platform
+export COREASON_API_TOKEN="coreason-dev-token"
 uv run dcode
 ```
 

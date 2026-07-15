@@ -18,6 +18,7 @@ Before running the platform, configure your environment:
 cp .env.example .env
 ```
 Open `.env` and set your `LLM_API_KEY`, `LLM_MODEL_NAME`, and `LLM_BASE_URL`. This allows you to securely swap between cloud providers or local vLLM deployments without touching the source code.
+Additionally, ensure you set `API_SECRET_TOKEN` to secure the platform endpoints, and `REDIS_QUEUE_NAME` (which defaults to `tasks`) if you are customizing the KEDA worker deployment.
 
 ## Installation
 
@@ -32,13 +33,17 @@ uv sync --all-extras
 
 ## Running the Platform
 
-The CoReason platform relies on a distributed multi-tenant architecture utilizing PostgreSQL, Redis, and KEDA workers. The easiest way to spin this up locally is via Docker Compose:
+The CoReason platform relies on a distributed multi-tenant architecture utilizing PostgreSQL, Redis, and a background task daemon. The easiest way to spin this up locally is via Docker Compose:
 
 ```bash
 docker-compose up -d --build
 ```
 
 This will automatically spin up the `platform_server`, `postgres_checkpointer`, `redis_queue`, and `platform_worker` components. The REST API and SSE streams will be available, and the MCP server will dynamically query the Postgres database for state tracking.
+
+> [!TIP]
+> **Going to Production?**
+> If you are deploying to an enterprise environment (AWS, Azure), check out our [Deploying Guide](guides/deploying.md) for 1-click Terraform, OpenTofu, and CloudFormation templates.
 
 ## Executing Exported Artifacts
 

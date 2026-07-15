@@ -14,7 +14,8 @@ class DistributedTaskQueue:
     """
     def __init__(self):
         self.redis_client = redis.Redis.from_url(settings.REDIS_URL, decode_responses=True)
-        self.queue_name = "langgraph_execution_queue"
+        import os
+        self.queue_name = os.getenv("REDIS_QUEUE_NAME", "tasks")
         
     def enqueue_workflow(self, session_id: str, agent_name: str, payload: Dict[str, Any]):
         """

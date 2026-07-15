@@ -26,8 +26,8 @@ async def agent_progress_endpoint(websocket: WebSocket, job_id: str):
     async def on_message(message: str):
         try:
             await websocket.send_text(message)
-        except Exception:
-            pass  # Client disconnected
+        except Exception as e:
+            logger.debug("WebSocket client disconnected: %s", e)
 
     await pubsub_backplane.subscribe(channel, on_message)
 

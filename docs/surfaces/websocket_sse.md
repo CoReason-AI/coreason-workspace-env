@@ -4,6 +4,10 @@ Long-running multi-agent workflows present a unique observability challenge. Bec
 
 The CoReason Workspace Environment exposes **WebSocket** and **Server-Sent Events (SSE)** as first-class interaction surfaces, enabling real-time telemetry and state interaction.
 
+## Authentication
+
+Like the REST API, all WebSocket and SSE endpoints are strictly secured. Clients must initiate connections with the appropriate authentication headers or query parameters (e.g., passing the `API_SECRET_TOKEN` as a bearer token or query string `?token=...` depending on the client library capabilities) to establish a successful connection.
+
 ## Real-Time Observability via JSON Patch
 
 Every execution node, internal thought process, tool invocation, and validation error within the LangGraph state machine is broadcast in real-time. 

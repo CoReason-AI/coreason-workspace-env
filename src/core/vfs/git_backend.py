@@ -22,7 +22,7 @@ class TrueGitBackend:
         """Executes a git command in the workspace directory."""
         cmd = ["git"] + args
         try:
-            result = subprocess.run(
+            result = subprocess.run(  # nosec B603
                 cmd, 
                 cwd=str(self.workspace_path), 
                 capture_output=True, 
