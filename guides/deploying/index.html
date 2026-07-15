@@ -1052,10 +1052,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#immutable-agent-sandboxes" class="md-nav__link">
+  <a href="#immutable-agent-sandboxes-the-nemoclaw-blueprint" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Immutable Agent Sandboxes
+        Immutable Agent Sandboxes &amp; The NemoClaw Blueprint
       
     </span>
   </a>
@@ -1114,10 +1114,10 @@
 <p>For large-scale, distributed deployments, the entire orchestrator, Postgres Checkpointer, and execution nodes are packaged as a unified Helm chart. This allows for seamless deployment into existing enterprise Kubernetes clusters (e.g., EKS, GKE, AKS).</p>
 <h3 id="2-air-gapped-edge-k3s">2. Air-Gapped Edge (K3s)</h3>
 <p>For highly secure, internet-denied environments (such as on-premise defense or pharmaceutical R&amp;D labs), the platform is available as a standalone K3s distribution. The platform natively functions completely air-gapped; all language models must run locally or via an internal VPC endpoint, and all tools must rely on internal data.</p>
-<h2 id="immutable-agent-sandboxes">Immutable Agent Sandboxes</h2>
-<p>A critical security mandate for production deployment is <strong>Deterministic Dependencies</strong>.</p>
+<h2 id="immutable-agent-sandboxes-the-nemoclaw-blueprint">Immutable Agent Sandboxes &amp; The NemoClaw Blueprint</h2>
+<p>A critical security mandate for production deployment is <strong>Deterministic Dependencies</strong> and zero-trust execution. The platform utilizes the <strong>NemoClaw for Deep Agents</strong> blueprint as its reference architecture for securing agent operations.</p>
 <p>When an agent is deployed, it is packaged as a standalone Docker image defined by its <code>project.yaml</code> manifest. 
-- <strong>Ephemeral Pods</strong>: Agents operate strictly within isolated, ephemeral Kubernetes pod sandboxes managed by the OpenShell Gateway.
+- <strong>NemoClaw Governed Sandboxes</strong>: Agents operate strictly within isolated, ephemeral Kubernetes pod sandboxes managed by the <strong>NVIDIA OpenShell Gateway</strong> (part of the NemoClaw stack). This ensures that autonomous operations on sensitive codebases proceed without risk of data exfiltration.
 - <strong>No Dynamic Installs</strong>: Dynamic <code>pip install</code> commands at runtime are mathematically forbidden. All dependencies must be strictly locked and baked into the image during the CI/CD pipeline. This guarantees that an agent deployed today will execute identically three years from now, and prevents supply-chain attacks in air-gapped environments.</p>
 <h2 id="the-model-context-protocol">The Model Context Protocol</h2>
 <p>Once deployed, the easiest way to interact with the cluster is via the Model Context Protocol (MCP). The entire platform exposes itself as a headless MCP server. </p>
