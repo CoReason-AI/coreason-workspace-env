@@ -790,6 +790,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Air-Gapped Interoperability">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#non-blocking-portability-tools" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Non-Blocking Portability Tools
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
     </ul>
@@ -1097,6 +1114,10 @@
 <p><em>Technical Note: The MCP Server itself remains stateless; it resolves requests (such as <code>get_workspace_state</code>) by dynamically querying the underlying Postgres <code>langgraph_state</code> checkpointer. </em><em>This integration natively enforces Multi-Tenant State Isolation</em><em>, actively filtering queries by <code>tenant_id</code> to strictly prevent cross-tenant data leakage. This enables true, secure cross-process state inspection for external IDEs like Cursor.</em></p>
 <h2 id="air-gapped-interoperability">Air-Gapped Interoperability</h2>
 <p>While some observability platforms offer proprietary SaaS mechanisms to expose agents as servers, the CoReason platform embeds this capability directly into its core infrastructure. This eliminates vendor lock-in to external observability providers and allows for highly secure, air-gapped, on-premise enterprise deployments.</p>
+<h3 id="non-blocking-portability-tools">Non-Blocking Portability Tools</h3>
+<p>Unlike the SDK and CLI—which automatically block and poll on your behalf—the MCP Server exposes the Portability Engine (<code>push_project</code>, <code>pull_project</code>, <code>export_project</code>, <code>import_project</code>) completely asynchronously. </p>
+<p>When an AI agent orchestrates this platform, executing an OCI registry push of a 5GB Docker image could take 10 minutes. Rather than blocking the agent's context window, the MCP tool instantly returns a <code>job_id</code>. 
+The upstream orchestrator can continue processing other parallel tasks, manually checking the new <code>get_portability_job_status</code> tool at its discretion.</p>
 
 
 
