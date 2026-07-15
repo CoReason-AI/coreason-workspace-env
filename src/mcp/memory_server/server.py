@@ -12,9 +12,14 @@ except ImportError:
 
 # Configure logging to stderr (stdio is used for MCP)
 logging.basicConfig(level=logging.INFO, format='%(name)s - %(levelname)s - %(message)s', stream=sys.stderr)
+from src.core.config import settings
+
 logger = logging.getLogger("memory_server")
 
-DB_DSN = os.environ.get("POSTGRES_DSN", "postgresql://admin:password@localhost:5432/knowledge_db")
+DB_DSN = (
+    f"postgresql://{settings.POSTGRES_USER}:{settings.POSTGRES_PASSWORD}"
+    f"@{settings.POSTGRES_HOST}:{settings.POSTGRES_PORT}/{settings.POSTGRES_DB}"
+)
 
 async def init_db(pool):
     """

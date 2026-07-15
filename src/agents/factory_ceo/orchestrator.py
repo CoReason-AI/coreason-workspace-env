@@ -48,7 +48,9 @@ async def epistemic_interceptor_node(state: dict[str, Any]) -> dict[str, Any]:
             structural_type="HumanTranscript"
         )
         
-        state["raw_transcript"] = None
-        state["epistemic_proxy"] = proxy
+        return {
+            "raw_transcript": None,
+            "epistemic_proxy": proxy
+        }
         
-    return state
+    return {}
