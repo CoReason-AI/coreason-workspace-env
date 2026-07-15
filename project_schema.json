@@ -1,0 +1,30 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "CoReason Project Plugin Manifest",
+    "type": "object",
+    "properties": {
+        "project_name": { "type": "string" },
+        "version": { "type": "string" },
+        "agent_name": { "type": "string" },
+        "system_prompt": { "type": "string" },
+        "docker_image": { "type": "string", "description": "The portable Docker image containing the environment." },
+        "mcp_servers": {
+            "type": "object",
+            "additionalProperties": {
+                "type": "object",
+                "properties": {
+                    "command": { "type": "string" },
+                    "args": { "type": "array", "items": { "type": "string" } },
+                    "env": { "type": "object", "additionalProperties": { "type": "string" } },
+                    "rbac_level": { 
+                        "type": "string", 
+                        "enum": ["readonly", "destructive_jit"],
+                        "description": "Defines if this tool requires JIT Supervisory Escalation."
+                    }
+                },
+                "required": ["command", "args"]
+            }
+        }
+    },
+    "required": ["project_name", "version", "agent_name", "system_prompt"]
+}

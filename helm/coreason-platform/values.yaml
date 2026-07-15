@@ -1,0 +1,37 @@
+replicaCount: 1
+
+image:
+  repository: coreason/platform
+  pullPolicy: IfNotPresent
+  tag: "latest"
+
+service:
+  type: ClusterIP
+  port: 80
+
+resources:
+  limits:
+    cpu: 2000m
+    memory: 2Gi
+  requests:
+    cpu: 500m
+    memory: 1Gi
+
+# CISO Requirements
+securityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  readOnlyRootFilesystem: true
+
+# Sub-charts for Infinite Scalability
+redis:
+  enabled: true
+  architecture: replication
+  auth:
+    enabled: true
+
+postgresql:
+  enabled: true
+  auth:
+    database: coreason_db
+    username: coreason_admin
