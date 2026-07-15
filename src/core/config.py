@@ -14,6 +14,7 @@ class Settings(BaseSettings):
     # Secrets & Vault (OIDC Federation)
     VAULT_ADDR: str
     VAULT_NAMESPACE: str
+    JWT_SECRET_KEY: str = "fallback_secret_for_local_dev"
     
     # Checkpointer Database (Postgres)
     POSTGRES_USER: str
