@@ -632,6 +632,17 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#structural-eventing-trackers-accordion-ux" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Structural Eventing: Trackers &amp; Accordion UX
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -1108,6 +1119,11 @@
 - Agents are only provided the tools and context they need for their immediate mathematical or functional objective, keeping context windows pristine and highly token-efficient.</p>
 <h2 id="project-oriented-isolation">Project-Oriented Isolation</h2>
 <p>As an agent-building factory, the platform strictly isolates one agent per folder (<code>src/agents/&lt;agent_name&gt;</code>). The <code>name</code> field in every <code>agent.yaml</code> MUST exactly match the <code>snake_case</code> name of the folder it resides in. This namespace and taxonomy consistency mathematically ensures that internal routing IDs perfectly match the filesystem routing logic.</p>
+<h2 id="structural-eventing-trackers-accordion-ux">Structural Eventing: Trackers &amp; Accordion UX</h2>
+<p>To prevent cognitive overload from raw streaming log spew, the platform strictly enforces structural eventing inside agent workflows:
+- <strong>Tracker Task Lists</strong>: Agents are mandated to maintain and stream structured TODO checklists outlining their planned and completed tasks.
+- <strong>Accordion Summaries</strong>: Agents summarize their progress at key execution steps, providing human-readable checkpoint digests.</p>
+<p>This structural data is broadcast seamlessly over JSON Patch state streams, allowing downstream clients (like the <code>dcode</code> DeepAgents Code TUI) to render polished <strong>Accordion UX</strong> interfaces. Users can monitor macro-level progress via task summaries and expand accordions only when they need to drill down into raw LLM telemetry.</p>
 
 
 

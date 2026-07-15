@@ -696,10 +696,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#1-the-maker-generation" class="md-nav__link">
+  <a href="#1-tier-1-deterministic-validation-fail-fast" class="md-nav__link">
     <span class="md-ellipsis">
       
-        1. The Maker (Generation)
+        1. Tier 1 Deterministic Validation (Fail Fast)
       
     </span>
   </a>
@@ -707,10 +707,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#2-the-checker-deterministic-validation" class="md-nav__link">
+  <a href="#2-the-maker-generation" class="md-nav__link">
     <span class="md-ellipsis">
       
-        2. The Checker (Deterministic Validation)
+        2. The Maker (Generation)
       
     </span>
   </a>
@@ -718,10 +718,21 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#3-remediation-or-the-approver" class="md-nav__link">
+  <a href="#3-the-checker-deterministic-validation" class="md-nav__link">
     <span class="md-ellipsis">
       
-        3. Remediation or The Approver
+        3. The Checker (Deterministic Validation)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-remediation-or-the-approver" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Remediation or The Approver
       
     </span>
   </a>
@@ -1126,15 +1137,19 @@
 <p>Because both the generator and the critic are susceptible to the identical fundamental failure modes—hallucination, sycophancy, and mathematical inability—stochastic evaluation frequently results in <strong>false positives</strong>, where broken code or invalid JSON payloads are enthusiastically approved by a sycophantic critic agent.</p>
 <h2 id="deterministic-quality-gates">Deterministic Quality Gates</h2>
 <p>The CoReason platform fundamentally rejects stochastic self-correction for structural and syntactical validation. Instead, it enforces a rigid <strong>Maker-Checker-Approver</strong> pipeline that natively integrates mathematical and programmatic boundary checks.</p>
-<h3 id="1-the-maker-generation">1. The Maker (Generation)</h3>
+<h3 id="1-tier-1-deterministic-validation-fail-fast">1. Tier 1 Deterministic Validation (Fail Fast)</h3>
+<p>Before heavily orchestrating complex tasks, the platform implements a strictly-typed <strong>Tier 1 Validation Registry</strong>. </p>
+<p>If incoming payloads or agent-generated structures fail these core definitions, the pipeline instantly errors out or triggers a deterministic rollback. This completely eliminates wasted LLM tokens processing fundamentally invalid payloads.</p>
+<h3 id="2-the-maker-generation">2. The Maker (Generation)</h3>
 <p>An isolated sub-agent (the Maker) generates the required artifact, such as Python code, JSON payloads, or SQL queries.</p>
-<h3 id="2-the-checker-deterministic-validation">2. The Checker (Deterministic Validation)</h3>
-<p>Rather than passing this artifact to another language model, it is intercepted by a purely deterministic LangGraph node (the Checker). <strong>This node executes zero generative LLM calls.</strong></p>
-<p>Instead, it runs the artifact against rigid validation boundaries:
+<h3 id="3-the-checker-deterministic-validation">3. The Checker (Deterministic Validation)</h3>
+<p>Rather than passing this artifact to another language model, it is intercepted by a purely deterministic LangGraph node (the Checker). <strong>This node executes zero generative LLM calls.</strong> </p>
+<p>Furthermore, elements like the <code>jinja2_ast_auditor</code> are strictly decoupled from the stochastic LLM tool registry, ensuring they act only as rigid evaluation bounds rather than flexible tools.</p>
+<p>It runs the artifact against rigid validation boundaries:
 - Abstract Syntax Tree (AST) parsers
 - Strictly enforced <code>Pydantic</code> data validation models
 - Isolated code execution sandboxes</p>
-<h3 id="3-remediation-or-the-approver">3. Remediation or The Approver</h3>
+<h3 id="4-remediation-or-the-approver">4. Remediation or The Approver</h3>
 <p>If the AST check fails or the generated JSON violates the Pydantic boundaries, the Checker node programmatically generates a deterministic error payload and automatically routes the state machine back to the Maker agent for remediation.</p>
 <p>Only when the artifact mathematically passes <em>all</em> deterministic boundary checks does the system allow it to proceed to an <strong>Approver</strong> (a Project Manager agent or a Human-in-the-Loop) for final semantic approval.</p>
 <h2 id="structural-integrity-first">Structural Integrity First</h2>

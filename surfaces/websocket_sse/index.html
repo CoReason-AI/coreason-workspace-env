@@ -844,10 +844,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#real-time-observability" class="md-nav__link">
+  <a href="#real-time-observability-via-json-patch" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Real-Time Observability
+        Real-Time Observability via JSON Patch
       
     </span>
   </a>
@@ -1083,23 +1083,24 @@
 <h1 id="websocket-and-sse-streaming">WebSocket and SSE Streaming</h1>
 <p>Long-running multi-agent workflows present a unique observability challenge. Because deterministically routed graphs can execute for several minutes or even hours (especially when waiting on Human-in-the-Loop approvals or massive data ETL operations), synchronous request-response models are insufficient.</p>
 <p>The CoReason Workspace Environment exposes <strong>WebSocket</strong> and <strong>Server-Sent Events (SSE)</strong> as first-class interaction surfaces, enabling real-time telemetry and state interaction.</p>
-<h2 id="real-time-observability">Real-Time Observability</h2>
+<h2 id="real-time-observability-via-json-patch">Real-Time Observability via JSON Patch</h2>
 <p>Every execution node, internal thought process, tool invocation, and validation error within the LangGraph state machine is broadcast in real-time. </p>
+<p>To optimize payload size and network efficiency, the platform utilizes a <code>StateDeltaPublisher</code>. Instead of passing bloated, complete state dictionaries on every graph tick, the platform generates and broadcasts standard <strong>RFC 6902 JSON Patch</strong> streams over Redis PubSub.</p>
 <ul>
 <li><strong>SSE (Server-Sent Events)</strong>: Ideal for uni-directional telemetry, used primarily by headless dashboards or logging aggregators simply looking to monitor a job's progress.</li>
-<li><strong>WebSockets</strong>: A full-duplex bi-directional channel enabling interaction with the live state stream.</li>
+<li><strong>WebSockets</strong>: A full-duplex bi-directional channel enabling interaction with the live JSON Patch state stream.</li>
 </ul>
 <h2 id="time-travel-debugging-state-sync">Time-Travel Debugging (State Sync)</h2>
-<p>The <code>src/api/streaming/state_sync.py</code> WebSocket endpoint streams real-time LangGraph state updates directly from the Postgres checkpointer.</p>
-<p>Because the state is streamed synchronously, developers can build live interactive tooling on top of the agent. The primary example of this is the platform's native Time-Travel Debugger.</p>
-<p>If an agent hallucinates or encounters an execution failure deep within a complex workflow, the WebSocket connection allows a client (such as the CoReason CLI) to transmit a <code>rewind</code> command accompanied by a specific <code>checkpoint_id</code>. </p>
+<p>The WebSocket endpoints stream real-time JSON Patch state updates directly originating from the Postgres checkpointer.</p>
+<p>Because the state is streamed synchronously, developers can build live interactive tooling on top of the agent. The primary example of this is the platform's native Time-Travel Debugger, accessible via the <code>dcode</code> Text User Interface.</p>
+<p>If an agent hallucinates or encounters an execution failure deep within a complex workflow, the WebSocket connection allows a client to transmit a <code>rewind</code> command accompanied by a specific <code>checkpoint_id</code>. </p>
 <p>The orchestrator will:
 1. Halt the current execution graph.
 2. Rollback the database state to the exact node matching the <code>checkpoint_id</code>.
 3. Allow the developer to hot-swap code or modify the payload.
 4. Resume execution deterministically from the restored checkpoint.</p>
 <h2 id="universal-subscription">Universal Subscription</h2>
-<p>Following the Multi-Surface Parity mandate, all other platform surfaces (CLI, Python SDK, MCP Server) inherently rely on and subscribe to these streaming endpoints for their respective real-time consumers.</p>
+<p>Following the Multi-Surface Parity mandate, all other platform surfaces (like the Python SDK and MCP Server) inherently rely on and subscribe to these streaming endpoints for their respective real-time consumers.</p>
 
 
 

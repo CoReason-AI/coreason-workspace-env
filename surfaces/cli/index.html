@@ -788,44 +788,22 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#core-commands" class="md-nav__link">
+  <a href="#the-deepagents-tui-dcode" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Core Commands
+        The DeepAgents TUI (dcode)
       
     </span>
   </a>
   
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#output-formatting" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Output Formatting
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#real-time-state-debugging" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Real-Time State Debugging
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Real-Time State Debugging">
+    <nav class="md-nav" aria-label="The DeepAgents TUI (dcode)">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#the-rewind-command" class="md-nav__link">
+  <a href="#capabilities" class="md-nav__link">
     <span class="md-ellipsis">
       
-        The rewind Command
+        Capabilities
       
     </span>
   </a>
@@ -834,6 +812,17 @@
         
       </ul>
     </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#connecting-the-cli" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Connecting the CLI
+      
+    </span>
+  </a>
   
 </li>
       
@@ -1098,30 +1087,25 @@
 
 
 <h1 id="command-line-interface-cli">Command Line Interface (CLI)</h1>
-<p>The CoReason Workspace Environment mandates strict <strong>Multi-Surface Parity</strong>. The Command Line Interface is a first-class interaction surface, providing complete parity with the REST API. </p>
-<p>All CLI operations are thin transport adapters over the shared <code>src.core.services</code> layer. Anything achievable through the web dashboard or API is equally achievable in an air-gapped terminal via the CLI.</p>
-<h2 id="core-commands">Core Commands</h2>
-<p>The CLI is invoked via the <code>coreason</code> shell alias (or <code>python -m src.cli.main</code>). </p>
-<p>It provides command groups mirroring the platform's core architecture:
-- <code>health</code>: Check platform health (Postgres, Redis) and version information.
-- <code>projects</code>: Create, list, delete, and export agent projects for air-gap transfer.
-- <code>agents</code>: Execute agent workflows, check job status, and retrieve agent definitions.
-- <code>mcp</code>: List connected MCP servers and manually execute MCP tools.
-- <code>docs</code>: Generate documentation scaffolds.
-- <code>state</code>: Manage and visualize state synchronization.</p>
-<h2 id="output-formatting">Output Formatting</h2>
-<p>By default, the CLI outputs perfectly structured <strong>JSON</strong>, making it natively parseable by upstream CI/CD pipelines, bash scripts, and orchestrating agents. </p>
-<p>For human readability in the terminal, you can append the <code>--pretty</code> flag to any command to format the output.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>uv<span class="w"> </span>run<span class="w"> </span>coreason<span class="w"> </span>projects<span class="w"> </span>list<span class="w"> </span>--pretty
+<p>The CoReason Workspace Environment mandates strict <strong>Multi-Surface Parity</strong>. The Command Line Interface is a first-class interaction surface, providing complete parity with the REST API and the Model Context Protocol (MCP).</p>
+<p>All CLI operations are natively integrated into the shared <code>src.core.services</code> layer. Anything achievable through the web dashboard or API is equally achievable in an air-gapped terminal.</p>
+<h2 id="the-deepagents-tui-dcode">The DeepAgents TUI (<code>dcode</code>)</h2>
+<p>The environment utilizes the advanced <strong>DeepAgents Code TUI</strong> (<code>dcode</code>) as its primary terminal-based user interface.</p>
+<p>This powerful Text User Interface is invoked directly via the <code>dcode</code> shell alias.</p>
+<p>Rather than relying on proprietary, one-off synchronous HTTP requests, <code>dcode</code> operates as a native <strong>MCP Client</strong>. It automatically discovers the platform's headless MCP server and interacts with the internal LangGraph state machine via standard tools and prompt resources.</p>
+<h3 id="capabilities">Capabilities</h3>
+<ul>
+<li><strong>Rich Interactive UI</strong>: Built on <code>textual</code>, providing an IDE-like terminal experience.</li>
+<li><strong>Agent Orchestration</strong>: Execute complex agent workflows (Maker-Checker validation pipelines) natively from the terminal.</li>
+<li><strong>Accordion Task Tracking</strong>: Agent steps, tracker task lists, and summary updates are displayed via expandable accordions, shielding you from raw log spew.</li>
+<li><strong>Real-Time State Streaming</strong>: Connects to the platform's RFC 6902 JSON Patch streams to observe deterministic workflow routing without polling.</li>
+</ul>
+<h2 id="connecting-the-cli">Connecting the CLI</h2>
+<p>To launch the CLI and interface with your CoReason Workspace Environment:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1"># Ensure the MCP server definition (.mcp.json) is present in the workspace</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>uv<span class="w"> </span>run<span class="w"> </span>dcode
 </code></pre></div>
-<h2 id="real-time-state-debugging">Real-Time State Debugging</h2>
-<p>Because the platform uses the LangGraph Postgres Checkpointer to save the state of every single node execution, you don't have to restart a 10-step agent workflow just because step 8 failed.</p>
-<p>The CLI provides a dedicated time-travel debugger that connects directly to the platform's WebSocket streaming backend:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>uv<span class="w"> </span>run<span class="w"> </span>coreason<span class="w"> </span>state<span class="w"> </span>watch<span class="w"> </span>--session-id<span class="w"> </span>&lt;session_id&gt;
-</code></pre></div>
-<h3 id="the-rewind-command">The <code>rewind</code> Command</h3>
-<p>While watching the live JSON stream of LangGraph state updates, you can type <code>rewind &lt;checkpoint_uuid7&gt;</code> at the prompt. </p>
-<p>The CLI uses the <code>prompt_toolkit</code> library to gracefully handle asynchronous output collisions—meaning the live JSON stream will print <em>above</em> your prompt without garbling your keystrokes. When you issue a rewind command, the platform will instantly rollback the agent's state to that exact checkpoint in the Postgres database, allowing you to edit your code and resume execution perfectly from the point of failure.</p>
+<p>Since the environment operates as a headless MCP server, <code>dcode</code> abstracts away the topology complexity. Upstream operations are handled deterministically within the platform and streamed directly to your terminal.</p>
 
 
 
