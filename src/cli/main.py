@@ -29,9 +29,15 @@ def _output(data: dict, pretty: bool = False):
 # ──────────────────────────────────────────────
 # Health
 # ──────────────────────────────────────────────
-async def cmd_health(args):
+async def cmd_health_check(args):
     from src.core.services import health_service
     result = await health_service.check()
+    _output(result, args.pretty)
+
+
+async def cmd_health_version(args):
+    from src.core.services import health_service
+    result = health_service.get_version()
     _output(result, args.pretty)
 
 
@@ -111,6 +117,12 @@ async def cmd_agents_execute(args):
     _output(result, args.pretty)
 
 
+async def cmd_agents_status(args):
+    from src.core.services import agent_service
+    result = agent_service.get_execution_status(args.job_id)
+    _output(result, args.pretty)
+
+
 # ──────────────────────────────────────────────
 # MCP
 # ──────────────────────────────────────────────
@@ -147,6 +159,14 @@ async def cmd_docs_generate(args):
 
 
 # ──────────────────────────────────────────────
+# State Sync
+# ──────────────────────────────────────────────
+async def cmd_state_watch(args):
+    from src.cli.state_sync import watch_state_stream
+    await watch_state_stream(session_id=args.session_id, host=args.host, pretty=args.pretty)
+
+
+# ──────────────────────────────────────────────
 # Main parser
 # ──────────────────────────────────────────────
 def build_parser() -> argparse.ArgumentParser:
@@ -158,7 +178,10 @@ def build_parser() -> argparse.ArgumentParser:
     subparsers = parser.add_subparsers(dest="command")
 
     # health
-    subparsers.add_parser("health", help="Check platform health (Postgres, Redis)")
+    health_parser = subparsers.add_parser("health", help="Check platform health (Postgres, Redis) and version")
+    health_sub = health_parser.add_subparsers(dest="subcommand")
+    health_sub.add_parser("check", help="Check platform health (Postgres, Redis)")
+    health_sub.add_parser("version", help="Get platform version info")
 
     # projects
     projects_parser = subparsers.add_parser("projects", help="Manage projects")
@@ -196,6 +219,9 @@ def build_parser() -> argparse.ArgumentParser:
     exec_a.add_argument("--tenant-id", required=True, help="Tenant ID")
     exec_a.add_argument("--payload", default=None, help="JSON payload string")
 
+    status_a = agents_sub.add_parser("status", help="Check agent execution status")
+    status_a.add_argument("--job-id", required=True, help="Job ID")
+
     # mcp
     mcp_parser = subparsers.add_parser("mcp", help="Manage MCP servers and tools")
     mcp_sub = mcp_parser.add_subparsers(dest="subcommand")
@@ -217,12 +243,22 @@ def build_parser() -> argparse.ArgumentParser:
     gen_d.add_argument("--site-name", required=True, help="MkDocs site name")
     gen_d.add_argument("--pages", required=True, help="JSON array of page objects")
 
+    # state
+    state_parser = subparsers.add_parser("state", help="Manage state synchronization")
+    state_sub = state_parser.add_subparsers(dest="subcommand")
+
+    watch_s = state_sub.add_parser("watch", help="Watch live state sync and time-travel")
+    watch_s.add_argument("--session-id", required=True, help="Session ID to watch")
+    watch_s.add_argument("--host", default="ws://localhost:8000", help="Base WebSocket URL")
+
     return parser
 
 
 # Command dispatch table
 _DISPATCH = {
-    ("health", None): cmd_health,
+    ("health", "check"): cmd_health_check,
+    ("health", None): cmd_health_check,  # fallback if no subcommand
+    ("health", "version"): cmd_health_version,
     ("projects", "list"): cmd_projects_list,
     ("projects", "create"): cmd_projects_create,
     ("projects", "get"): cmd_projects_get,
@@ -231,9 +267,11 @@ _DISPATCH = {
     ("agents", "list"): cmd_agents_list,
     ("agents", "get"): cmd_agents_get,
     ("agents", "execute"): cmd_agents_execute,
+    ("agents", "status"): cmd_agents_status,
     ("mcp", "list-servers"): cmd_mcp_list_servers,
     ("mcp", "execute-tool"): cmd_mcp_execute_tool,
     ("docs", "generate"): cmd_docs_generate,
+    ("state", "watch"): cmd_state_watch,
 }
 
 
@@ -259,6 +297,7 @@ def main():
 
     asyncio.run(handler(args))
 
+cli_entry = main
 
 if __name__ == "__main__":
     main()

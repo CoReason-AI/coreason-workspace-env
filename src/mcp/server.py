@@ -32,6 +32,11 @@ def _build_server() -> Server:
                 "inputSchema": {"type": "object", "properties": {}, "required": []},
             },
             {
+                "name": "get_version",
+                "description": "Get platform version info.",
+                "inputSchema": {"type": "object", "properties": {}, "required": []},
+            },
+            {
                 "name": "list_projects",
                 "description": "List all projects in the workspace.",
                 "inputSchema": {"type": "object", "properties": {}, "required": []},
@@ -67,6 +72,18 @@ def _build_server() -> Server:
                 },
             },
             {
+                "name": "export_project",
+                "description": "Export a project for air-gapped transfer.",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "project_id": {"type": "string"},
+                        "output_path": {"type": "string"}
+                    },
+                    "required": ["project_id", "output_path"],
+                },
+            },
+            {
                 "name": "list_agents",
                 "description": "List all agents in the factory with their metadata.",
                 "inputSchema": {"type": "object", "properties": {}, "required": []},
@@ -92,6 +109,15 @@ def _build_server() -> Server:
                         "payload": {"type": "object"},
                     },
                     "required": ["agent_name", "user_id", "tenant_id"],
+                },
+            },
+            {
+                "name": "get_execution_status",
+                "description": "Check the status of an enqueued agent execution.",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {"job_id": {"type": "string"}},
+                    "required": ["job_id"],
                 },
             },
             {
@@ -156,6 +182,10 @@ async def _dispatch_tool(name: str, args: dict) -> Any:
         from src.core.services import health_service
         return await health_service.check()
 
+    elif name == "get_version":
+        from src.core.services import health_service
+        return health_service.get_version()
+
     elif name == "list_projects":
         from src.core.services import project_service
         return {"projects": await project_service.list_projects()}
@@ -179,6 +209,10 @@ async def _dispatch_tool(name: str, args: dict) -> Any:
         deleted = await project_service.delete_project(args["project_id"])
         return {"status": "deleted"} if deleted else {"error": "Not found"}
 
+    elif name == "export_project":
+        from src.core.services import project_service
+        return await project_service.export_project(args["project_id"], args["output_path"])
+
     elif name == "list_agents":
         from src.core.services import agent_service
         return {"agents": agent_service.list_agents()}
@@ -196,6 +230,10 @@ async def _dispatch_tool(name: str, args: dict) -> Any:
             user_id=args["user_id"],
             tenant_id=args["tenant_id"],
         )
+
+    elif name == "get_execution_status":
+        from src.core.services import agent_service
+        return agent_service.get_execution_status(args["job_id"])
 
     elif name == "list_mcp_servers":
         from src.core.services import mcp_tool_service
