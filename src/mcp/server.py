@@ -71,10 +71,43 @@ async def delete_project(project_id: str) -> Dict[str, Any]:
 
 
 @mcp.tool()
-async def export_project(project_id: str, output_path: str) -> Dict[str, Any]:
+async def export_project(project_id: str, output_path: str, skip_state: bool = False, skip_docker: bool = False) -> Dict[str, Any]:
     """Export a project for air-gapped transfer."""
     from src.core.services import project_service
-    return await project_service.export_project(project_id, output_path)
+    return await project_service.export_project(project_id, output_path, skip_state=skip_state, skip_docker=skip_docker)
+
+
+@mcp.tool()
+async def import_project(name: str, import_path: str, description: str = "", skip_state: bool = False, skip_docker: bool = False) -> Dict[str, Any]:
+    """Import a project from an air-gapped export bundle."""
+    from src.core.services import project_service
+    project_id = str(uuid.uuid7())
+    return await project_service.import_project(
+        project_id=project_id,
+        import_path=import_path,
+        name=name,
+        description=description,
+        skip_state=skip_state,
+        skip_docker=skip_docker
+    )
+
+@mcp.tool()
+async def push_project(project_id: str, registry_url: str, skip_state: bool = False, skip_docker: bool = False) -> Dict[str, Any]:
+    """Push a project to an OCI registry. Returns a job_id for async polling."""
+    from src.core.services.portability_service import portability_service
+    return await portability_service.export_to_oci(project_id, registry_url, skip_state=skip_state, skip_docker=skip_docker)
+
+@mcp.tool()
+async def pull_project(oci_uri: str, name: str, description: str = "", skip_state: bool = False, skip_docker: bool = False) -> Dict[str, Any]:
+    """Pull a project from an OCI registry. Returns a job_id for async polling."""
+    from src.core.services.portability_service import portability_service
+    return await portability_service.import_from_oci(oci_uri, name, description, skip_state=skip_state, skip_docker=skip_docker)
+
+@mcp.tool()
+async def get_portability_job_status(job_id: str) -> Dict[str, Any]:
+    """Check the status of an async portability job (Push/Pull)."""
+    from src.core.services.portability_service import portability_service
+    return await portability_service.get_job_status(job_id)
 
 
 @mcp.tool()
