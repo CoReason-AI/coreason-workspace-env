@@ -910,6 +910,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#5-manual-agent-execution-context-engineering" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Manual Agent Execution &amp; Context Engineering
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -1205,10 +1216,10 @@ The <code>build</code> command spins up a temporary session UUID, delegates the 
 <h3 id="2-oci-registry-operations">2. OCI Registry Operations</h3>
 <p>The platform is natively compatible with the OCI (Open Container Initiative) standard, allowing you to push and pull agent bundles directly to enterprise artifact registries (e.g. AWS ECR, GitHub Packages) exactly like Docker images.</p>
 <p><strong>Pushing an Agent Bundle:</strong>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>uv<span class="w"> </span>run<span class="w"> </span>coreason<span class="w"> </span>push_project<span class="w"> </span>01J18H1P9F2M1Q6N9B9Y6W4A2B<span class="w"> </span><span class="s2">&quot;ghcr.io/my-org/my-agent:v1.0.0&quot;</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>uv<span class="w"> </span>run<span class="w"> </span>coreason<span class="w"> </span>push-project<span class="w"> </span>01J18H1P9F2M1Q6N9B9Y6W4A2B<span class="w"> </span><span class="s2">&quot;ghcr.io/my-org/my-agent:v1.0.0&quot;</span>
 </code></pre></div></p>
 <p><strong>Pulling an Agent Bundle:</strong>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>uv<span class="w"> </span>run<span class="w"> </span>coreason<span class="w"> </span>pull_project<span class="w"> </span><span class="s2">&quot;My Imported Agent&quot;</span><span class="w"> </span><span class="s2">&quot;ghcr.io/my-org/my-agent:v1.0.0&quot;</span><span class="w"> </span>--description<span class="w"> </span><span class="s2">&quot;Imported from staging&quot;</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>uv<span class="w"> </span>run<span class="w"> </span>coreason<span class="w"> </span>pull-project<span class="w"> </span><span class="s2">&quot;My Imported Agent&quot;</span><span class="w"> </span><span class="s2">&quot;ghcr.io/my-org/my-agent:v1.0.0&quot;</span><span class="w"> </span>--description<span class="w"> </span><span class="s2">&quot;Imported from staging&quot;</span>
 </code></pre></div></p>
 <blockquote>
 <p>[!TIP]
@@ -1217,16 +1228,24 @@ The <code>build</code> command spins up a temporary session UUID, delegates the 
 <h3 id="3-airgapped-export-import">3. Airgapped Export / Import</h3>
 <p>For high-security sovereign deployments, you can manually export projects to a physical <code>.zip</code> file for USB transfer.</p>
 <p><strong>Export:</strong>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>uv<span class="w"> </span>run<span class="w"> </span>coreason<span class="w"> </span>export_project<span class="w"> </span>01J18H1P9F2M1Q6N9B9Y6W4A2B<span class="w"> </span>./my_bundle.zip
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>uv<span class="w"> </span>run<span class="w"> </span>coreason<span class="w"> </span>export-project<span class="w"> </span>01J18H1P9F2M1Q6N9B9Y6W4A2B<span class="w"> </span>./my_bundle.zip
 </code></pre></div></p>
 <p><strong>Import:</strong>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>uv<span class="w"> </span>run<span class="w"> </span>coreason<span class="w"> </span>import_project<span class="w"> </span><span class="s2">&quot;Airgapped Agent&quot;</span><span class="w"> </span>./my_bundle.zip
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>uv<span class="w"> </span>run<span class="w"> </span>coreason<span class="w"> </span>import-project<span class="w"> </span><span class="s2">&quot;Airgapped Agent&quot;</span><span class="w"> </span>./my_bundle.zip
 </code></pre></div></p>
 <h3 id="4-inspection-commands">4. Inspection Commands</h3>
 <p>You can list active deployments and MCP servers directly from the terminal.</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>uv<span class="w"> </span>run<span class="w"> </span>coreason<span class="w"> </span>agents<span class="w"> </span>list
 <a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>uv<span class="w"> </span>run<span class="w"> </span>coreason<span class="w"> </span>agents<span class="w"> </span>get<span class="w"> </span>--name<span class="w"> </span>project_initiation
 <a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>uv<span class="w"> </span>run<span class="w"> </span>coreason<span class="w"> </span>mcp<span class="w"> </span>list-servers
+</code></pre></div>
+<h3 id="5-manual-agent-execution-context-engineering">5. Manual Agent Execution &amp; Context Engineering</h3>
+<p>You can execute individual agents from the CLI. </p>
+<blockquote>
+<p>[!WARNING]
+<strong>Context Saturation Required</strong>: Because the CoReason Workspace Environment adheres to the <a href="../../architecture/context_engineering/">Context Engineering Harness</a>, all commands sent via the CLI are evaluated by a State Machine Orchestrator for schema saturation. If your CLI payload is too ambiguous (e.g., <code>"Compile the agent"</code>), the execution will return early with <code>is_saturated: False</code> and demand more information. You must provide a highly detailed, saturated prompt to successfully trigger downstream builders.</p>
+</blockquote>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>uv<span class="w"> </span>run<span class="w"> </span>coreason<span class="w"> </span>agents<span class="w"> </span>execute<span class="w"> </span><span class="s2">&quot;yaml_compiler&quot;</span><span class="w"> </span><span class="s2">&quot;Build a highly detailed platform that scrapes data...&quot;</span>
 </code></pre></div>
 
 
