@@ -1,0 +1,17 @@
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: {{ include "coreason-platform.fullname" . }}-worker
+  labels:
+    {{- include "coreason-platform.labels" . | nindent 4 }}
+spec:
+  scaleTargetRef:
+    name: {{ include "coreason-platform.fullname" . }}
+  minReplicaCount: 1
+  maxReplicaCount: 100
+  triggers:
+    - type: redis
+      metadata:
+        address: {{ include "coreason-platform.fullname" . }}-redis-master:6379
+        listName: tasks
+        listLength: "5"

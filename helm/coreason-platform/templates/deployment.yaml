@@ -30,3 +30,9 @@ spec:
             # Vault Federation & Config Maps go here
             - name: ENVIRONMENT
               value: "production"
+            - name: POSTGRES_HOST
+              value: "{{ .Release.Name }}-postgresql"
+            - name: POSTGRES_PORT
+              value: "5432"
+            - name: REDIS_URL
+              value: "redis://{{ .Release.Name }}-redis-master:6379/0"
