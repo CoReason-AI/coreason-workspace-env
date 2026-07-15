@@ -40,8 +40,8 @@ async def epistemic_interceptor_node(state: dict[str, Any]) -> dict[str, Any]:
                     snapshot.snapshot_id, snapshot.raw_payload
                 )
         except Exception as e:
-            # Fallback or log if Postgres is unavailable, but fail-open for testing
-            pass
+            # WORM persistence is mandatory for security compliance. Fail closed.
+            raise RuntimeError(f"Epistemic Interceptor failed to quarantine transcript: {e}")
         
         proxy = EpistemicProxyState(
             proxy_cid=snapshot.snapshot_id,

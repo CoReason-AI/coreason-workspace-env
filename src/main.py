@@ -8,6 +8,7 @@ from dotenv import load_dotenv
 
 from src.api.router import api_router
 from src.core.config import settings
+from src.core.db import get_db_pool, close_db_pool
 from src.core.services import health_service, project_service
 
 # Configure logging
@@ -30,6 +31,8 @@ async def lifespan(app: FastAPI):
 
     # Bootstrap database schema
     try:
+        await get_db_pool()
+        logger.info("-> Global connection pool initialized.")
         await project_service.initialize()
         logger.info("-> Postgres: Projects table initialized.")
     except Exception as e:
@@ -37,6 +40,8 @@ async def lifespan(app: FastAPI):
 
     yield
     logger.info("Shutting down CoReason Workspace Environment...")
+    await close_db_pool()
+    logger.info("-> Global connection pool closed.")
 
 # Initialize FastAPI App
 app = FastAPI(

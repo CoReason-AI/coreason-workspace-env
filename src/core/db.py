@@ -17,3 +17,12 @@ async def get_db_pool() -> asyncpg.Pool:
         )
         _global_pool = await asyncpg.create_pool(dsn, min_size=1, max_size=20)
     return _global_pool
+
+async def close_db_pool():
+    """
+    Gracefully closes the global asyncpg connection pool.
+    """
+    global _global_pool
+    if _global_pool is not None:
+        await _global_pool.close()
+        _global_pool = None

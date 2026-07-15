@@ -10,7 +10,7 @@ from pathlib import Path
 from typing import Dict, Any, List, Optional
 from datetime import datetime, timezone
 
-import asyncpg
+from src.core.db import get_db_pool
 
 logger = logging.getLogger(__name__)
 
@@ -33,27 +33,18 @@ class ProjectService:
     All surfaces (API, CLI, MCP, SDK) delegate here.
     """
 
-    async def _get_pool(self) -> asyncpg.Pool:
-        """Lazily creates a connection pool from settings."""
-        if not hasattr(self, "_pool") or self._pool is None:
-            from src.core.config import settings
-            dsn = (
-                f"postgresql://{settings.POSTGRES_USER}:{settings.POSTGRES_PASSWORD}"
-                f"@{settings.POSTGRES_HOST}:{settings.POSTGRES_PORT}/{settings.POSTGRES_DB}"
-            )
-            self._pool = await asyncpg.create_pool(dsn, min_size=1, max_size=5)
-        return self._pool
+
 
     async def initialize(self):
         """Bootstrap the projects table if it doesn't exist."""
-        pool = await self._get_pool()
+        pool = await get_db_pool()
         async with pool.acquire() as conn:
             await conn.execute(_INIT_SQL)
         logger.info("Projects table initialized.")
 
     async def list_projects(self) -> List[Dict[str, Any]]:
         """List all projects."""
-        pool = await self._get_pool()
+        pool = await get_db_pool()
         async with pool.acquire() as conn:
             rows = await conn.fetch("SELECT * FROM projects ORDER BY created_at DESC")
             return [dict(r) for r in rows]
@@ -62,7 +53,7 @@ class ProjectService:
                              description: str = "",
                              config: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         """Create a new project."""
-        pool = await self._get_pool()
+        pool = await get_db_pool()
         cfg = json.dumps(config or {})
         async with pool.acquire() as conn:
             row = await conn.fetchrow(
@@ -77,14 +68,14 @@ class ProjectService:
 
     async def get_project(self, project_id: str) -> Optional[Dict[str, Any]]:
         """Fetch a single project by ID."""
-        pool = await self._get_pool()
+        pool = await get_db_pool()
         async with pool.acquire() as conn:
             row = await conn.fetchrow("SELECT * FROM projects WHERE id = $1", project_id)
             return dict(row) if row else None
 
     async def delete_project(self, project_id: str) -> bool:
         """Delete a project by ID."""
-        pool = await self._get_pool()
+        pool = await get_db_pool()
         async with pool.acquire() as conn:
             result = await conn.execute("DELETE FROM projects WHERE id = $1", project_id)
             return result == "DELETE 1"
