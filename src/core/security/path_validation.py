@@ -8,8 +8,12 @@ def validate_safe_path(path_str: str, base_dir: Path = WORKSPACE_ROOT) -> Path:
     Validates that a path is safe and does not escape the base directory (preventing directory traversal).
     """
     resolved_base = base_dir.resolve()
+    candidate = Path(path_str)
+    if candidate.is_absolute():
+        raise ValueError(f"Security check failed: absolute path '{path_str}' is not allowed.")
+
     # Resolve the path to handle relative paths and traversal characters safely
-    resolved_path = Path(resolved_base / path_str).resolve()
+    resolved_path = (resolved_base / candidate).resolve()
     
     # Check if the resolved path is within the base directory
     try:

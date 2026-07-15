@@ -80,16 +80,18 @@ class ProjectService:
             result = await conn.execute("DELETE FROM projects WHERE id = $1", project_id)
             return result == "DELETE 1"
 
-    async def export_project(self, project_path: str, output_path: str) -> Dict[str, Any]:
+    async def export_project(self, project_id: str, output_path: str) -> Dict[str, Any]:
         """
         Exports a project for full air-gapped portability.
         Bundles: Git workspace + Postgres pg_dump + Docker image.
         """
         from src.core.config import settings
-        from src.core.security.path_validation import validate_safe_path
+        from src.core.security.path_validation import validate_safe_path, validate_alphanumeric, WORKSPACE_ROOT
 
         # Prevent path traversal and command injection by resolving and pinning inputs
-        safe_project_path = validate_safe_path(project_path)
+        safe_project_id = validate_alphanumeric(project_id)
+        projects_root = WORKSPACE_ROOT / "projects"
+        safe_project_path = validate_safe_path(safe_project_id, base_dir=projects_root)
         safe_output_path = validate_safe_path(output_path)
 
         export_dir = safe_output_path
