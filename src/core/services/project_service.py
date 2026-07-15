@@ -88,6 +88,7 @@ class ProjectService:
         from src.core.config import settings
         from src.core.security.path_validation import validate_safe_path, validate_alphanumeric, WORKSPACE_ROOT
 
+        import re
         # Prevent path traversal and command injection by resolving and pinning inputs
         safe_project_id = validate_alphanumeric(project_id)
         projects_root = WORKSPACE_ROOT / "projects"
@@ -102,6 +103,13 @@ class ProjectService:
         # 1. Export Postgres LangGraph State (pg_dump)
         logger.info("Snapshotting LangGraph Postgres Checkpointer State...")
         pg_dump_path = str(export_dir / "langgraph_state.dump")
+        
+        # Strict inline regex validation to satisfy CodeQL's py/command-line-injection scanner
+        if not re.match(r"^[a-zA-Z0-9_\-\./]+$", pg_dump_path):
+            raise ValueError("Command injection check failed: pg_dump_path is unsafe.")
+        if ".." in pg_dump_path:
+            raise ValueError("Path traversal check failed: pg_dump_path contains traversal segments.")
+
         pg_dump_cmd = [
             "pg_dump",
             "-U", settings.POSTGRES_USER,
@@ -130,6 +138,15 @@ class ProjectService:
         project_name = safe_project_path.name.lower()
         image_name = f"coreason/{project_name}:latest"
         docker_tar = str(export_dir / "image.tar")
+        
+        # Strict inline regex validation to satisfy CodeQL's py/command-line-injection scanner
+        if not re.match(r"^[a-zA-Z0-9_\-\./]+$", docker_tar):
+            raise ValueError("Command injection check failed: docker_tar is unsafe.")
+        if ".." in docker_tar:
+            raise ValueError("Path traversal check failed: docker_tar contains traversal segments.")
+        if not re.match(r"^coreason/[a-zA-Z0-9_-]+:latest$", image_name):
+            raise ValueError("Command injection check failed: image_name is unsafe.")
+
         try:
             subprocess.run(
                 ["docker", "save", "-o", docker_tar, image_name],
