@@ -4,6 +4,9 @@ The CoReason Workspace Environment exposes a pure-Python SDK for programmatic em
 
 Because the SDK is simply an HTTP wrapper over the REST API via the `httpx` library, it inherits the exact same capability set and data schemas as the CLI and REST interfaces. 
 
+> [!NOTE]
+> This behavioral guarantee is actively validated by our [Multi-Surface Parity Testing](../architecture/multi_surface_parity.md) suite, which executes identical test workflows through the SDK against an ephemeral Testcontainers PostgreSQL database. 
+
 ## SDK Architecture
 
 ```mermaid
