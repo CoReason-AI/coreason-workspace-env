@@ -16,6 +16,16 @@ The platform can be deployed in two primary configurations:
 ### 1. Enterprise Kubernetes (Helm)
 For large-scale, distributed deployments, the entire orchestrator, Postgres Checkpointer, and execution nodes are packaged as a unified Helm chart. This allows for seamless deployment into existing enterprise Kubernetes clusters (e.g., EKS, GKE, AKS). The worker daemon is deployed via `worker-deployment.yaml` and seamlessly autoscaled by KEDA based on the queue depth monitored on the queue specified by `REDIS_QUEUE_NAME`.
 
+#### Infrastructure as Code (OpenTofu & Terraform)
+To support 1-click enterprise deployments, the `deploy/terraform/` directory contains complete Infrastructure as Code (IaC) templates for both AWS (EKS/RDS) and Azure (AKS/PostgreSQL). 
+
+These templates use standard HCL syntax and are **100% compatible with both Terraform and OpenTofu**. To provision the platform using OpenTofu, simply use the `tofu` CLI in place of `terraform`:
+```bash
+cd deploy/terraform/aws
+tofu init
+tofu apply
+```
+
 ### 2. Air-Gapped Edge (K3s)
 For highly secure, internet-denied environments (such as on-premise defense or pharmaceutical R&D labs), the platform is available as a standalone K3s distribution. The platform natively functions completely air-gapped; all language models must run locally or via an internal VPC endpoint, and all tools must rely on internal data.
 
