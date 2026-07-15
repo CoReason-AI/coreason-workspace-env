@@ -35,6 +35,9 @@ class Settings(BaseSettings):
     # External APIs
     OPENROUTER_API_KEY: str
     
+    # JWT Security
+    JWT_SECRET_KEY: str
+    
     class Config:
         env_file = ".env"
         env_file_encoding = 'utf-8'
@@ -43,3 +46,4 @@ class Settings(BaseSettings):
 # Instantiate settings. This will immediately throw an error if the .env file
 # or environment variables are missing required CISO keys.
 settings = Settings()
+

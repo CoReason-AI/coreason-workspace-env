@@ -19,7 +19,7 @@ class TestCLISurface(unittest.TestCase):
             cmd,
             capture_output=True,
             text=True,
-            cwd=r"c:\files\git\github\coreason-ai\coreason-workspace-env",
+            cwd=".",
         )
         return result
 
@@ -65,7 +65,7 @@ class TestCLISurface(unittest.TestCase):
             cmd,
             capture_output=True,
             text=True,
-            cwd=r"c:\files\git\github\coreason-ai\coreason-workspace-env",
+            cwd=".",
         )
         self.assertEqual(result.returncode, 0)
         # Compact JSON should be a single line
@@ -236,7 +236,7 @@ class TestParityConsistency(unittest.TestCase):
         result = subprocess.run(
             [sys.executable, "-m", "src.cli.main", "agents", "list"],
             capture_output=True, text=True,
-            cwd=r"c:\files\git\github\coreason-ai\coreason-workspace-env",
+            cwd=".",
         )
         cli_data = json.loads(result.stdout)
         cli_names = sorted([a["name"] for a in cli_data["agents"]])
