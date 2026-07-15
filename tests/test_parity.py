@@ -133,7 +133,7 @@ class TestSDKSurface(unittest.TestCase):
         self.assertTrue(hasattr(client, "docs"))
 
 
-class TestMCPServerSurface(unittest.TestCase):
+class TestMCPServerSurface(unittest.IsolatedAsyncioTestCase):
     """Test the MCP server tool registration."""
 
     def test_mcp_server_builds(self):
@@ -148,9 +148,9 @@ class TestMCPServerSurface(unittest.TestCase):
         server = _build_server()
         self.assertEqual(server.name, "coreason-platform")
 
-    @patch("src.core.services.project_service.create_project")
-    @patch("src.core.services.agent_service.execute_agent")
-    @patch("src.core.services.project_service.export_project")
+    @patch("src.core.services.project_service.ProjectService.create_project")
+    @patch("src.core.services.agent_service.AgentService.execute_agent")
+    @patch("src.core.services.project_service.ProjectService.export_project")
     async def test_mcp_workflow_mock(self, mock_export, mock_execute, mock_create):
         """Mock test to verify MCP server tool mapping for the 10-step workflow."""
         # This is a conceptual test verifying that the tools map to the correct service methods.
@@ -197,7 +197,7 @@ class TestAPIRouter(unittest.TestCase):
         self.assertIn("/docs", path_str)
 
 
-class TestStreamingModules(unittest.TestCase):
+class TestStreamingModules(unittest.IsolatedAsyncioTestCase):
     """Test that streaming modules import correctly."""
 
     def test_crdt_router_import(self):

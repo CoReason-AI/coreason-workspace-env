@@ -131,11 +131,13 @@ class TestDocsService(unittest.TestCase):
     def tearDown(self):
         shutil.rmtree(self.tmpdir, ignore_errors=True)
 
-    def test_generate_mkdocs_creates_files(self):
+    @patch("src.core.security.path_validation.WORKSPACE_ROOT")
+    def test_generate_mkdocs_creates_files(self, mock_root):
         """Should create mkdocs.yml and markdown pages."""
-        workspace = os.path.join(self.tmpdir, "test_docs")
+        mock_root.__truediv__.return_value = Path(self.tmpdir) / "projects"
+        workspace = os.path.join(self.tmpdir, "projects", "test_docs")
         result = self.service.generate_mkdocs(
-            workspace_path=workspace,
+            workspace_path="test_docs",
             site_name="Test Site",
             pages=[
                 {"title": "Home", "filename": "index.md", "content": "# Hello"},
@@ -148,20 +150,22 @@ class TestDocsService(unittest.TestCase):
         self.assertTrue(os.path.exists(os.path.join(workspace, "docs", "about.md")))
 
     def test_generate_mkdocs_relative_path_rejected(self):
-        """Relative paths should be rejected."""
+        """Path traversal should be rejected."""
         result = self.service.generate_mkdocs(
-            workspace_path="relative/path",
+            workspace_path="../relative/path",
             site_name="Test",
             pages=[],
         )
         self.assertEqual(result["status"], "error")
 
-    def test_generate_mkdocs_nav_auto_generated(self):
+    @patch("src.core.security.path_validation.WORKSPACE_ROOT")
+    def test_generate_mkdocs_nav_auto_generated(self, mock_root):
         """Nav should be auto-generated from pages if not provided."""
         import yaml
-        workspace = os.path.join(self.tmpdir, "test_nav")
+        mock_root.__truediv__.return_value = Path(self.tmpdir) / "projects"
+        workspace = os.path.join(self.tmpdir, "projects", "test_nav")
         self.service.generate_mkdocs(
-            workspace_path=workspace,
+            workspace_path="test_nav",
             site_name="Nav Test",
             pages=[{"title": "Home", "filename": "index.md", "content": "# Hi"}],
         )

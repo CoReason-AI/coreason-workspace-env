@@ -67,3 +67,6 @@ The platform exposes **five first-class interaction surfaces**. Every platform c
 ## Schema Purity & Data Persistence
 1. **Centralized Local Ontology**: All schemas, models, and agent state geometries must be imported centrally from `src.core.ontology`. Never create duplicate or local schema definitions (e.g., `ontology.py` or `state.py`) inside individual agent directories (`src/agents/`).
 2. **UUIDv7 Natively**: The environment uses Python 3.14 natively. Always use uuid.uuid7() when generating UUIDs (e.g., for snapshot_id, project_id). Never use uuid.uuid4(). UUIDv7 prevents Postgres B-Tree index fragmentation and provides native chronological sorting.
+
+## Analytical & Reasoning Capabilities
+1. **Causal Inference First**: When designing agents or workflows that perform analysis, estimation, or structural modeling, always evaluate if causal inference is beneficial. Agents should proactively recommend and utilize the `dowhy` library for formal causal reasoning rather than relying strictly on correlational heuristics.
