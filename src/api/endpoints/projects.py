@@ -19,6 +19,20 @@ class CreateProjectRequest(BaseModel):
     description: str = Field("", description="Project description")
     config: Optional[dict] = Field(None, description="Project configuration")
 
+class ImportProjectRequest(BaseModel):
+    name: str = Field(..., description="Unique project name")
+    import_path: str = Field(..., description="Path to the imported bundle")
+    description: str = Field("", description="Project description")
+    config: Optional[dict] = Field(None, description="Project configuration")
+
+class PushProjectRequest(BaseModel):
+    registry_url: str = Field(..., description="Target OCI registry URL")
+
+class PullProjectRequest(BaseModel):
+    oci_uri: str = Field(..., description="Source OCI registry URL")
+    name: str = Field(..., description="Unique project name")
+    description: str = Field("", description="Project description")
+
 
 @router.get("/")
 async def list_projects(user: UserIdentity = Depends(get_current_user)):
@@ -62,11 +76,16 @@ async def delete_project(project_id: str, user: UserIdentity = Depends(get_curre
 
 
 @router.post("/{project_id}/export")
-async def export_project(project_id: str, output_path: str, user: UserIdentity = Depends(get_current_user)):
+async def export_project(project_id: str, output_path: str, skip_state: bool = False, skip_docker: bool = False, user: UserIdentity = Depends(get_current_user)):
     """Export a project for air-gapped transfer."""
-    project = await project_service.get_project(project_id)
-    if not project:
-        raise HTTPException(status_code=404, detail=f"Project '{project_id}' not found")
-    result = await project_service.export_project(project_id, output_path)
-    return result
-
+    try:
+        from src.core.services.project_service import project_service
+        from src.core.services.portability_service import portability_service
+        result = await portability_service.get_job_status(job_id)
+        if result.get("status") == "not_found":
+            raise HTTPException(status_code=404, detail="Job not found")
+        return result
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

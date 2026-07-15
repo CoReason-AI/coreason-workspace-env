@@ -47,3 +47,7 @@ asyncio.run(monitor_agent())
 ## Schema Parity
 
 Just like the REST API, the Python SDK relies entirely on the `coreason-manifest` library for its type hints and return schemas. This means IDEs will provide perfect auto-completion for all agent outputs and Epistemic Firewall bounds, leveraging the strictly-typed Pydantic geometry.
+
+## Async Abstraction: The Portability Engine
+For long-running background tasks like OCI Registry exports, the SDK goes out of its way to shield developers from asynchronous polling complexity. 
+When calling `client.projects.push_bundle()`, `client.projects.pull_bundle()`, `client.projects.export_bundle()`, or `client.projects.import_bundle()` with granular flags (e.g. `skip_docker=True`), the SDK triggers the backend task, immediately captures the `job_id`, and runs a blocking `asyncio.sleep` polling loop natively. It will only return execution control back to your script once the job achieves a terminal `COMPLETED` or `FAILED` state.

@@ -8,11 +8,13 @@ from tests.test_framework import ZeroMockTestCase, LLMJudge
 try:
     from coreason_manifest.spec.ontology import CognitiveDeliberativeEnvelopeState
 except ImportError:
-    from pydantic import BaseModel
+    from pydantic import BaseModel, Field
     from typing import Dict, Any, List
-    class CognitiveDeliberativeEnvelopeState(BaseModel):
-        deliberation_trace: str
-        payload: Dict[str, Any]
+    from typing import Generic, TypeVar, Optional
+    T = TypeVar('T')
+    class CognitiveDeliberativeEnvelopeState(BaseModel, Generic[T]):
+        deliberation_trace: str = Field(..., max_length=100000)
+        payload: Optional[T] = None
 
 logger = logging.getLogger(__name__)
 

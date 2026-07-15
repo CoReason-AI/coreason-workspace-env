@@ -28,8 +28,6 @@ class PlatformExporter:
             logger.error("Invalid session_id")
             return None
         safe_session_id = session_id
-            logger.error("Invalid session_id after sanitization.")
-            return None
 
         # Build and validate the session directory is within output_dir (CWE-22)
         session_dir = (self.output_dir / safe_session_id).resolve()
