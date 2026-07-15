@@ -61,3 +61,7 @@ The platform exposes **five first-class interaction surfaces**. Every platform c
 5. **MCP-Native Identity**: Since this platform builds systems that are *deployable as MCPs*, the platform itself must be consumable as an MCP server. Every agent, project operation, and administrative action should be exposed as MCP tools so upstream AI agents and IDEs can orchestrate the platform natively.
 
 6. **Real-Time Observability**: Long-running agent executions must stream progress via WebSocket/SSE. The CLI, SDK, and MCP surfaces must all be able to subscribe to these streams for their respective consumers (CLI prints incremental lines, SDK yields async iterators, MCP emits progress notifications).
+
+## Schema Purity & Data Persistence
+1. **God Context Schema Imports**: The coreason-manifest PyPI package is the absolute single source of truth for all schemas. Never duplicate or create local schema files (e.g. ontology.py or state.py). Always import directly from coreason_manifest (e.g., rom coreason_manifest.spec.ontology import CoreasonBaseState).
+2. **UUIDv7 Natively**: The environment uses Python 3.14 natively. Always use uuid.uuid7() when generating UUIDs (e.g., for snapshot_id, project_id). Never use uuid.uuid4(). UUIDv7 prevents Postgres B-Tree index fragmentation and provides native chronological sorting.

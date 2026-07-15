@@ -82,3 +82,7 @@ When writing system prompts for agent YAMLs:
 - **Orchestrator prompts** must include: evaluate/interrogate/delegate behavior, data schema reference, escalation paths, and explicit "DO NOT write code yourself" constraint
 - **Sub-agent prompts** must include: "DO NOT interrogate the user", "DO NOT ask clarifying questions", deterministic execution constraints, and explicit failure modes for incomplete payloads
 - Every prompt must reference the agent's skill dependencies so the agent knows what standards to enforce
+
+## Schema Purity & Data Persistence
+1. **God Context Schema Imports**: The coreason-manifest PyPI package is the absolute single source of truth for all schemas. Never duplicate or create local schema files (e.g. ontology.py or state.py). Always import directly from coreason_manifest (e.g., rom coreason_manifest.spec.ontology import CoreasonBaseState).
+2. **UUIDv7 Natively**: The environment uses Python 3.14 natively. Always use uuid.uuid7() when generating UUIDs (e.g., for snapshot_id, project_id). Never use uuid.uuid4(). UUIDv7 prevents Postgres B-Tree index fragmentation and provides native chronological sorting.
