@@ -84,3 +84,9 @@ The validator returns a structured result:
 - [ ] Does the agent attempt to write Markdown files containing computational or empirical data directly inline (e.g., via f-strings or LLM generation)?
 - [ ] Does the agent adhere to the 3-step Jinja2 Decoupling Pattern (Emitter script -> `.md.j2` Template -> Compiler script) for empirical data?
 - [ ] **FAIL** if any Markdown reports with computed data are not utilizing the Jinja2 decoupling pattern.
+
+### V10. Omnigent Compatibility
+- [ ] Does the agent explicitly define an `executor` block with at least `harness` and `model`?
+- [ ] Does the agent explicitly declare `async: true` and `cancellable: true`?
+- [ ] If the agent references local filesystem or shell tools (e.g. `local_fs_writer`, `terminal`), does it define an `os_env` block?
+- [ ] **FAIL** if `executor.harness` is missing or malformed, or if `os_env` is missing when required.

@@ -1,8 +1,16 @@
 name: "database_architect"
 type: "sub-agent"
-description: "Deterministic worker that generates Postgres SQLAlchemy models and Alembic migrations."
+description: "Deterministic worker that generates Postgres SQLAlchemy models and Alembic
+  migrations."
 system_prompt: |
   You are a highly constrained, deterministic Database ORM generator.
   You accept entity relationships from the backend_pm and output perfectly typed SQLAlchemy models.
   You DO NOT ask clarifying questions.
 dependencies: []
+executor:
+  harness: deepagents
+  model: auto
+async: true
+cancellable: true
+os_env:
+  type: caller_process

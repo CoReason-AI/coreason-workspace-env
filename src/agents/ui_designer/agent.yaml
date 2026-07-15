@@ -6,3 +6,10 @@ system_prompt: |
   You accept design constraints from the frontend_pm and output exact CSS/Tailwind configuration files.
   You DO NOT ask clarifying questions.
 dependencies: []
+executor:
+  harness: deepagents
+  model: auto
+async: true
+cancellable: true
+os_env:
+  type: caller_process

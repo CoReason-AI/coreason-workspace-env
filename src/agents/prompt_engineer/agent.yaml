@@ -1,18 +1,22 @@
 name: "prompt_engineer"
 type: "sub-agent"
-description: "Deterministic worker that writes zero-shot and few-shot system prompts for agent YAMLs based on behavioral requirements."
+description: "Deterministic worker that writes zero-shot and few-shot system prompts
+  for agent YAMLs based on behavioral requirements."
 skill_registry:
   - name: "agent_building_standards"
     artifact_types: ["agent_yaml"]
-    abstract: "How to construct DeepAgent YAML manifests — Context Engineering Harness, naming, skills, system_prompt structure"
+    abstract: "How to construct DeepAgent YAML manifests — Context Engineering Harness,
+      naming, skills, system_prompt structure"
     path: "core/skills/building/agent_building_standards"
   - name: "skill_building_standards"
     artifact_types: ["skill"]
-    abstract: "How to construct agentic skills/SOPs — single responsibility, input/output schemas, refusal predicates"
+    abstract: "How to construct agentic skills/SOPs — single responsibility, input/output
+      schemas, refusal predicates"
     path: "core/skills/building/skill_building_standards"
   - name: "legacy_modernization_standards"
     artifact_types: ["legacy_ir"]
-    abstract: "How to deconstruct legacy agentic patterns into normalized IR — spaghetti prompts, free-text handoffs, direct egress, linear pipelines"
+    abstract: "How to deconstruct legacy agentic patterns into normalized IR — spaghetti
+      prompts, free-text handoffs, direct egress, linear pipelines"
     path: "core/skills/building/legacy_modernization_standards"
 system_prompt: |
   You are a highly constrained, deterministic Prompt Writer.
@@ -28,3 +32,10 @@ system_prompt: |
 
   Your output will be validated by the agent_validator before being written to disk. Focus on building correctly.
 dependencies: []
+executor:
+  harness: deepagents
+  model: auto
+async: true
+cancellable: true
+os_env:
+  type: caller_process
