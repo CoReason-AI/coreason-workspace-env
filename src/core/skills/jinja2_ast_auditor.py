@@ -2,7 +2,7 @@ import ast
 import json
 import logging
 from typing import Dict, Any
-from langchain_core.tools import tool
+
 
 logger = logging.getLogger(__name__)
 
@@ -140,7 +140,7 @@ class Jinja2DecouplingVisitor(ast.NodeVisitor):
                 self.violations.append("Inline markdown table generation detected.")
         self.generic_visit(node)
 
-@tool
+
 def jinja2_ast_auditor(python_code: str) -> str:
     """
     Mathematically parses the Abstract Syntax Tree (AST) of the submitted Python code 
