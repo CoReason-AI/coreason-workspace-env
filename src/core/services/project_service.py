@@ -246,7 +246,7 @@ class ProjectService:
                         member_path = os.path.join(path, member.name)
                         if not is_within_directory(path, member_path):
                             raise Exception("Attempted Path Traversal in Tar File")
-                    tar.extractall(path, members, numeric_owner=numeric_owner)
+                    tar.extractall(path, members, numeric_owner=numeric_owner, filter='data')  # nosec B202  # lgtm[py/tarslip]
                 
                 safe_project_path.parent.mkdir(parents=True, exist_ok=True)
                 safe_extract(tar, path=str(safe_project_path.parent))
