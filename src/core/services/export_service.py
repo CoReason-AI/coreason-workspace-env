@@ -24,9 +24,9 @@ class PlatformExporter:
         """
         # Sanitize session_id to prevent Log Injection (CWE-117) and Path Traversal (CWE-22)
         import os
-        safe_session_id = os.path.basename(session_id)
-        safe_session_id = safe_session_id.replace('\n', '').replace('\r', '')
+        safe_session_id = session_id.replace('\n', '').replace('\r', '')
         safe_session_id = re.sub(r"[^a-zA-Z0-9_-]", "", safe_session_id)
+        safe_session_id = os.path.basename(safe_session_id)
         if not safe_session_id:
             logger.error("Invalid session_id after sanitization.")
             return None
@@ -49,7 +49,9 @@ class PlatformExporter:
                         state = records[0]['state']
                         # Assuming state contains the generated agents dict
                         for agent_name, yaml_content in state.get("generated_agents", {}).items():
-                            safe_agent_name = re.sub(r"[^a-zA-Z0-9_-]", "", agent_name)
+                            safe_agent_name = agent_name.replace('\n', '').replace('\r', '')
+                            safe_agent_name = re.sub(r"[^a-zA-Z0-9_-]", "", safe_agent_name)
+                            safe_agent_name = os.path.basename(safe_agent_name)
                             with open(session_dir / f"{safe_agent_name}.yaml", "w", encoding="utf-8") as f:
                                 f.write(yaml_content)
                     else:

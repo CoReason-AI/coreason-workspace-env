@@ -114,9 +114,9 @@ class ProjectService:
         import shlex
         pg_dump_exe = shutil.which("pg_dump") or "/usr/bin/pg_dump"
         pg_dump_cmd = (
-            f"{shlex.quote(pg_dump_exe)} -U {shlex.quote(settings.POSTGRES_USER)} "
-            f"-h {shlex.quote(settings.POSTGRES_HOST)} -p {shlex.quote(str(settings.POSTGRES_PORT))} "
-            f"-F c -f {shlex.quote(pg_dump_path)} -- {shlex.quote(settings.POSTGRES_DB)}"
+            shlex.quote(pg_dump_exe) + " -U " + shlex.quote(str(settings.POSTGRES_USER)) + " " +
+            "-h " + shlex.quote(str(settings.POSTGRES_HOST)) + " -p " + shlex.quote(str(settings.POSTGRES_PORT)) + " " +
+            "-F c -f " + shlex.quote(str(pg_dump_path)) + " -- " + shlex.quote(str(settings.POSTGRES_DB))
         )
         env = os.environ.copy()
         env["PGPASSWORD"] = settings.POSTGRES_PASSWORD
