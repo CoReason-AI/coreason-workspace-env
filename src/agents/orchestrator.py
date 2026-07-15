@@ -41,12 +41,12 @@ class PlatformOrchestrator:
             kwargs={"autocommit": True}
         )
         
-        # Initialize Sovereign LLM (vLLM local endpoint)
+        # Initialize Standalone LLM (vLLM local endpoint)
         # Assuming environment variables supply the API keys or local KServe endpoints
         self.llm = ChatOpenAI(
             model=project_manifest.get("model", "nvidia/nemotron-3-nano-30b-a3b:free"),
             base_url=project_manifest.get("base_url"),
-            api_key="sovereign-key-placeholder", # Handled by Vault in reality
+            api_key="standalone-key-placeholder", # Handled by Vault in reality
             temperature=0.0
         )
         

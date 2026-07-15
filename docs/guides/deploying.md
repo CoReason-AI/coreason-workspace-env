@@ -1,6 +1,6 @@
 # Deploying the Platform
 
-The CoReason Workspace Environment is designed to be highly portable and secure. Because it frequently processes sensitive corporate data or proprietary logic, the deployment architecture is strictly tailored for sovereign, zero-trust environments.
+The CoReason Workspace Environment is designed to be highly portable and secure. Because it frequently processes sensitive corporate data or proprietary logic, the deployment architecture is strictly tailored for data-sovereign, zero-trust environments (including Standalone and Private Cloud topologies).
 
 ## Containerized Services
 

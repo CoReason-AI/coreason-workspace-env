@@ -33,13 +33,27 @@ uv sync --all-extras
 
 ## Running the Platform
 
-The CoReason platform relies on a distributed multi-tenant architecture utilizing PostgreSQL, Redis, and a background task daemon. The easiest way to spin this up locally is via Docker Compose:
+The CoReason platform relies on a distributed multi-tenant architecture utilizing PostgreSQL, Redis, and a background task daemon. 
+
+### Standalone Local Deployment
+The easiest way to spin this up locally is via Docker Compose using the Standalone override. This configuration natively spins up **MinIO** for S3-compatible local storage and **Ollama** for local LLM inference (requires an NVIDIA GPU). It bypasses remote images and builds the workspace directly from source.
 
 ```bash
-docker-compose up -d --build
+docker compose -f docker-compose.yaml -f docker-compose.standalone.yaml up -d --build
 ```
 
-This will automatically spin up the `platform_server`, `postgres_checkpointer`, `redis_queue`, and `platform_worker` components. The REST API and SSE streams will be available, and the MCP server will dynamically query the Postgres database for state tracking.
+> [!IMPORTANT]
+> **Ollama Setup:** The first time you launch the standalone stack, you must pull the model:
+> `docker compose -f docker-compose.yaml -f docker-compose.standalone.yaml exec ollama ollama run llama3`
+
+This will automatically spin up the `platform_server`, `postgres_checkpointer`, `redis_queue`, `platform_worker`, `minio`, and `ollama` components. The REST API and SSE streams will be available, and the MCP server will dynamically query the Postgres database for state tracking.
+
+### Public / Hybrid Cloud Deployments
+For standard deployments using cloud-hosted models (e.g. OpenAI) and S3 endpoints, use the base compose file:
+
+```bash
+docker compose up -d
+```
 
 > [!TIP]
 > **Going to Production?**
