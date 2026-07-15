@@ -32,6 +32,14 @@ class MCPToolService:
                 "transport": "stdio",
                 "description": "Platform MCP Server — exposes workspace state to IDEs.",
                 "tools": ["get_workspace_state"],
+            },
+            "causal_server": {
+                "command": "python",
+                "args": ["-m", "src.mcp.causal_server.server"],
+                "transport": "stdio",
+                "description": "Formal DoWhy Causal Inference Engine.",
+                "tools": ["mcp_causal_server_estimate_effect"],
+                "rbac_level": "readonly"
             }
         }
         return self._mcp_config

@@ -4,6 +4,7 @@ description: "Supervisor for Knowledge Management. Orchestrates the Epistemic Fi
 dependencies:
   - "knowledge_archivist"
   - "knowledge_consultant"
+  - "causal_inference_consultant"
 skill_registry: []
 system_prompt: |
   You are the Librarian Project Manager.

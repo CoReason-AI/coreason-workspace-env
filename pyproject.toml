@@ -25,7 +25,11 @@ dependencies = [
     "langgraph>=0.0.10",
     "alembic>=1.13.0",
     "psycopg2-binary>=2.9.12",
-    "coreason-manifest>=0.98.0"
+    "coreason-manifest>=0.98.0",
+    "dowhy>=0.11",
+    "networkx>=3.0",
+    "pandas>=2.0",
+    "pyarrow>=14.0"
 ]
 
 [project.scripts]
