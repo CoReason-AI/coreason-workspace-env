@@ -1,36 +1,53 @@
-# Headless MCP Server Deployment
+# Model Context Protocol (MCP)
 
-The Model Context Protocol (MCP) has rapidly become the universal integration standard across enterprise artificial intelligence applications, functioning effectively as the "USB-C port for AI."
+Since the CoReason platform acts as an agent-building factory, it natively exposes itself as a **Model Context Protocol (MCP)** server. This allows upstream AI agents, IDEs (like Cursor or Windsurf), and parent orchestrators to interface with the factory natively.
 
-While the vast majority of contemporary agentic frameworks are architected explicitly as **MCP clients** (designed to connect to external servers to consume tools), the CoReason platform differentiates itself through an inversion of control: it is designed from the ground up to be deployed natively as a **headless MCP server**.
+The platform uses `FastMCP` to map its internal core services directly to standard MCP JSON-RPC schemas over `stdio` and `SSE`.
 
-## Complex Workflows as Atomic Tools
+## MCP Architecture
 
-By deploying as a native MCP server, the entire compiled LangGraph state machine—complete with its Epistemic Firewall and Maker-Checker validation loops—is exposed directly via the protocol standard.
+```mermaid
+flowchart LR
+    A[Upstream IDE / Orchestrator] <-->|JSON-RPC over stdio / SSE| B(FastMCP Server)
+    B --> C{Tool Routers}
+    C --> D[Causal Server]
+    C --> E[Memory Server]
+    C --> F[Project Server]
+    D --> G[(PostgreSQL)]
+    E --> G
+    F --> G
+```
 
-This means that upstream orchestrators, enterprise service buses, or intelligent development environments (IDEs) can dynamically discover and invoke the platform's highly complex, multi-agent workflows as if they were simple, atomic tools.
+## Inner Workings & Namespaces
 
-## Abstracting Topology Complexity
+The MCP Server groups tools logically into domains based on the underlying capabilities of the platform:
 
-The platform effectively abstracts away the sheer complexity of its internal multi-agent topology. 
+1. **Causal Server Tools**: Allows upstream agents to map causal relationships, build diagrams, and interact with the platform's reasoning engine.
+2. **Memory Server Tools**: Provides access to the platform's internal knowledge base and state persistence.
+3. **Project Tools**: Directly exposes the platform's `build`, `push-oci`, and `export` capabilities to upstream agents.
 
-An upstream enterprise application simply sends a standardized request to the CoReason server. The platform internally handles:
-- Pre-dispatch schema saturation
-- Distributed sub-agent delegation
-- Mathematical AST and Pydantic validation
-- Cryptographic data retrieval
+> [!IMPORTANT]
+> Because the MCP Server binds to the exact same `src.core.services` layer as the REST API, any action an agent takes via an MCP tool call uses the same rigorous Pydantic validation and UUIDv7 logic as if a human invoked the REST endpoint.
 
-Once the internal Maker-Checker-Approver pipeline successfully resolves, the platform returns the verified, structured output back to the consumer via standard input/output streams (stdio), Server-Sent Events (SSE), or streamable HTTP.
+## Usage Example (Configuration)
 
-*Technical Note: The MCP Server itself remains stateless; it resolves requests (such as `get_workspace_state`) by dynamically querying the underlying Postgres `langgraph_state` checkpointer. **This integration natively enforces Multi-Tenant State Isolation**, actively filtering queries by `tenant_id` to strictly prevent cross-tenant data leakage. This enables true, secure cross-process state inspection for external IDEs like Cursor.*
+To connect an IDE or external orchestrator to the CoReason MCP Server using the `stdio` transport, add the following configuration to your `mcp.json` or `claude_desktop_config.json`:
 
-## Air-Gapped Interoperability
+```json
+{
+  "mcpServers": {
+    "coreason_factory": {
+      "command": "uv",
+      "args": [
+        "run",
+        "coreason-mcp"
+      ],
+      "env": {
+        "API_SECRET_TOKEN": "coreason-dev-token"
+      }
+    }
+  }
+}
+```
 
-While some observability platforms offer proprietary SaaS mechanisms to expose agents as servers, the CoReason platform embeds this capability directly into its core infrastructure. This eliminates vendor lock-in to external observability providers and allows for highly secure, air-gapped, on-premise enterprise deployments.
-
-### Non-Blocking Portability Tools
-
-Unlike the SDK and CLI—which automatically block and poll on your behalf—the MCP Server exposes the Portability Engine (`push_project`, `pull_project`, `export_project`, `import_project`) completely asynchronously. 
-
-When an AI agent orchestrates this platform, executing an OCI registry push of a 5GB Docker image could take 10 minutes. Rather than blocking the agent's context window, the MCP tool instantly returns a `job_id`. 
-The upstream orchestrator can continue processing other parallel tasks, manually checking the new `get_portability_job_status` tool at its discretion.
+Once connected, your agent will natively inherit tools such as `build_agent_platform`, `list_active_projects`, and `export_oci_bundle`.

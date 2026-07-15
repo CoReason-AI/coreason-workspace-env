@@ -1,39 +1,70 @@
 # Command Line Interface (CLI)
 
-The CoReason Workspace Environment mandates strict **Multi-Surface Parity**. The Command Line Interface is a first-class interaction surface, providing complete parity with the REST API and the Model Context Protocol (MCP).
+The CoReason Workspace Environment provides a fully-featured headless CLI built using **Typer**. 
 
-All CLI operations are natively integrated into the shared `src.core.services` layer. Anything achievable through the web dashboard or API is equally achievable in an air-gapped terminal.
+Following the Multi-Surface Interaction Parity mandate, the CLI is a thin transport adapter over the shared `src.core.services` layer. Anything achievable via the REST API or Swagger UI is mathematically guaranteed to be achievable natively from the terminal. This ensures usability in air-gapped, CI/CD, and terminal-only execution environments.
 
-## The NemoClaw CLI Installer & DeepAgents TUI (`dcode`)
+## Architecture
 
-The environment utilizes the advanced **DeepAgents Code TUI** (`dcode`) as its primary terminal-based user interface, deployed and governed by the **NemoClaw CLI installer**. 
+The CLI acts as a synchronous entrypoint that maps user arguments to asynchronous background execution services via `asyncio.run()`.
 
-This powerful Text User Interface is invoked directly via the `dcode` shell alias. As part of the NemoClaw for Deep Agents blueprint, `dcode` runs the agent explicitly inside an NVIDIA OpenShell secure sandbox, powered by Nemotron 3 Ultra.
-
-Rather than relying on proprietary, one-off synchronous HTTP requests, `dcode` operates as a native **MCP Client**. It automatically discovers the platform's headless MCP server and interacts with the internal LangGraph state machine via standard tools and prompt resources.
-
-### Capabilities
-- **Rich Interactive UI**: Built on `textual`, providing an IDE-like terminal experience.
-- **Agent Orchestration**: Execute complex agent workflows (Maker-Checker validation pipelines) natively from the terminal.
-- **Accordion Task Tracking**: Agent steps, tracker task lists, and summary updates are displayed via expandable accordions, shielding you from raw log spew.
-- **Real-Time State Streaming**: Connects to the platform's RFC 6902 JSON Patch streams to observe deterministic workflow routing without polling.
-
-### Typer Implementation
-The CLI natively wraps the shared `orchestration_service` using `Typer`. For example, invoking the `coreason build` command seamlessly initiates the full Maker-Checker workflow, guaranteeing exact feature parity with the `/export` HTTP endpoints.
-
-For heavy async operations, such as `coreason push-project`, `coreason pull-project`, `coreason export-project`, and `coreason import-project`, the CLI abstracts the background polling loop entirely. It utilizes the synchronous Python SDK and wraps the execution in a gorgeous `rich` animated spinner, giving you immediate terminal feedback while the system extracts Docker images in the background. You can also pass `--skip-state` and `--skip-docker` directly to these commands.
-
-Additional operational commands include `coreason agents list`, `coreason agents get`, and `coreason mcp list-servers`, which all provide rich JSON output compliant with the API schema.
-
-## Connecting the CLI
-
-To launch the CLI and interface with your CoReason Workspace Environment:
-
-```bash
-# Ensure the MCP server definition (.mcp.json) is present in the workspace
-# Export the API token so the CLI can authenticate with the secured platform
-export COREASON_API_TOKEN="coreason-dev-token"
-uv run dcode
+```mermaid
+flowchart TD
+    A[User Terminal] -->|uv run coreason| B(Typer CLI App)
+    B -->|Parses Arguments| C{Command Router}
+    C -->|Project Commands| D[Project Service]
+    C -->|Agent Commands| E[Agent Service]
+    C -->|MCP Commands| F[MCP Tool Service]
+    D --> G[(PostgreSQL)]
+    E --> G
+    F --> G
 ```
 
-Since the environment operates as a headless MCP server, `dcode` abstracts away the topology complexity. Upstream operations are handled deterministically within the platform and streamed directly to your terminal.
+## Available Commands
+
+### 1. Building a New Platform
+The core operation of the factory is building platforms using natural language intents.
+
+```bash
+uv run coreason build "I need an automated clinical trial matching agent platform" --output-dir ./dist
+```
+> [!NOTE]
+> The `build` command spins up a temporary session UUID, delegates the text payload to the `OrchestrationService`, and writes the final exported ZIP artifact to `--output-dir`.
+
+### 2. OCI Registry Operations
+The platform is natively compatible with the OCI (Open Container Initiative) standard, allowing you to push and pull agent bundles directly to enterprise artifact registries (e.g. AWS ECR, GitHub Packages) exactly like Docker images.
+
+**Pushing an Agent Bundle:**
+```bash
+uv run coreason push_project 01J18H1P9F2M1Q6N9B9Y6W4A2B "ghcr.io/my-org/my-agent:v1.0.0"
+```
+
+**Pulling an Agent Bundle:**
+```bash
+uv run coreason pull_project "My Imported Agent" "ghcr.io/my-org/my-agent:v1.0.0" --description "Imported from staging"
+```
+
+> [!TIP]
+> **State Isolation Flags**: You can append `--skip-state` or `--skip-docker` to OCI operations if you only wish to transfer the raw logic without porting the Postgres checkpointer state or compiling a new Docker image.
+
+### 3. Airgapped Export / Import
+For high-security sovereign deployments, you can manually export projects to a physical `.zip` file for USB transfer.
+
+**Export:**
+```bash
+uv run coreason export_project 01J18H1P9F2M1Q6N9B9Y6W4A2B ./my_bundle.zip
+```
+
+**Import:**
+```bash
+uv run coreason import_project "Airgapped Agent" ./my_bundle.zip
+```
+
+### 4. Inspection Commands
+You can list active deployments and MCP servers directly from the terminal.
+
+```bash
+uv run coreason agents list
+uv run coreason agents get --name project_initiation
+uv run coreason mcp list-servers
+```
