@@ -7,6 +7,20 @@ def validate_safe_path(path_str: str, base_dir: Path = WORKSPACE_ROOT) -> Path:
     """
     Validates that a path is safe and does not escape the base directory (preventing directory traversal).
     """
+    # Strict string-based sanitization and validation to remove taint for CodeQL
+    if not path_str or not isinstance(path_str, str):
+        raise ValueError("Security check failed: path must be a non-empty string.")
+    
+    # Only allow alphanumeric, underscores, dashes, dots, and slashes
+    if not re.match(r"^[a-zA-Z0-9_\-\./]+$", path_str):
+        raise ValueError(f"Security check failed: path contains disallowed characters.")
+        
+    if ".." in path_str:
+        raise ValueError("Security check failed: path traversal ('..') is not allowed.")
+        
+    if path_str.startswith("/") or path_str.startswith("\\"):
+        raise ValueError("Security check failed: absolute paths are not allowed.")
+
     resolved_base = base_dir.resolve()
     candidate = Path(path_str)
     if candidate.is_absolute():
