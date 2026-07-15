@@ -19,7 +19,7 @@ def test_cloudformation_template_exists_and_valid():
     CFNSafeLoader.add_multi_constructor('!', construct_undefined)
     
     with open(cfn_path, "r", encoding="utf-8") as f:
-        template = yaml.load(f, Loader=CFNSafeLoader)
+        template = yaml.load(f, Loader=CFNSafeLoader)  # nosec B506 - CFNSafeLoader extends yaml.SafeLoader
         
     assert "Resources" in template
     assert "PlatformTaskDefinition" in template["Resources"]

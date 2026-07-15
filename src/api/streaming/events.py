@@ -30,7 +30,9 @@ async def langgraph_event_generator(session_id: str):
         # Connection closed by client
         pass
     except Exception as e:
-        yield f"data: {json.dumps({'error': str(e)})}\n\n"
+        import logging
+        logging.getLogger(__name__).error("SSE stream error for session %s: %s", session_id, e)
+        yield f"data: {json.dumps({'error': 'Internal stream error'})}\n\n"
 
 
 @router.get("/api/v2/agents/{agent_name}/stream")

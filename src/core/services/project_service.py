@@ -110,13 +110,16 @@ class ProjectService:
         if ".." in pg_dump_path:
             raise ValueError("Path traversal check failed: pg_dump_path contains traversal segments.")
 
+        import shutil
+        pg_dump_exe = shutil.which("pg_dump") or "/usr/bin/pg_dump"
         pg_dump_cmd = [
-            "pg_dump",
+            pg_dump_exe,
             "-U", settings.POSTGRES_USER,
             "-h", settings.POSTGRES_HOST,
             "-p", str(settings.POSTGRES_PORT),
             "-F", "c",
             "-f", pg_dump_path,
+            "--",
             settings.POSTGRES_DB,
         ]
         env = os.environ.copy()
@@ -147,9 +150,10 @@ class ProjectService:
         if not re.match(r"^coreason/[a-zA-Z0-9_-]+:latest$", image_name):
             raise ValueError("Command injection check failed: image_name is unsafe.")
 
+        docker_exe = shutil.which("docker") or "/usr/bin/docker"
         try:
             subprocess.run(
-                ["docker", "save", "-o", docker_tar, image_name],
+                [docker_exe, "save", "-o", docker_tar, "--", image_name],
                 check=True,
                 capture_output=True,
             )

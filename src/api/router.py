@@ -20,12 +20,15 @@ from fastapi.responses import FileResponse
 
 @api_router.post("/export/{session_id}", tags=["Factory"], dependencies=[Depends(get_current_user)])
 async def export_platform(session_id: str):
+    import re
+    # Sanitize session_id to prevent path traversal (CWE-22)
+    safe_session_id = re.sub(r"[^a-zA-Z0-9_-]", "", session_id)
     from src.core.services.export_service import PlatformExporter
     exporter = PlatformExporter()
-    zip_path = await exporter.bundle_agent_specs(session_id)
+    zip_path = await exporter.bundle_agent_specs(safe_session_id)
     if not zip_path:
         raise HTTPException(status_code=404, detail="Artifact not found for session")
-    return FileResponse(zip_path, media_type="application/zip", filename=f"{session_id}.zip")
+    return FileResponse(zip_path, media_type="application/zip", filename=f"{safe_session_id}.zip")
 
 @api_router.get("/status/{session_id}", tags=["Factory"], dependencies=[Depends(get_current_user)])
 async def get_factory_status(session_id: str):
