@@ -12,12 +12,12 @@ For large-scale, distributed deployments, the entire orchestrator, Postgres Chec
 ### 2. Air-Gapped Edge (K3s)
 For highly secure, internet-denied environments (such as on-premise defense or pharmaceutical R&D labs), the platform is available as a standalone K3s distribution. The platform natively functions completely air-gapped; all language models must run locally or via an internal VPC endpoint, and all tools must rely on internal data.
 
-## Immutable Agent Sandboxes
+## Immutable Agent Sandboxes & The NemoClaw Blueprint
 
-A critical security mandate for production deployment is **Deterministic Dependencies**.
+A critical security mandate for production deployment is **Deterministic Dependencies** and zero-trust execution. The platform utilizes the **NemoClaw for Deep Agents** blueprint as its reference architecture for securing agent operations.
 
 When an agent is deployed, it is packaged as a standalone Docker image defined by its `project.yaml` manifest. 
-- **Ephemeral Pods**: Agents operate strictly within isolated, ephemeral Kubernetes pod sandboxes managed by the OpenShell Gateway.
+- **NemoClaw Governed Sandboxes**: Agents operate strictly within isolated, ephemeral Kubernetes pod sandboxes managed by the **NVIDIA OpenShell Gateway** (part of the NemoClaw stack). This ensures that autonomous operations on sensitive codebases proceed without risk of data exfiltration.
 - **No Dynamic Installs**: Dynamic `pip install` commands at runtime are mathematically forbidden. All dependencies must be strictly locked and baked into the image during the CI/CD pipeline. This guarantees that an agent deployed today will execute identically three years from now, and prevents supply-chain attacks in air-gapped environments.
 
 ## The Model Context Protocol
