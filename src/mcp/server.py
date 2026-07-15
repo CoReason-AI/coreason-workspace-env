@@ -163,7 +163,7 @@ async def _dispatch_tool(name: str, args: dict) -> Any:
     elif name == "create_project":
         from src.core.services import project_service
         project = await project_service.create_project(
-            project_id=str(uuid.uuid4()),
+            project_id=str(uuid.uuid7()),
             name=args["name"],
             description=args.get("description", ""),
         )

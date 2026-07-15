@@ -29,7 +29,7 @@ async def list_projects():
 @router.post("/", status_code=201)
 async def create_project(req: CreateProjectRequest):
     """Create a new project."""
-    project_id = str(uuid.uuid4())
+    project_id = str(uuid.uuid7())
     try:
         project = await project_service.create_project(
             project_id=project_id,

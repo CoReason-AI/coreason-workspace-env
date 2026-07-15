@@ -102,7 +102,7 @@ class AgentService:
         """
         from src.core.queue import task_queue
 
-        job_id = session_id or str(uuid.uuid4())
+        job_id = session_id or str(uuid.uuid7())
 
         task_queue.enqueue_workflow(
             session_id=job_id,

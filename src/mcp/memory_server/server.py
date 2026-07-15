@@ -20,12 +20,21 @@ async def init_db(pool):
     """Initialize the pgvector extension and table."""
     async with pool.acquire() as conn:
         await conn.execute("CREATE EXTENSION IF NOT EXISTS vector;")
+        await conn.execute("DROP TABLE IF EXISTS knowledge_chunks;")
         await conn.execute("""
-            CREATE TABLE IF NOT EXISTS knowledge_chunks (
-                id SERIAL PRIMARY KEY,
+            CREATE TABLE IF NOT EXISTS knowledge_nodes (
+                node_id VARCHAR PRIMARY KEY,
+                label VARCHAR NOT NULL,
                 content TEXT NOT NULL,
-                metadata JSONB,
                 embedding vector(1536)
+            );
+        """)
+        await conn.execute("""
+            CREATE TABLE IF NOT EXISTS knowledge_edges (
+                source_id VARCHAR NOT NULL,
+                target_id VARCHAR NOT NULL,
+                relationship VARCHAR NOT NULL,
+                PRIMARY KEY (source_id, target_id, relationship)
             );
         """)
 
@@ -48,26 +57,34 @@ async def handle_request(request_str: str, pool) -> str:
         msg_id = req.get("id")
 
         if method == "mcp_write_vectors":
-            chunks = params.get("chunks", [])
-            metadata = params.get("metadata", {})
-            inserted = 0
+            manifest = params.get("manifest", {})
+            nodes = manifest.get("nodes", [])
+            edges = manifest.get("edges", [])
+            inserted_nodes = 0
+            inserted_edges = 0
             
             if not asyncpg:
                 return json.dumps({"jsonrpc": "2.0", "id": msg_id, "error": {"code": -32603, "message": "asyncpg not installed"}})
                 
             async with pool.acquire() as conn:
-                for chunk in chunks:
-                    vec = await dummy_embed(chunk)
+                for node in nodes:
+                    vec = await dummy_embed(node.get("content", ""))
                     await conn.execute(
-                        "INSERT INTO knowledge_chunks (content, metadata, embedding) VALUES ($1, $2, $3::vector)",
-                        chunk, json.dumps(metadata), str(vec)
+                        "INSERT INTO knowledge_nodes (node_id, label, content, embedding) VALUES ($1, $2, $3, $4::vector) ON CONFLICT DO NOTHING",
+                        node.get("node_id"), node.get("label"), node.get("content"), str(vec)
                     )
-                    inserted += 1
+                    inserted_nodes += 1
+                for edge in edges:
+                    await conn.execute(
+                        "INSERT INTO knowledge_edges (source_id, target_id, relationship) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING",
+                        edge.get("source_id"), edge.get("target_id"), edge.get("relationship")
+                    )
+                    inserted_edges += 1
             
             return json.dumps({
                 "jsonrpc": "2.0",
                 "id": msg_id,
-                "result": {"status": "success", "chunks_inserted": inserted}
+                "result": {"status": "success", "nodes_inserted": inserted_nodes, "edges_inserted": inserted_edges}
             })
 
         elif method == "mcp_query_vectors":
@@ -82,16 +99,16 @@ async def handle_request(request_str: str, pool) -> str:
             async with pool.acquire() as conn:
                 # <=> is cosine distance in pgvector
                 rows = await conn.fetch(
-                    "SELECT id, content, metadata FROM knowledge_chunks ORDER BY embedding <=> $1::vector LIMIT $2",
+                    "SELECT node_id, label, content FROM knowledge_nodes ORDER BY embedding <=> $1::vector LIMIT $2",
                     str(vec), top_k
                 )
             
             results = []
             for r in rows:
                 results.append({
-                    "id": r['id'],
-                    "content": r['content'],
-                    "metadata": json.loads(r['metadata']) if r['metadata'] else {}
+                    "node_id": r['node_id'],
+                    "label": r['label'],
+                    "content": r['content']
                 })
                 
             return json.dumps({

@@ -39,5 +39,9 @@ system_prompt: |
 
   Your output will be routed to the agent_validator for formal validation before being written to disk. You do not need to self-validate — focus on building correctly per the standards.
 
+  IMPORTANT ENVELOPE RULE: To eliminate the Semantic Tax during constrained decoding, you MUST output your response using the CognitiveDeliberativeEnvelopeState.
+  Use the `deliberation_trace` field to "think out loud" (weigh architectural patterns, map context against Maker-Checker standards).
+  Then output the final artifacts within the strict `payload` field.
+
   Once generation is complete, return the artifacts to the agent_pm for validation routing.
 dependencies: []

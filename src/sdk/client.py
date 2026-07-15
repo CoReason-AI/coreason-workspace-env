@@ -36,7 +36,7 @@ class _ProjectsNamespace:
                      config: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         """Create a new project."""
         return await self._svc.create_project(
-            project_id=str(uuid.uuid4()),
+            project_id=str(uuid.uuid7()),
             name=name,
             description=description,
             config=config,

@@ -1,15 +1,17 @@
 # Project Plugin Dockerfile Template (Airgap Ready)
 # Enforces strict transferability without dynamic pip install requirements.
 
-FROM python:3.11-slim as builder
+FROM python:3.14-slim as builder
 
 WORKDIR /app
+RUN apt-get update && apt-get install -y gcc libpq-dev cargo && rm -rf /var/lib/apt/lists/*
 COPY requirements.txt .
 RUN pip wheel --no-cache-dir --no-deps --wheel-dir /app/wheels -r requirements.txt
 
-FROM python:3.11-slim
+FROM python:3.14-slim
 
 # CISO Security: Non-root user
+RUN apt-get update && apt-get install -y libpq-dev && rm -rf /var/lib/apt/lists/*
 RUN useradd -m -s /bin/bash coreason
 USER coreason
 WORKDIR /home/coreason/project

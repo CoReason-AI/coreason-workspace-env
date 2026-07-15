@@ -1,14 +1,15 @@
 from typing import List, Optional
-from pydantic import BaseModel, Field
+from pydantic import Field
+from coreason_manifest.spec.ontology import CoreasonBaseState
 
-class ProvenanceCitation(BaseModel):
+class ProvenanceCitation(CoreasonBaseState):
     """A strict traceability receipt pointing to the exact origin of a claim."""
     citation_id: str = Field(..., description="Unique identifier for this citation (e.g., [1], [2])")
     source_uri: str = Field(..., description="Path, URL, or document ID of the source material")
     chunk_snippet: str = Field(..., description="The exact verbatim text chunk supporting the synthesis")
     temporal_context: str = Field(..., description="Timestamp or date of the source to resolve temporal conflicts")
 
-class KnowledgeReceipt(BaseModel):
+class KnowledgeReceipt(CoreasonBaseState):
     """
     The strict output contract for the knowledge_consultant.
     Ensures no information is returned without cryptographic/verifiable provenance.

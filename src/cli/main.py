@@ -49,7 +49,7 @@ async def cmd_projects_create(args):
     from src.core.services import project_service
     config = json.loads(args.config) if args.config else None
     project = await project_service.create_project(
-        project_id=str(uuid.uuid4()),
+        project_id=str(uuid.uuid7()),
         name=args.name,
         description=args.description or "",
         config=config,

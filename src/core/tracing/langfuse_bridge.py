@@ -120,7 +120,7 @@ class TracingBridge:
         Dual-write a supervisor action to both Langfuse and WORM.
         """
         result = {}
-        effective_run_id = run_id or str(uuid.uuid4())
+        effective_run_id = run_id or str(uuid.uuid7())
 
         # 1. Write to WORM
         worm_hash = self.auditor.log_supervisor_action(

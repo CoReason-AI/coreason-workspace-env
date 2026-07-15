@@ -1,0 +1,16 @@
+FROM python:3.14-slim
+
+WORKDIR /app
+RUN apt-get update && apt-get install -y gcc libpq-dev cargo && rm -rf /var/lib/apt/lists/*
+
+# Install dependencies including pytest
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir pytest
+
+# Copy application and tests
+COPY src/ ./src/
+COPY tests/ ./tests/
+
+ENV PYTHONPATH=/app
+CMD ["pytest", "tests/"]
