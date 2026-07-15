@@ -1,0 +1,10 @@
+[project]
+name = "coreason-agent-test_session_e2e_a440d4b425f74b2eafaa2c67e58fd86e"
+version = "0.1.0"
+description = "Compiled DeepAgent"
+dependencies = [
+    "pyagentspec",
+    "langgraph",
+    "langchain",
+    "pydantic"
+]
