@@ -146,6 +146,18 @@ class _DocsNamespace:
         )
 
 
+class _FactoryNamespace:
+    """SDK namespace for building platforms."""
+    
+    def __init__(self):
+        from src.core.services import orchestration_service
+        self._svc = orchestration_service.OrchestrationService()
+
+    async def build(self, user_id: str, session_id: str, intent: str) -> Dict[str, Any]:
+        """Trigger a factory build for a new agent platform."""
+        return await self._svc.run_factory_graph(user_id, session_id, intent)
+
+
 class CoReasonClient:
     """
     In-process Python SDK for the CoReason platform.
@@ -162,6 +174,7 @@ class CoReasonClient:
         self.agents = _AgentsNamespace()
         self.mcp = _MCPNamespace()
         self.docs = _DocsNamespace()
+        self.factory = _FactoryNamespace()
 
     async def health(self) -> Dict[str, Any]:
         """Run platform health check."""

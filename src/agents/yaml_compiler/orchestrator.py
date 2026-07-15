@@ -1,52 +1,47 @@
 import os
 import yaml
 import logging
-from typing import Dict, Any, List
+from typing import Any
+from src.core.base_agent import DeepAgent
 from langchain_openai import ChatOpenAI
-from .tools.fs_tools import local_fs_writer, local_fs_reader
+from langchain_core.messages import SystemMessage, HumanMessage
+from pydantic import BaseModel, Field
 
 logger = logging.getLogger(__name__)
 
-class YAMLCompilerAgent:
-    """
-    Native DeepAgent Harness for the deterministic YAML Compiler.
-    Accepts the fully saturated context and scaffolds the project files.
-    """
-    def __init__(self, model_override: str = None):
-        # Updated to point to the encapsulated agent.yaml
-        yaml_path = os.path.join(os.path.dirname(__file__), "agent.yaml")
-        with open(yaml_path, "r", encoding="utf-8") as f:
-            self.agent_spec = yaml.safe_load(f)
-            
-        self.llm = ChatOpenAI(
-            model=model_override or "nvidia/nemotron-3-nano-30b-a3b:free",
-            api_key="sovereign-key-placeholder",
-            temperature=0.0
-        )
-        
-        # Bound to encapsulated tools
-        self.tools = [local_fs_writer, local_fs_reader]
-        logger.info(f"Initialized {self.agent_spec.get('name')}")
+class YamlCompilerOutput(BaseModel):
+    agent_yaml: str = Field(description="The generated agent.yaml contents.")
+    project_yaml: str = Field(description="The generated project.yaml contents.")
 
-    def execute(self, saturated_context: str, session_id: str) -> str:
+class YamlCompilerAgent(DeepAgent):
+    """
+    Deterministic worker for YAML compilation.
+    """
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        yaml_path = os.path.join(os.path.dirname(__file__), "agent.yaml")
+        if os.path.exists(yaml_path):
+            with open(yaml_path, "r", encoding="utf-8") as f:
+                self.agent_spec = yaml.safe_load(f)
+        
+        from src.core.config import settings
+        self.llm = ChatOpenAI(
+            model=settings.LLM_MODEL_NAME,
+            api_key=settings.LLM_API_KEY,
+            temperature=settings.LLM_TEMPERATURE,
+            base_url=settings.LLM_BASE_URL
+        ).with_structured_output(YamlCompilerOutput)
+
+    def execute(self, context: dict, session_id: str = None) -> dict:
         """
-        Executes the DeepAgent compilation dynamically via LangGraph.
+        Executes deterministically based on saturated context.
         """
-        try:
-            from deepagents import create_deep_agent
-            
-            graph = create_deep_agent(
-                model=self.llm,
-                tools=self.tools,
-                system_prompt=self.agent_spec.get("system_prompt")
-            )
-            
-            config = {"configurable": {"thread_id": session_id}}
-            result = graph.invoke(
-                {"messages": [("user", f"Compile these requirements: {saturated_context}")]},
-                config=config
-            )
-            return result['messages'][-1].content
-        except ImportError:
-            logger.warning("deepagents package missing, acting as mock execution.")
-            return "MOCK_SUCCESS: Compiled project.yaml and orchestrator_agent.yaml"
+        prompt = self.agent_spec.get("system_prompt", "You are an expert YAML compiler.")
+        messages = [
+            SystemMessage(content=prompt),
+            HumanMessage(content=f"Requirements: {context}")
+        ]
+        
+        logger.info(f"[{session_id}] YamlCompiler executing deterministic generation.")
+        result = self.llm.invoke(messages)
+        return {"compiled_yaml": result.dict()}

@@ -25,7 +25,6 @@ skill_registry:
       prompts, free-text handoffs, direct egress, linear pipelines"
     path: "core/skills/building/legacy_modernization_standards"
 tools:
-  - name: "local_fs_writer"
   - name: "local_fs_reader"
 system_prompt: |
   You are the CoReason Phase 0 YAML Compiler Sub-Agent.

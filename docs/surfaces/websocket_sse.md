@@ -8,10 +8,9 @@ The CoReason Workspace Environment exposes **WebSocket** and **Server-Sent Event
 
 Every execution node, internal thought process, tool invocation, and validation error within the LangGraph state machine is broadcast in real-time. 
 
-To optimize payload size and network efficiency, the platform utilizes a `StateDeltaPublisher`. Instead of passing bloated, complete state dictionaries on every graph tick, the platform generates and broadcasts standard **RFC 6902 JSON Patch** streams over Redis PubSub.
+To optimize payload size and network efficiency, the platform generates real-time telemetry updates. Instead of passing bloated, complete state dictionaries on every graph tick, the platform streams data directly from the **Postgres DB Queue**, ensuring persistent, queryable state.
 
-- **SSE (Server-Sent Events)**: Ideal for uni-directional telemetry, used primarily by headless dashboards or logging aggregators simply looking to monitor a job's progress.
-- **WebSockets**: A full-duplex bi-directional channel enabling interaction with the live JSON Patch state stream.
+- **SSE (Server-Sent Events)**: Ideal for uni-directional telemetry, used primarily by headless dashboards or logging aggregators simply looking to monitor a job's progress. Currently, the SSE endpoints (like `/api/v2/agents/{agent_name}/stream`) actively subscribe to Postgres `LISTEN/NOTIFY` channels (e.g. `langgraph_events_{session_id}`) via `asyncpg.add_listener`, yielding true JSON patch events natively from the execution graph.
 
 ## Time-Travel Debugging (State Sync)
 

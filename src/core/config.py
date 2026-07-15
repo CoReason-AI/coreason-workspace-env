@@ -35,8 +35,11 @@ class Settings(BaseSettings):
     # External APIs
     OPENROUTER_API_KEY: str
     
-    # JWT Security
-    JWT_SECRET_KEY: str
+    # LLM Configuration
+    LLM_MODEL_NAME: str = "nvidia/nemotron-3-nano-30b-a3b:free"
+    LLM_API_KEY: str = "sovereign-key-placeholder"
+    LLM_TEMPERATURE: float = 0.0
+    LLM_BASE_URL: str = "https://api.openai.com/v1"
     
     class Config:
         env_file = ".env"

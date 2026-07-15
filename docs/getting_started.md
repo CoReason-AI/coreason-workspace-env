@@ -9,6 +9,16 @@ Welcome to the CoReason Workspace Environment! This guide will help you get the 
 - **PostgreSQL 16+** (with `pgvector` extension)
 - **Redis 5.0+**
 
+## Configuration
+
+The platform adheres to strict enterprise security practices. All LLM configurations are centralized and managed via environment variables using `pydantic-settings`.
+
+Before running the platform, configure your environment:
+```bash
+cp .env.example .env
+```
+Open `.env` and set your `LLM_API_KEY`, `LLM_MODEL_NAME`, and `LLM_BASE_URL`. This allows you to securely swap between cloud providers or local vLLM deployments without touching the source code.
+
 ## Installation
 
 ```bash
@@ -22,8 +32,19 @@ uv sync --all-extras
 
 ## Running the Platform
 
-You can start the environment using the CLI:
+The CoReason platform relies on a distributed multi-tenant architecture utilizing PostgreSQL, Redis, and KEDA workers. The easiest way to spin this up locally is via Docker Compose:
+
 ```bash
-uv run coreason dev
+docker-compose up -d --build
 ```
-This will spin up the backend API, the MCP server, and connect to your local database.
+
+This will automatically spin up the `platform_server`, `postgres_checkpointer`, `redis_queue`, and `platform_worker` components. The REST API and SSE streams will be available, and the MCP server will dynamically query the Postgres database for state tracking.
+
+## Executing Exported Artifacts
+
+When you build agents through the platform, it exports an installable ZIP archive containing the generated YAML manifests and a dynamically synthesized `pyproject.toml`. 
+
+To run a generated agent:
+1. Extract the ZIP archive.
+2. Navigate into the extracted directory.
+3. Run `uv run coreason dev` (or `uv run` depending on the generated nodes).
