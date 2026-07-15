@@ -55,8 +55,8 @@ def execute_agent(agent_name: str, prompt: str):
     user_id = "cli-user"
     async def run():
         typer.echo(f"Executing agent {agent_name} with session {session_id}")
-        # Note: We simulate execution using run_factory_graph for now
-        res = await orch.run_factory_graph(user_id, session_id, prompt)
+        # Note: We simulate execution using run_persona_graph
+        res = await orch.run_persona_graph(user_id, session_id, prompt)
         typer.echo(json.dumps(res))
     asyncio.run(run())
 
@@ -82,7 +82,7 @@ def build(intent: str, output_dir: str = "./dist"):
     
     async def run():
         typer.echo(f"Session ID: {session_id}")
-        result = await orch.run_factory_graph(user_id, session_id, intent, output_dir=output_dir)
+        result = await orch.run_persona_graph(user_id, session_id, intent, output_dir=output_dir)
         if result.get("status") == "success":
             typer.echo(f"[SUCCESS] Platform bundled at: {result.get('artifact')}")
         else:

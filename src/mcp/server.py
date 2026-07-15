@@ -200,7 +200,7 @@ async def trigger_factory_build(user_id: str, session_id: str, intent: str) -> D
     """Trigger a factory build for a new agent platform."""
     from src.core.services.orchestration_service import OrchestrationService
     orch = OrchestrationService()
-    return await orch.run_factory_graph(user_id, session_id, intent)
+    return await orch.run_persona_graph(user_id, session_id, intent)
 
 
 if __name__ == "__main__":

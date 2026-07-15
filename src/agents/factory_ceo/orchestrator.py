@@ -7,12 +7,11 @@ from langchain_openai import ChatOpenAI
 from langchain_core.messages import HumanMessage, SystemMessage
 from langgraph.graph import StateGraph, END
 
-from src.core.schemas.epistemic_firewall import (
+from coreason_manifest.spec.ontology import (
     EpistemicQuarantineSnapshot,
-    EpistemicProxyState,
-    LibrarianRoutingState
+    EpistemicProxyState
 )
-from src.core.db import get_db_pool
+from src.core.services.worm_storage import persist_quarantine_snapshot
 
 import logging
 logger = logging.getLogger(__name__)
@@ -30,16 +29,8 @@ async def epistemic_interceptor_node(state: dict[str, Any]) -> dict[str, Any]:
             raw_payload=raw_payload
         )
         
-        # Persist to WORM Postgres table for enterprise statelessness using global pool
-        try:
-            pool = await get_db_pool()
-            async with pool.acquire() as conn:
-                await conn.execute(
-                    "INSERT INTO epistemic_quarantine_snapshots (snapshot_id, raw_payload) VALUES ($1, $2) ON CONFLICT DO NOTHING",
-                    snapshot.snapshot_id, snapshot.raw_payload
-                )
-        except Exception as e:
-            logger.warning(f"Failed to persist transcript to WORM: {e}")
+        # Persist to WORM Postgres table via core service (Body infrastructure)
+        await persist_quarantine_snapshot(snapshot)
         
         proxy = EpistemicProxyState(
             proxy_cid=snapshot.snapshot_id,

@@ -74,10 +74,13 @@ class ProjectService:
             return dict(row) if row else None
 
     async def delete_project(self, project_id: str) -> bool:
-        """Delete a project by ID."""
+        """Delete a project by ID and its corresponding state schema."""
         pool = await get_db_pool()
+        schema_name = f"project_{project_id.replace('-', '_')}"
         async with pool.acquire() as conn:
             result = await conn.execute("DELETE FROM projects WHERE id = $1", project_id)
+            if result == "DELETE 1":
+                await conn.execute(f"DROP SCHEMA IF EXISTS {schema_name} CASCADE")
             return result == "DELETE 1"
 
     async def export_project(self, project_id: str, output_path: str, skip_state: bool = False, skip_docker: bool = False) -> Dict[str, Any]:
@@ -114,11 +117,13 @@ class ProjectService:
 
             import shutil
             pg_dump_exe = shutil.which("pg_dump") or "/usr/bin/pg_dump"
+            schema_name = f"project_{safe_project_id.replace('-', '_')}"
             pg_dump_cmd = [
                 pg_dump_exe,
                 "-U", settings.POSTGRES_USER,
                 "-h", settings.POSTGRES_HOST,
                 "-p", str(settings.POSTGRES_PORT),
+                "-n", schema_name,
                 "-F", "c",
                 "--",
                 settings.POSTGRES_DB,

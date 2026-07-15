@@ -40,9 +40,11 @@ class DocsService:
         Returns:
             Structured result with status and files written.
         """
-        workspace = Path(workspace_path)
-        if not workspace.is_absolute():
-            return {"status": "error", "detail": "workspace_path must be absolute"}
+        from src.core.security.path_validation import validate_safe_path, WORKSPACE_ROOT
+        try:
+            workspace = validate_safe_path(workspace_path, base_dir=WORKSPACE_ROOT / "projects")
+        except ValueError as e:
+            return {"status": "error", "detail": str(e)}
 
         workspace.mkdir(parents=True, exist_ok=True)
         docs_dir = workspace / "docs"
