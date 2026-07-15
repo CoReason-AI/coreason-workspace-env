@@ -27,7 +27,7 @@ The MCP Server groups tools logically into domains based on the underlying capab
 3. **Project Tools**: Directly exposes the platform's `build`, `push-oci`, and `export` capabilities to upstream agents.
 
 > [!IMPORTANT]
-> Because the MCP Server binds to the exact same `src.core.services` layer as the REST API, any action an agent takes via an MCP tool call uses the same rigorous Pydantic validation and UUIDv7 logic as if a human invoked the REST endpoint.
+> Because the MCP Server binds to the exact same `src.core.services` layer as the REST API, any action an agent takes via an MCP tool call uses the same rigorous Pydantic validation and UUIDv7 logic as if a human invoked the REST endpoint. This is guaranteed by our [Multi-Surface Parity Testing](../architecture/multi_surface_parity.md).
 
 ## Usage Example (Configuration)
 

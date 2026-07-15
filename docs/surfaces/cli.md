@@ -4,6 +4,9 @@ The CoReason Workspace Environment provides a fully-featured headless CLI built 
 
 Following the Multi-Surface Interaction Parity mandate, the CLI is a thin transport adapter over the shared `src.core.services` layer. Anything achievable via the REST API or Swagger UI is mathematically guaranteed to be achievable natively from the terminal. This ensures usability in air-gapped, CI/CD, and terminal-only execution environments.
 
+> [!NOTE]
+> To prove this execution equivalence, the CLI layer undergoes strict [Multi-Surface Parity Testing](../architecture/multi_surface_parity.md) within our Testcontainers CI suite.
+
 ## Architecture
 
 The CLI acts as a synchronous entrypoint that maps user arguments to asynchronous background execution services via `asyncio.run()`.

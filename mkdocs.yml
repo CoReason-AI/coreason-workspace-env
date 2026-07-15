@@ -51,6 +51,7 @@ nav:
     - Context Engineering: architecture/context_engineering.md
     - Epistemic Firewall: architecture/epistemic_firewall.md
     - Maker-Checker Pipeline: architecture/maker_checker.md
+    - Multi-Surface Parity: architecture/multi_surface_parity.md
   - Interaction Surfaces:
     - MCP Server: surfaces/mcp_server.md
     - CLI: surfaces/cli.md

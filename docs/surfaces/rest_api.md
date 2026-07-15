@@ -4,6 +4,9 @@ The CoReason Workspace Environment exposes a comprehensive **FastAPI-powered RES
 
 Following the platform's Multi-Surface Parity mandate, the REST API does not duplicate business logic. It serves strictly as a transport adapter over the shared `src.core.services` layer, ensuring that operations triggered via HTTP behave identically to those triggered via the CLI or MCP server.
 
+> [!NOTE]
+> To prove this execution equivalence, the REST API undergoes strict [Multi-Surface Parity Testing](../architecture/multi_surface_parity.md) alongside the other transport layers using an ephemeral Testcontainers database.
+
 ## Architecture & Validation Pipeline
 
 ```mermaid

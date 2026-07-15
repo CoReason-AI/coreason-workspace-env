@@ -4,6 +4,9 @@ The CoReason Workspace Environment heavily leverages real-time streaming to prov
 
 To satisfy the "Real-Time Observability & Accordion UX" rule, the platform exposes dedicated WebSockets and SSE streams.
 
+> [!NOTE]
+> The WebSocket routing and pub/sub layer undergoes [Multi-Surface Parity Testing](../architecture/multi_surface_parity.md) using an ephemeral Testcontainers Redis instance, ensuring events emitted by the core layer reliably traverse the network edge.
+
 ## Streaming Architecture
 
 ```mermaid
