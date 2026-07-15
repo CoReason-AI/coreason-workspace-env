@@ -11,8 +11,8 @@ The Python SDK is designed for scenarios where the headless platform needs to be
 ```python
 import coreason
 
-# Initialize the embedded platform client
-client = coreason.Client()
+# Initialize the embedded platform client with your API token
+client = coreason.Client(token="coreason-dev-token")
 
 # Execute an agent workflow deterministically
 receipt = client.agents.execute(
@@ -34,7 +34,7 @@ import asyncio
 import coreason
 
 async def monitor_agent():
-    client = coreason.AsyncClient()
+    client = coreason.AsyncClient(token="coreason-dev-token")
     
     # Subscribe to the real-time state sync stream
     async for state in client.streaming.watch_state(session_id="uuid7-1234"):

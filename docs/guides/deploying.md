@@ -6,7 +6,7 @@ The CoReason Workspace Environment is designed to be highly portable and secure.
 
 To support true asynchronous concurrency and horizontal scaling, the platform utilizes specialized Docker containers defined in the `docker-compose.yaml`:
 - **`platform_server`**: A FastAPI web server handling synchronous REST API and SSE requests.
-- **`platform_worker`**: A Celery/KEDA worker node pulling agent execution tasks off the Redis queue asynchronously.
+- **`platform_worker`**: A `keda_worker` daemon pulling agent execution tasks off the Redis queue asynchronously.
 - **`postgres_checkpointer`**: Handles multi-tenant safe StateGraph checkpoints and events.
 
 ## Deployment Architectures
@@ -14,7 +14,7 @@ To support true asynchronous concurrency and horizontal scaling, the platform ut
 The platform can be deployed in two primary configurations:
 
 ### 1. Enterprise Kubernetes (Helm)
-For large-scale, distributed deployments, the entire orchestrator, Postgres Checkpointer, and execution nodes are packaged as a unified Helm chart. This allows for seamless deployment into existing enterprise Kubernetes clusters (e.g., EKS, GKE, AKS).
+For large-scale, distributed deployments, the entire orchestrator, Postgres Checkpointer, and execution nodes are packaged as a unified Helm chart. This allows for seamless deployment into existing enterprise Kubernetes clusters (e.g., EKS, GKE, AKS). The worker daemon is deployed via `worker-deployment.yaml` and seamlessly autoscaled by KEDA based on the queue depth monitored on the queue specified by `REDIS_QUEUE_NAME`.
 
 ### 2. Air-Gapped Edge (K3s)
 For highly secure, internet-denied environments (such as on-premise defense or pharmaceutical R&D labs), the platform is available as a standalone K3s distribution. The platform natively functions completely air-gapped; all language models must run locally or via an internal VPC endpoint, and all tools must rely on internal data.

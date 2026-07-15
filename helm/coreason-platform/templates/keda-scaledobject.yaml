@@ -6,7 +6,7 @@ metadata:
     {{- include "coreason-platform.labels" . | nindent 4 }}
 spec:
   scaleTargetRef:
-    name: {{ include "coreason-platform.fullname" . }}
+    name: {{ include "coreason-platform.fullname" . }}-worker
   minReplicaCount: 1
   maxReplicaCount: 100
   triggers:

@@ -18,6 +18,7 @@ Before running the platform, configure your environment:
 cp .env.example .env
 ```
 Open `.env` and set your `LLM_API_KEY`, `LLM_MODEL_NAME`, and `LLM_BASE_URL`. This allows you to securely swap between cloud providers or local vLLM deployments without touching the source code.
+Additionally, ensure you set `API_SECRET_TOKEN` to secure the platform endpoints, and `REDIS_QUEUE_NAME` (which defaults to `tasks`) if you are customizing the KEDA worker deployment.
 
 ## Installation
 
@@ -32,7 +33,7 @@ uv sync --all-extras
 
 ## Running the Platform
 
-The CoReason platform relies on a distributed multi-tenant architecture utilizing PostgreSQL, Redis, and KEDA workers. The easiest way to spin this up locally is via Docker Compose:
+The CoReason platform relies on a distributed multi-tenant architecture utilizing PostgreSQL, Redis, and a background task daemon. The easiest way to spin this up locally is via Docker Compose:
 
 ```bash
 docker-compose up -d --build
