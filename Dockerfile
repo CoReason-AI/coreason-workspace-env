@@ -43,4 +43,4 @@ COPY --chown=coreason:coreason . /home/coreason/project
 ENV PATH="/home/coreason/project/.venv/bin:$PATH"
 ENV PYTHONPATH=/home/coreason/project
 
-CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["python", "-m", "uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8000"]
