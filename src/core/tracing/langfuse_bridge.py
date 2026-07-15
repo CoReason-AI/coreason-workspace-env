@@ -160,8 +160,8 @@ class TracingBridge:
         if self.langfuse:
             try:
                 self.langfuse.flush()
-            except Exception:
-                pass
+            except Exception as e:
+                logger.debug("Failed to flush Langfuse events: %s", e)
 
 
 # Singleton
