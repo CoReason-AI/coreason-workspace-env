@@ -44,14 +44,25 @@ class AgentPmAgent(DeepAgent):
         
     def _run_maker(self, state: AgentState):
         from src.agents.prompt_engineer.orchestrator import PromptEngineerAgent
-        worker = PromptEngineerAgent()
+        from src.agents.yaml_compiler.orchestrator import YamlCompilerAgent
+        
+        prompt_worker = PromptEngineerAgent()
+        yaml_worker = YamlCompilerAgent()
+        
         context = state.get("messages", [])
         feedback = state.get("feedback", "")
         worker_context = f"{context}\nFeedback from previous run: {feedback}" if feedback else str(context)
         
         attempts = state.get("attempts", 0) + 1
-        result = worker.execute(worker_context, "agent_pm_loop")
-        return {"worker_result": result, "attempts": attempts}
+        
+        # 1. Generate Prompt
+        prompt_result = prompt_worker.execute(worker_context, "agent_pm_loop")
+        
+        # 2. Pass to YAML Compiler
+        compiler_context = f"{worker_context}\nPrompt Output:\n{prompt_result}"
+        final_result = yaml_worker.execute(compiler_context, "agent_pm_loop")
+        
+        return {"worker_result": str(final_result), "attempts": attempts}
 
     def _run_validator(self, state: AgentState):
         from src.agents.agent_validator.orchestrator import AgentValidatorAgent

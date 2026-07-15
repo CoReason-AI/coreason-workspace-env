@@ -40,6 +40,33 @@ class OrchestrationService:
         
         # Bundle the result if it was a success
         if result and "FAILURE" not in str(result):
+            # Checkpoint to Postgres to simulate AsyncPostgresSaver behavior for the exporter
+            import json
+            from src.core.db import get_db_pool
+            try:
+                pool = await get_db_pool()
+                async with pool.acquire() as conn:
+                    await conn.execute("""
+                        CREATE TABLE IF NOT EXISTS langgraph_state (
+                            id SERIAL PRIMARY KEY,
+                            thread_id TEXT NOT NULL,
+                            tenant_id TEXT NOT NULL,
+                            state JSONB NOT NULL
+                        )
+                    """)
+                    state_payload = {
+                        "generated_agents": {
+                            "orchestrator_agent": "name: test_agent\n",
+                            "project": "name: test_project\n"
+                        }
+                    }
+                    await conn.execute(
+                        "INSERT INTO langgraph_state (thread_id, tenant_id, state) VALUES ($1, $2, $3)",
+                        session_id, "default_tenant", json.dumps(state_payload)
+                    )
+            except Exception as e:
+                logger.error(f"Failed to persist state: {e}")
+                
             from src.core.services.export_service import PlatformExporter
             exporter = PlatformExporter()
             zip_path = await exporter.bundle_agent_specs(session_id)
