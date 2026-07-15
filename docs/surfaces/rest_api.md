@@ -23,11 +23,11 @@ Because the REST API operates in a multi-user environment, it natively enforces 
 
 ## Authentication
 
-All platform endpoints (except `/health`) are strictly secured using Bearer Token authentication. Clients must provide a valid token in the `Authorization` header (`Authorization: Bearer <token>`). The expected token must match the `API_SECRET_TOKEN` environment variable configured on the server. Requests missing a valid token will be rejected with a `401 Unauthorized` response.
+All platform endpoints (except `/health`) are strictly secured using Bearer Token authentication. Clients must provide a valid token in the `Authorization` header (`Authorization: Bearer <token>`). The expected token must match the `API_SECRET_TOKEN` environment variable configured on the server. If this environment variable is not explicitly set, the platform will fallback to the default local development token: `coreason-dev-token`. Requests missing a valid token will be rejected with a `401 Unauthorized` response.
 
 ## Endpoints Overview
 
-The API is fully self-documenting. When running the platform, you can view the Swagger UI at `http://localhost:8000/docs`.
+The API is fully self-documenting. When running the platform, you can view the Swagger UI at `http://localhost:9005/docs`. To test endpoints directly from the browser, click the "Authorize" button and input your `API_SECRET_TOKEN`.
 
 ### Core Router Spaces
 - `/health`: System and dependency health checks.
