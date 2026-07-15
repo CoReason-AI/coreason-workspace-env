@@ -89,5 +89,76 @@ def write_report():
         self.assertEqual(parsed["status"], "FAIL")
         self.assertTrue(any("Direct Pathlib open() write to markdown file detected" in v for v in parsed["violations"]))
 
+    def test_auditor_fail_pathlib_assignment_bypass(self):
+        bad_code = """
+from pathlib import Path
+def write_report():
+    file_path = Path("output.md")
+    file_path.write_text("# Report Title")
+"""
+        result = jinja2_ast_auditor.invoke({"python_code": bad_code})
+        parsed = json.loads(result)
+        self.assertEqual(parsed["status"], "FAIL")
+        self.assertTrue(any("Direct Pathlib write_text to markdown file detected" in v for v in parsed["violations"]))
+
+    def test_auditor_fail_pathlib_import_alias_bypass(self):
+        bad_code = """
+import pathlib
+def write_report():
+    pathlib.Path("output.md").write_text("# Report Title")
+"""
+        result = jinja2_ast_auditor.invoke({"python_code": bad_code})
+        parsed = json.loads(result)
+        self.assertEqual(parsed["status"], "FAIL")
+        self.assertTrue(any("Direct Pathlib write_text to markdown file detected" in v for v in parsed["violations"]))
+
+    def test_auditor_fail_pathlib_open_keyword_bypass(self):
+        bad_code = """
+from pathlib import Path
+def write_report():
+    with Path("output.md").open(mode="w") as f:
+        f.write("# Hello")
+"""
+        result = jinja2_ast_auditor.invoke({"python_code": bad_code})
+        parsed = json.loads(result)
+        self.assertEqual(parsed["status"], "FAIL")
+        self.assertTrue(any("Direct Pathlib open() write to markdown file detected" in v for v in parsed["violations"]))
+
+    def test_auditor_fail_joinedstr_bypass(self):
+        bad_code = """
+from pathlib import Path
+def write_report():
+    date = "2026-07-14"
+    Path(f"report_{date}.md").write_text("# Report Title")
+"""
+        result = jinja2_ast_auditor.invoke({"python_code": bad_code})
+        parsed = json.loads(result)
+        self.assertEqual(parsed["status"], "FAIL")
+        self.assertTrue(any("Direct Pathlib write_text to markdown file detected" in v for v in parsed["violations"]))
+
+    def test_auditor_pass_scope_bleed(self):
+        code = """
+from pathlib import Path
+def write_report():
+    file_path = Path("output.md")
+def other_func():
+    file_path = Path("data.json")
+    file_path.write_text("{}")
+"""
+        result = jinja2_ast_auditor.invoke({"python_code": code})
+        parsed = json.loads(result)
+        self.assertEqual(parsed["status"], "PASS")
+
+    def test_auditor_fail_import_renaming_bypass(self):
+        bad_code = """
+from pathlib import Path as MDWriter
+def write_report():
+    MDWriter("output.md").write_text("# Report Title")
+"""
+        result = jinja2_ast_auditor.invoke({"python_code": bad_code})
+        parsed = json.loads(result)
+        self.assertEqual(parsed["status"], "FAIL")
+        self.assertTrue(any("Direct Pathlib write_text to markdown file detected" in v for v in parsed["violations"]))
+
 if __name__ == "__main__":
     unittest.main()
