@@ -82,7 +82,7 @@ def build(intent: str, output_dir: str = "./dist"):
     
     async def run():
         typer.echo(f"Session ID: {session_id}")
-        result = await orch.run_factory_graph(user_id, session_id, intent)
+        result = await orch.run_factory_graph(user_id, session_id, intent, output_dir=output_dir)
         if result.get("status") == "success":
             typer.echo(f"[SUCCESS] Platform bundled at: {result.get('artifact')}")
         else:

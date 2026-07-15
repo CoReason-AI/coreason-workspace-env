@@ -22,7 +22,7 @@ class OrchestrationService:
         return decorator
 
     @observe(name="run_factory_graph")
-    async def run_factory_graph(self, user_id: str, session_id: str, input_data: str) -> dict:
+    async def run_factory_graph(self, user_id: str, session_id: str, input_data: str, output_dir: str = "./generated_agents") -> dict:
         """
         Abstracts the LangGraph execution for the factory CEO.
         """
@@ -70,7 +70,7 @@ class OrchestrationService:
                 logger.error(f"Failed to persist state: {e}")
                 
             from src.core.services.export_service import PlatformExporter
-            exporter = PlatformExporter()
+            exporter = PlatformExporter(output_dir=output_dir)
             zip_path = await exporter.bundle_agent_specs(session_id)
             return {"status": "success", "artifact": zip_path, "details": str(result)}
             
