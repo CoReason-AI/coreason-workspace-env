@@ -12,6 +12,6 @@ spec:
   triggers:
     - type: redis
       metadata:
-        address: {{ include "coreason-platform.fullname" . }}-redis-master:6379
-        listName: tasks
+        address: {{ .Release.Name }}-redis-master:6379
+        listName: langgraph_execution_queue
         listLength: "5"
