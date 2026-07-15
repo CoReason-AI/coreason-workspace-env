@@ -86,3 +86,14 @@ When writing system prompts for agent YAMLs:
 ## Schema Purity & Data Persistence
 1. **God Context Schema Imports**: The coreason-manifest PyPI package is the absolute single source of truth for all schemas. Never duplicate or create local schema files (e.g. ontology.py or state.py). Always import directly from coreason_manifest (e.g., rom coreason_manifest.spec.ontology import CoreasonBaseState).
 2. **UUIDv7 Natively**: The environment uses Python 3.14 natively. Always use uuid.uuid7() when generating UUIDs (e.g., for snapshot_id, project_id). Never use uuid.uuid4(). UUIDv7 prevents Postgres B-Tree index fragmentation and provides native chronological sorting.
+
+## 6. Strict Separation of Empirical Data and Synthesis
+
+When generating any reports, dashboards, or Markdown documents that contain computed output, mathematical metrics, or empirical telemetry, agents must NEVER write or generate the Markdown file or text directly inline (e.g., via f-strings, prints, or LLM-generated `.md` files).
+
+Instead, agents MUST strictly follow the **"Jinja2 Decoupling" Pattern** (3-step deterministic architecture):
+1. **Write the Emitter:** Create a Python script that computes the logic and outputs raw data telemetry to a `.json` file.
+2. **Write the Template:** Create a standalone `.md.j2` (Jinja2) template designed specifically to parse and format the `.json` schema.
+3. **Write the Compiler:** Create a separate Python script that loads the JSON file, loads the Jinja2 template, and explicitly executes the `template.render()` command to write out the final `.md` file.
+
+This strictly guarantees that the View (Markdown) is cleanly separated from the Controller (Python logic/LLM outputs).
