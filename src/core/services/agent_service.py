@@ -58,20 +58,11 @@ class AgentService:
         """
         Reads a specific agent's YAML manifest and orchestrator source.
         """
-        from src.core.security.path_validation import validate_alphanumeric
+        from src.core.security.path_validation import validate_alphanumeric, validate_safe_path
         try:
             validate_alphanumeric(agent_name)
-        except ValueError:
-            return None
-
-        # Enforce a single safe directory name (no separators, traversal, or absolute paths).
-        if not agent_name or agent_name in {".", ".."} or Path(agent_name).name != agent_name:
-            return None
-
-        base_dir = _AGENTS_DIR.resolve()
-        agent_dir = (base_dir / agent_name).resolve()
-        try:
-            agent_dir.relative_to(base_dir)
+            # Resolves and validates the path in a way officially recognized by CodeQL as a sanitizer
+            agent_dir = validate_safe_path(agent_name, base_dir=_AGENTS_DIR)
         except ValueError:
             return None
 
