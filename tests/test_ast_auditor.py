@@ -160,5 +160,30 @@ def write_report():
         self.assertEqual(parsed["status"], "FAIL")
         self.assertTrue(any("Direct Pathlib write_text to markdown file detected" in v for v in parsed["violations"]))
 
+    def test_auditor_fail_open_joinedstr_bypass(self):
+        bad_code = """
+def write_report():
+    date = "2026-07-14"
+    open(f"report_{date}.md", "w").write("# Report Title")
+"""
+        result = jinja2_ast_auditor.invoke({"python_code": bad_code})
+        parsed = json.loads(result)
+        self.assertEqual(parsed["status"], "FAIL")
+        self.assertTrue(any("Direct inline writing to markdown file detected" in v for v in parsed["violations"]))
+
+    def test_auditor_pass_class_scope_bleed(self):
+        code = """
+from pathlib import Path
+class MyClass:
+    file_path = Path("output.md")
+
+def other_func():
+    file_path = Path("data.json")
+    file_path.write_text("{}")
+"""
+        result = jinja2_ast_auditor.invoke({"python_code": code})
+        parsed = json.loads(result)
+        self.assertEqual(parsed["status"], "PASS")
+
 if __name__ == "__main__":
     unittest.main()

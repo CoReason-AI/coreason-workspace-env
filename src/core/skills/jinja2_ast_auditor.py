@@ -29,6 +29,23 @@ class Jinja2DecouplingVisitor(ast.NodeVisitor):
         self.generic_visit(node)
         self.scope_stack.pop()
 
+    def visit_ClassDef(self, node: ast.ClassDef):
+        self.scope_stack.append({})
+        self.generic_visit(node)
+        self.scope_stack.pop()
+
+    def _extract_string_val(self, node: ast.AST) -> str | None:
+        """Extracts text from static strings AND resolves f-strings."""
+        if isinstance(node, ast.Constant) and isinstance(node.value, str):
+            return node.value
+        elif isinstance(node, ast.JoinedStr):
+            res = ""
+            for val in node.values:
+                if isinstance(val, ast.Constant) and isinstance(val.value, str):
+                    res += val.value
+            return res if res else "<dynamic>"
+        return None
+
     def _is_path_call(self, node: ast.Call) -> str | None:
         """Returns the string argument if this is a Path() or pathlib.Path() call."""
         is_path = False
@@ -38,14 +55,7 @@ class Jinja2DecouplingVisitor(ast.NodeVisitor):
             is_path = True
             
         if is_path and len(node.args) >= 1:
-            arg = node.args[0]
-            if isinstance(arg, ast.Constant) and isinstance(arg.value, str):
-                return arg.value
-            elif isinstance(arg, ast.JoinedStr):
-                for val in arg.values:
-                    if isinstance(val, ast.Constant) and isinstance(val.value, str):
-                        if '.md' in val.value:
-                            return "<dynamic.md>"
+            return self._extract_string_val(node.args[0])
         return None
 
     def visit_Assign(self, node: ast.Assign):
@@ -68,20 +78,19 @@ class Jinja2DecouplingVisitor(ast.NodeVisitor):
         # 1. Check for standard open('file.md', 'w')
         if isinstance(node.func, ast.Name) and node.func.id == 'open':
             if len(node.args) >= 1:
-                arg0 = node.args[0]
-                if isinstance(arg0, ast.Constant) and isinstance(arg0.value, str):
-                    if arg0.value.endswith('.md'):
-                        mode = 'r'
-                        if len(node.args) >= 2:
-                            arg1 = node.args[1]
-                            if isinstance(arg1, ast.Constant) and isinstance(arg1.value, str):
-                                mode = arg1.value
-                        else:
-                            for kw in node.keywords:
-                                if kw.arg == 'mode' and isinstance(kw.value, ast.Constant):
-                                    mode = kw.value.value
-                        if 'w' in mode or 'a' in mode or 'x' in mode:
-                            self.violations.append(f"Direct inline writing to markdown file detected: {arg0.value}")
+                filename = self._extract_string_val(node.args[0])
+                if filename and '.md' in filename:
+                    mode = 'r'
+                    if len(node.args) >= 2:
+                        mode_val = self._extract_string_val(node.args[1])
+                        if mode_val: mode = mode_val
+                    else:
+                        for kw in node.keywords:
+                            if kw.arg == 'mode':
+                                mode_val = self._extract_string_val(kw.value)
+                                if mode_val: mode = mode_val
+                    if 'w' in mode or 'a' in mode or 'x' in mode:
+                        self.violations.append(f"Direct inline writing to markdown file detected: {filename}")
         
         # 2. Check for pathlib bypass: Path('file.md').write_text(...) or .open('w')
         elif isinstance(node.func, ast.Attribute):
@@ -98,20 +107,20 @@ class Jinja2DecouplingVisitor(ast.NodeVisitor):
                             path_str = scope[node.func.value.id]
                             break
                 
-                if path_str and path_str.endswith('.md') or path_str == "<dynamic.md>":
+                if path_str and ('.md' in path_str or path_str == "<dynamic.md>"):
                     if node.func.attr == 'write_text':
                         self.violations.append(f"Direct Pathlib write_text to markdown file detected: {path_str}")
                     elif node.func.attr == 'open':
                         # Default for Path.open is 'r', so check for write modes
                         mode = 'r'
                         if len(node.args) >= 1:
-                            mode_arg = node.args[0]
-                            if isinstance(mode_arg, ast.Constant) and isinstance(mode_arg.value, str):
-                                mode = mode_arg.value
+                            mode_val = self._extract_string_val(node.args[0])
+                            if mode_val: mode = mode_val
                         else:
                             for kw in node.keywords:
-                                if kw.arg == 'mode' and isinstance(kw.value, ast.Constant):
-                                    mode = kw.value.value
+                                if kw.arg == 'mode':
+                                    mode_val = self._extract_string_val(kw.value)
+                                    if mode_val: mode = mode_val
                         if 'w' in mode or 'a' in mode or 'x' in mode:
                             self.violations.append(f"Direct Pathlib open() write to markdown file detected: {path_str}")
 
