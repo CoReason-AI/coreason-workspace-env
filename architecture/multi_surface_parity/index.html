@@ -740,6 +740,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#universal-brain-mounting" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Universal Brain Mounting
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#e2e-workflow-parity-testing" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1164,6 +1175,8 @@
 <li><strong>WebSocket / SSE</strong>: Persistent connection adapters for real-time observability and accordion UIs.</li>
 <li><strong>Python SDK</strong>: Native in-process programmatic bindings (<code>CoReasonClient</code>).</li>
 </ol>
+<h2 id="universal-brain-mounting">Universal Brain Mounting</h2>
+<p>Because no interaction surface contains business logic, they all universally mount "The Brain" (intent/logic) by invoking the core <code>orchestration_service</code>. Whether a user hits a FastAPI endpoint or types a command in the CLI, the transport adapter calls the exact same <code>run_persona_graph</code> entrypoint. This spins up the execution engine (The Body), loads the designated <code>agent.yaml</code>, and initiates the non-blocking async execution.</p>
 <h2 id="e2e-workflow-parity-testing">E2E Workflow Parity Testing</h2>
 <p>To mathematically prove this parity, our continuous integration suite includes comprehensive integration tests (<code>test_e2e_surfaces.py</code>).</p>
 <h3 id="mocking-to-live-integration-pivot">Mocking to Live Integration Pivot</h3>

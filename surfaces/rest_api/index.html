@@ -1280,14 +1280,14 @@ To prove this execution equivalence, the REST API undergoes strict <a href="../.
         FastAPI Router--&gt;&gt;Client: 200 OK (application/zip)
     end</code></pre>
 <h2 id="pydantic-schema-purity">Pydantic Schema Purity</h2>
-<p>All API payloads, models, and responses are strictly governed by the <code>coreason-manifest</code> PyPI package. </p>
+<p>All API payloads, models, and responses are strictly governed by the centralized <code>src.core.ontology</code> module. </p>
 <ul>
-<li><strong>No Local Schemas:</strong> The platform natively forbids the creation of local schema files (e.g., <code>ontology.py</code> or <code>state.py</code>). All Pydantic geometry is imported directly from the immutable <code>coreason_manifest</code>.</li>
+<li><strong>Centralized Schemas:</strong> The platform natively forbids the creation of duplicated local schema files inside agent directories. All Pydantic geometry is imported directly from the <code>src.core.ontology</code> module.</li>
 <li><strong>Zero-Trust Validation:</strong> The FastAPI router relies on these strict Pydantic definitions to mathematically reject malformed payloads before they ever reach the execution layer, enforcing the Epistemic Firewall at the network edge.</li>
 </ul>
 <blockquote>
 <p>[!CAUTION]
-Bypassing Pydantic validation via raw JSON parsing is strictly prohibited in this repository. All API endpoints must declare their input body using a strict subclass of <code>CoreasonBaseState</code> from <code>coreason_manifest</code>.</p>
+Bypassing Pydantic validation via raw JSON parsing is strictly prohibited in this repository. All API endpoints must declare their input body using a strict subclass of <code>CoreasonBaseState</code> from <code>src.core.ontology</code>.</p>
 </blockquote>
 <h2 id="uuidv7-primary-keys">UUIDv7 Primary Keys</h2>
 <p>The REST API utilizes UUIDv7 natively for all database primary keys and session identifiers (e.g., <code>snapshot_id</code>, <code>project_id</code>). </p>

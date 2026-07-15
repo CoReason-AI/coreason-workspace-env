@@ -1184,7 +1184,7 @@
 <h2 id="types-of-validation-rules">Types of Validation Rules</h2>
 <p>You must implement one or more of the following deterministic boundaries:</p>
 <h3 id="1-pydantic-boundary-validation">1. Pydantic Boundary Validation</h3>
-<p>The most common validation rule enforces strict adherence to a <code>coreason-manifest</code> schema. The validation script must load the generated JSON artifact and execute <code>Model.model_validate(json_data)</code>. If a <code>ValidationError</code> is raised, the script automatically generates an error payload detailing the exact missing or invalid fields, routing the state machine back to the Maker.</p>
+<p>The most common validation rule enforces strict adherence to a <code>src.core.ontology</code> schema. The validation script must load the generated JSON artifact and execute <code>Model.model_validate(json_data)</code>. If a <code>ValidationError</code> is raised, the script automatically generates an error payload detailing the exact missing or invalid fields, routing the state machine back to the Maker.</p>
 <h3 id="2-abstract-syntax-tree-ast-parsing">2. Abstract Syntax Tree (AST) Parsing</h3>
 <p>If the Maker generated Python code or an expression, the validation rule must parse the code using the native <code>ast</code> module. 
 - Example: Ensure the code does not contain <code>eval()</code> or <code>exec()</code>.

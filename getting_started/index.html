@@ -1240,6 +1240,10 @@ Additionally, ensure you set <code>API_SECRET_TOKEN</code> to secure the platfor
 </code></pre></div>
 <h2 id="running-the-platform">Running the Platform</h2>
 <p>The CoReason platform relies on a distributed multi-tenant architecture utilizing PostgreSQL, Redis, and a background task daemon. </p>
+<blockquote>
+<p>[!NOTE]
+<strong>Tenant Isolation:</strong> LangGraph state checkpointers do not use the <code>public</code> schema. The runtime engine dynamically manages schema isolation (<code>project_{project_id}</code>) per tenant, ensuring zero data leakage and safe backups via <code>pg_dump</code>. </p>
+</blockquote>
 <h3 id="standalone-local-deployment">Standalone Local Deployment</h3>
 <p>The easiest way to spin this up locally is via Docker Compose using the Standalone override. This configuration natively spins up <strong>MinIO</strong> for S3-compatible local storage and <strong>Ollama</strong> for local LLM inference (requires an NVIDIA GPU). It bypasses remote images and builds the workspace directly from source.</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>docker<span class="w"> </span>compose<span class="w"> </span>-f<span class="w"> </span>docker-compose.yaml<span class="w"> </span>-f<span class="w"> </span>docker-compose.standalone.yaml<span class="w"> </span>up<span class="w"> </span>-d<span class="w"> </span>--build

@@ -1187,7 +1187,7 @@
 <ol>
 <li><strong>Atomic Scope</strong>: The skill must adhere to the Single Responsibility Principle. A data-retrieval primitive must never attempt semantic synthesis.</li>
 <li><strong>Transactional Safety</strong>: If the skill manipulates data or files, it must be idempotent or utilize Write-Ahead Logging (WAL) to prevent partial execution failures.</li>
-<li><strong>Pydantic I/O</strong>: All input and output contracts must be defined using strict Pydantic models (from <code>coreason-manifest</code>) with a maximum depth of 3 nested levels.</li>
+<li><strong>Pydantic I/O</strong>: All input and output contracts must be defined using strict Pydantic models (from <code>src.core.ontology</code>) with a maximum depth of 3 nested levels.</li>
 <li><strong>Deterministic Governance</strong>: The skill must act as a "bumper" for the stochastic LLM. The LLM invokes the primitive, but the primitive executes deterministically in Python.</li>
 </ol>
 

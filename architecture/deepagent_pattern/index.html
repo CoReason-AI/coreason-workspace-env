@@ -625,6 +625,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Declarative Agent Manifests (IaC)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-universal-agentyaml-standard" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Universal agent.yaml Standard
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -1163,6 +1180,8 @@
 <h2 id="declarative-agent-manifests-iac">Declarative Agent Manifests (IaC)</h2>
 <p>Agents within the platform are not instantiated via complex, hardcoded Python boilerplate. Instead, they are defined via strictly typed, <code>pyagentspec</code>-compatible <strong>YAML manifests</strong>. </p>
 <p>This shift to declarative infrastructure treats agent definitions as portable, version-controlled configurations. Platform engineers, data scientists, and domain experts define the persona, objectives, boundaries, and tool access of an agent entirely within YAML, abstracting away the underlying graph compilation logic.</p>
+<h3 id="the-universal-agentyaml-standard">The Universal <code>agent.yaml</code> Standard</h3>
+<p>There is no distinction between a simple worker agent and the complex global <code>PlatformOrchestrator</code>. Both are mounted dynamically by the execution engine (the "Body") via the exact same <code>agent.yaml</code> standard manifest format. This enables "Self-Copying Brains" to be exported and injected into other compatible runtime harnesses without friction.</p>
 <h2 id="dynamic-langgraph-compilation">Dynamic LangGraph Compilation</h2>
 <p>The platform acts as a headless agent factory. At runtime, a specialized YAML compiler reads the agent manifest and dynamically synthesizes an executable <strong>LangGraph StateGraph</strong> node.</p>
 <p>This methodology enforces deterministic routing:
