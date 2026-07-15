@@ -23,7 +23,10 @@ class PlatformExporter:
         Returns the filepath of the zip archive.
         """
         # Sanitize session_id to prevent Log Injection (CWE-117) and Path Traversal (CWE-22)
-        safe_session_id = re.sub(r"[^a-zA-Z0-9_-]", "", session_id)
+        import os
+        safe_session_id = os.path.basename(session_id)
+        safe_session_id = safe_session_id.replace('\n', '').replace('\r', '')
+        safe_session_id = re.sub(r"[^a-zA-Z0-9_-]", "", safe_session_id)
         if not safe_session_id:
             logger.error("Invalid session_id after sanitization.")
             return None

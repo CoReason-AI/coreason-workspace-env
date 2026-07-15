@@ -21,8 +21,11 @@ from fastapi.responses import FileResponse
 @api_router.post("/export/{session_id}", tags=["Factory"], dependencies=[Depends(get_current_user)])
 async def export_platform(session_id: str):
     import re
-    # Sanitize session_id to prevent path traversal (CWE-22)
-    safe_session_id = re.sub(r"[^a-zA-Z0-9_-]", "", session_id)
+    import os
+    # Sanitize session_id to prevent path traversal (CWE-22) and log injection (CWE-117)
+    safe_session_id = os.path.basename(session_id)
+    safe_session_id = safe_session_id.replace('\n', '').replace('\r', '')
+    safe_session_id = re.sub(r"[^a-zA-Z0-9_-]", "", safe_session_id)
     from src.core.services.export_service import PlatformExporter
     exporter = PlatformExporter()
     zip_path = await exporter.bundle_agent_specs(safe_session_id)

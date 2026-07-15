@@ -31,7 +31,8 @@ async def langgraph_event_generator(session_id: str):
         pass
     except Exception as e:
         import logging
-        logging.getLogger(__name__).error("SSE stream error for session %s: %s", session_id, e)
+        safe_session_id = session_id.replace('\n', '').replace('\r', '')
+        logging.getLogger(__name__).error("SSE stream error for session %s: %s", safe_session_id, e)
         yield f"data: {json.dumps({'error': 'Internal stream error'})}\n\n"
 
 
