@@ -64,7 +64,13 @@ class AgentService:
         except ValueError:
             return None
 
-        agent_dir = _AGENTS_DIR / agent_name
+        base_dir = _AGENTS_DIR.resolve()
+        agent_dir = (base_dir / agent_name).resolve()
+        try:
+            agent_dir.relative_to(base_dir)
+        except ValueError:
+            return None
+
         manifest = agent_dir / "agent.yaml"
         if not manifest.is_file():
             return None
