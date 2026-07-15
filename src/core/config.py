@@ -35,6 +35,12 @@ class Settings(BaseSettings):
     # External APIs
     OPENROUTER_API_KEY: str
     
+    # LLM Configuration
+    LLM_MODEL_NAME: str = "nvidia/nemotron-3-nano-30b-a3b:free"
+    LLM_API_KEY: str = "sovereign-key-placeholder"
+    LLM_TEMPERATURE: float = 0.0
+    LLM_BASE_URL: str = "https://api.openai.com/v1"
+    
     class Config:
         env_file = ".env"
         env_file_encoding = 'utf-8'
@@ -43,3 +49,4 @@ class Settings(BaseSettings):
 # Instantiate settings. This will immediately throw an error if the .env file
 # or environment variables are missing required CISO keys.
 settings = Settings()
+

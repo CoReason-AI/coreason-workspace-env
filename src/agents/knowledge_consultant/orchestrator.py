@@ -1,7 +1,7 @@
 import logging
 from typing import Any
 from langgraph.graph import StateGraph, START, END
-from deepagents import DeepAgent
+from src.core.base_agent import DeepAgent
 
 from src.core.schemas.epistemic_firewall import LibrarianRoutingState
 from src.core.services import mcp_tool_service
@@ -33,10 +33,12 @@ async def retrieval_node(state: LibrarianRoutingState) -> dict[str, Any]:
 
     # 2. Implement synthesis using the LLM restricted to CognitiveDeliberativeEnvelopeState[KnowledgeReceipt]
     logger.info("Synthesizing KnowledgeReceipt with ProvenanceCitation mapping back to the exact node ID.")
+    from src.core.config import settings
     llm = ChatOpenAI(
-        model="nvidia/nemotron-3-nano-30b-a3b:free",
-        api_key="sovereign-key-placeholder",
-        temperature=0.0
+        model=settings.LLM_MODEL_NAME,
+        api_key=settings.LLM_API_KEY,
+        temperature=settings.LLM_TEMPERATURE,
+        base_url=settings.LLM_BASE_URL
     )
     structured_llm = llm.with_structured_output(CognitiveDeliberativeEnvelopeState[KnowledgeReceipt])
     envelope = await structured_llm.ainvoke(f"Context: {context}\n\nQuery: {query}")

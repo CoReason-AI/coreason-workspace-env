@@ -29,7 +29,10 @@ class VaultFederationClient:
             # Fallback for local development if allowed by strict CISO policies.
             # In true production, this would fail fast.
             if os.environ.get("ENVIRONMENT") == "local":
-                self.vault_token = os.environ.get("LOCAL_VAULT_TOKEN", "mock_local_token")
+                token = os.environ.get("LOCAL_VAULT_TOKEN")
+                if not token:
+                    raise ValueError("LOCAL_VAULT_TOKEN environment variable is required in local dev mode.")
+                self.vault_token = token
                 return
             else:
                 raise FileNotFoundError("Kubernetes OIDC JWT not found. Cannot federate with Vault.")
@@ -43,7 +46,7 @@ class VaultFederationClient:
         headers = {"X-Vault-Namespace": self.vault_namespace}
         
         try:
-            response = requests.post(auth_url, json=payload, headers=headers)
+            response = requests.post(auth_url, json=payload, headers=headers, timeout=10)
             response.raise_for_status()
             self.vault_token = response.json()["auth"]["client_token"]
             logger.info("Successfully federated identity with Enterprise Vault via OIDC.")
@@ -65,7 +68,7 @@ class VaultFederationClient:
             "X-Vault-Namespace": self.vault_namespace
         }
         
-        response = requests.get(url, headers=headers)
+        response = requests.get(url, headers=headers, timeout=10)
         response.raise_for_status()
         return response.json()["data"]["data"]
 

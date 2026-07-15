@@ -17,6 +17,14 @@ The REST API utilizes UUIDv7 natively for all database primary keys and session 
 
 Because UUIDv7 incorporates a Unix epoch timestamp in its most significant bits, it prevents Postgres B-Tree index fragmentation while providing native chronological sorting. You should expect all API endpoints to return and require UUIDv7 strings.
 
+## Multi-Tenant Security & State Isolation
+
+Because the REST API operates in a multi-user environment, it natively enforces strict tenant data isolation. When a user authenticates, their `tenant_id` is passed securely to the execution layer. The API guarantees that operations like `get_status` and `export` actively filter Postgres queries using `AND tenant_id = $2`, preventing any possibility of data cross-contamination.
+
+## Authentication
+
+All platform endpoints (except `/health`) are strictly secured using Bearer Token authentication. Clients must provide a valid token in the `Authorization` header (`Authorization: Bearer <token>`). The expected token must match the `API_SECRET_TOKEN` environment variable configured on the server. Requests missing a valid token will be rejected with a `401 Unauthorized` response.
+
 ## Endpoints Overview
 
 The API is fully self-documenting. When running the platform, you can view the Swagger UI at `http://localhost:8000/docs`.

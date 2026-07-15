@@ -15,11 +15,11 @@ class TestCLISurface(unittest.TestCase):
     def _run_cli(self, *args):
         """Helper to run a CLI command and return parsed JSON output."""
         cmd = [sys.executable, "-m", "src.cli.main", "--pretty"] + list(args)
-        result = subprocess.run(
+        result = subprocess.run(  # nosec B603
             cmd,
             capture_output=True,
             text=True,
-            cwd=r"c:\files\git\github\coreason-ai\coreason-workspace-env",
+            cwd=".",
         )
         return result
 
@@ -61,11 +61,11 @@ class TestCLISurface(unittest.TestCase):
     def test_cli_structured_json_output(self):
         """CLI without --pretty should return compact JSON."""
         cmd = [sys.executable, "-m", "src.cli.main", "agents", "list"]
-        result = subprocess.run(
+        result = subprocess.run(  # nosec B603
             cmd,
             capture_output=True,
             text=True,
-            cwd=r"c:\files\git\github\coreason-ai\coreason-workspace-env",
+            cwd=".",
         )
         self.assertEqual(result.returncode, 0)
         # Compact JSON should be a single line
@@ -233,10 +233,10 @@ class TestParityConsistency(unittest.TestCase):
         from src.sdk import CoReasonClient
 
         # Get from CLI
-        result = subprocess.run(
+        result = subprocess.run(  # nosec B603
             [sys.executable, "-m", "src.cli.main", "agents", "list"],
             capture_output=True, text=True,
-            cwd=r"c:\files\git\github\coreason-ai\coreason-workspace-env",
+            cwd=".",
         )
         cli_data = json.loads(result.stdout)
         cli_names = sorted([a["name"] for a in cli_data["agents"]])

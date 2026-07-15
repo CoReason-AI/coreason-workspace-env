@@ -4,14 +4,17 @@ Long-running multi-agent workflows present a unique observability challenge. Bec
 
 The CoReason Workspace Environment exposes **WebSocket** and **Server-Sent Events (SSE)** as first-class interaction surfaces, enabling real-time telemetry and state interaction.
 
+## Authentication
+
+Like the REST API, all WebSocket and SSE endpoints are strictly secured. Clients must initiate connections with the appropriate authentication headers or query parameters (e.g., passing the `API_SECRET_TOKEN` as a bearer token or query string `?token=...` depending on the client library capabilities) to establish a successful connection.
+
 ## Real-Time Observability via JSON Patch
 
 Every execution node, internal thought process, tool invocation, and validation error within the LangGraph state machine is broadcast in real-time. 
 
-To optimize payload size and network efficiency, the platform utilizes a `StateDeltaPublisher`. Instead of passing bloated, complete state dictionaries on every graph tick, the platform generates and broadcasts standard **RFC 6902 JSON Patch** streams over Redis PubSub.
+To optimize payload size and network efficiency, the platform generates real-time telemetry updates. Instead of passing bloated, complete state dictionaries on every graph tick, the platform streams data directly from the **Postgres DB Queue**, ensuring persistent, queryable state.
 
-- **SSE (Server-Sent Events)**: Ideal for uni-directional telemetry, used primarily by headless dashboards or logging aggregators simply looking to monitor a job's progress.
-- **WebSockets**: A full-duplex bi-directional channel enabling interaction with the live JSON Patch state stream.
+- **SSE (Server-Sent Events)**: Ideal for uni-directional telemetry, used primarily by headless dashboards or logging aggregators simply looking to monitor a job's progress. Currently, the SSE endpoints (like `/api/v2/agents/{agent_name}/stream`) actively subscribe to Postgres `LISTEN/NOTIFY` channels (e.g. `langgraph_events_{session_id}`) via `asyncpg.add_listener`, yielding true JSON patch events natively from the execution graph.
 
 ## Time-Travel Debugging (State Sync)
 

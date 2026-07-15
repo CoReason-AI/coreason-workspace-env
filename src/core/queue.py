@@ -14,7 +14,8 @@ class DistributedTaskQueue:
     """
     def __init__(self):
         self.redis_client = redis.Redis.from_url(settings.REDIS_URL, decode_responses=True)
-        self.queue_name = "langgraph_execution_queue"
+        import os
+        self.queue_name = os.getenv("REDIS_QUEUE_NAME", "tasks")
         
     def enqueue_workflow(self, session_id: str, agent_name: str, payload: Dict[str, Any]):
         """
@@ -27,7 +28,8 @@ class DistributedTaskQueue:
             "payload": payload
         }
         self.redis_client.lpush(self.queue_name, json.dumps(task))
-        logger.info(f"Enqueued workflow for session {session_id} on {self.queue_name}")
+        from src.core.security.path_validation import sanitize_log_input
+        logger.info(f"Enqueued workflow for session {sanitize_log_input(session_id)} on {self.queue_name}")
 
     def dequeue_workflow(self) -> Dict[str, Any]:
         """

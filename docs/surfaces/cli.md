@@ -18,12 +18,17 @@ Rather than relying on proprietary, one-off synchronous HTTP requests, `dcode` o
 - **Accordion Task Tracking**: Agent steps, tracker task lists, and summary updates are displayed via expandable accordions, shielding you from raw log spew.
 - **Real-Time State Streaming**: Connects to the platform's RFC 6902 JSON Patch streams to observe deterministic workflow routing without polling.
 
+### Typer Implementation
+The CLI natively wraps the shared `orchestration_service` using `Typer`. For example, invoking the `coreason build` command seamlessly initiates the full Maker-Checker workflow, guaranteeing exact feature parity with the `/export` HTTP endpoints.
+
 ## Connecting the CLI
 
 To launch the CLI and interface with your CoReason Workspace Environment:
 
 ```bash
 # Ensure the MCP server definition (.mcp.json) is present in the workspace
+# Export the API token so the CLI can authenticate with the secured platform
+export COREASON_API_TOKEN="coreason-dev-token"
 uv run dcode
 ```
 

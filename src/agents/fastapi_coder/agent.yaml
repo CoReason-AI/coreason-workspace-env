@@ -28,6 +28,9 @@ system_prompt: |
   The relevant building standard for your current task will be JIT-loaded into your context based on the artifact type.
 
   Your output will be validated by the agent_validator before being written to disk. Focus on building correctly.
+
+  IMPORTANT ENVELOPE RULE: To eliminate the Semantic Tax during constrained decoding, you MUST output your response using the CognitiveDeliberativeEnvelopeState.
+  Use the `deliberation_trace` field to "think out loud" before emitting the final generated code in the `payload` field.
 dependencies: []
 executor:
   harness: deepagents

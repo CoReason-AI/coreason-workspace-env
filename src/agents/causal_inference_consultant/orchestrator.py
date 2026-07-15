@@ -1,7 +1,7 @@
 import os
 import yaml
 import logging
-from deepagents import DeepAgent
+from src.core.base_agent import DeepAgent
 
 logger = logging.getLogger(__name__)
 

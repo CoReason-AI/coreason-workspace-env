@@ -20,12 +20,19 @@ def run_worker_loop():
             task = task_queue.dequeue_workflow()
             logger.info(f"Processing task for session: {task['session_id']}")
             
-            # In a full implementation, this dynamically loads the project plugin manifest.
-            # We mock the manifest loading here.
-            project_manifest = {
-                "agent_name": task["agent_name"],
-                "system_prompt": "You are executing in a distributed stateless KEDA pod."
-            }
+            # Dynamically loads the project plugin manifest from disk
+            import os
+            import yaml
+            agent_name = task.get("agent_name", "factory_ceo")
+            manifest_path = os.path.join(os.getcwd(), "src", "agents", agent_name, "agent.yaml")
+            if os.path.exists(manifest_path):
+                with open(manifest_path, "r", encoding="utf-8") as f:
+                    project_manifest = yaml.safe_load(f)
+            else:
+                project_manifest = {
+                    "agent_name": agent_name,
+                    "system_prompt": "Fallback system prompt due to missing manifest."
+                }
             
             orchestrator = PlatformOrchestrator(project_manifest)
             
