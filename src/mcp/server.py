@@ -163,6 +163,17 @@ def _build_server() -> Server:
                     "required": ["workspace_path", "site_name", "pages"],
                 },
             },
+            {
+                "name": "rewind_checkpoint",
+                "description": "Rewind a session to a specific UUIDv7 checkpoint ID.",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "checkpoint_id": {"type": "string"}
+                    },
+                    "required": ["checkpoint_id"],
+                },
+            },
         ]
 
     @server.call_tool()
@@ -255,6 +266,10 @@ async def _dispatch_tool(name: str, args: dict) -> Any:
             site_name=args["site_name"],
             pages=args["pages"],
         )
+
+    elif name == "rewind_checkpoint":
+        from src.core.services import agent_service
+        return agent_service.rewind_checkpoint(args["checkpoint_id"])
 
     else:
         return {"error": f"Unknown tool: {name}"}

@@ -33,10 +33,9 @@ dependencies = [
     "websockets>=15.0.1",
     "prompt-toolkit>=3.0.52",
     "jsonpatch>=1.33",
+    "deepagents-code>=0.1.0",
 ]
 
-[project.scripts]
-coreason = "src.cli.main:cli_entry"
 
 [tool.hatch.version]
 source = "vcs"
