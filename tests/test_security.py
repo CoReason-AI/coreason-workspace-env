@@ -15,6 +15,7 @@ class TestSecurityIdentity(unittest.IsolatedAsyncioTestCase):
         os.environ["VAULT_ADDR"] = "http://127.0.0.1:8200"
         os.environ["VAULT_NAMESPACE"] = "coreason-admin"
         os.environ["ENVIRONMENT"] = "local"
+        os.environ["LOCAL_VAULT_TOKEN"] = "mock_local_token"
         
         self.auditor = WORMStorageAuditor()
         self.proxy_loop = ProxyDelegationLoop()

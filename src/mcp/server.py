@@ -207,3 +207,6 @@ if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
     # fastmcp handles stdio transport mapping automatically when run
     mcp.run()
+
+def _build_server():
+    return mcp

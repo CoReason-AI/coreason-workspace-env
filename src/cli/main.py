@@ -4,6 +4,38 @@ from typing import Optional
 import uuid
 
 app = typer.Typer()
+import json
+agents_app = typer.Typer()
+mcp_app = typer.Typer()
+app.add_typer(agents_app, name="agents")
+app.add_typer(mcp_app, name="mcp")
+
+@app.callback()
+def main(pretty: bool = False):
+    pass
+
+@agents_app.command("list")
+def list_agents():
+    from src.core.services import agent_service
+    res = {"agents": agent_service.list_agents()}
+    typer.echo(json.dumps(res))
+
+@agents_app.command("get")
+def get_agent(name: str = typer.Option(..., '--name')):
+    from src.core.services import agent_service
+    import sys
+    res = agent_service.get_agent(name)
+    if not res:
+        typer.echo("Not found")
+        sys.exit(1)
+    typer.echo(json.dumps({"agent": res}))
+
+@mcp_app.command("list-servers")
+def mcp_list_servers():
+    from src.core.services import mcp_tool_service
+    res = {"servers": mcp_tool_service.list_servers()}
+    typer.echo(json.dumps(res))
+
 
 @app.command()
 def build(intent: str, output_dir: str = "./dist"):
