@@ -17,26 +17,11 @@ logger = logging.getLogger("memory_server")
 DB_DSN = os.environ.get("POSTGRES_DSN", "postgresql://admin:password@localhost:5432/knowledge_db")
 
 async def init_db(pool):
-    """Initialize the pgvector extension and table."""
-    async with pool.acquire() as conn:
-        await conn.execute("CREATE EXTENSION IF NOT EXISTS vector;")
-        await conn.execute("DROP TABLE IF EXISTS knowledge_chunks;")
-        await conn.execute("""
-            CREATE TABLE IF NOT EXISTS knowledge_nodes (
-                node_id VARCHAR PRIMARY KEY,
-                label VARCHAR NOT NULL,
-                content TEXT NOT NULL,
-                embedding vector(1536)
-            );
-        """)
-        await conn.execute("""
-            CREATE TABLE IF NOT EXISTS knowledge_edges (
-                source_id VARCHAR NOT NULL,
-                target_id VARCHAR NOT NULL,
-                relationship VARCHAR NOT NULL,
-                PRIMARY KEY (source_id, target_id, relationship)
-            );
-        """)
+    """
+    Initialize connection pool.
+    Schema definition is now handled by Alembic migrations.
+    """
+    pass
 
 async def dummy_embed(text: str) -> list[float]:
     """

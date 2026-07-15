@@ -1,5 +1,6 @@
 import logging
 import asyncio
+import uuid
 from typing import Optional, Dict, Any
 
 from src.core.security.auth import UserIdentity
@@ -23,7 +24,7 @@ class ProxyDelegationLoop:
         Called by an agent (or an MCP Client acting on behalf of an agent) to request
         execution of a destructive action requiring JIT credentials.
         """
-        request_id = f"req-{agent_id}-{asyncio.get_event_loop().time()}"
+        request_id = str(uuid.uuid7())
         self.pending_requests[request_id] = {
             "agent_id": agent_id,
             "action": action,
