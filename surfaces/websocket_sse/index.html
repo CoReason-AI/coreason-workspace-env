@@ -844,6 +844,17 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#authentication" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Authentication
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#real-time-observability-via-json-patch" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1083,6 +1094,8 @@
 <h1 id="websocket-and-sse-streaming">WebSocket and SSE Streaming</h1>
 <p>Long-running multi-agent workflows present a unique observability challenge. Because deterministically routed graphs can execute for several minutes or even hours (especially when waiting on Human-in-the-Loop approvals or massive data ETL operations), synchronous request-response models are insufficient.</p>
 <p>The CoReason Workspace Environment exposes <strong>WebSocket</strong> and <strong>Server-Sent Events (SSE)</strong> as first-class interaction surfaces, enabling real-time telemetry and state interaction.</p>
+<h2 id="authentication">Authentication</h2>
+<p>Like the REST API, all WebSocket and SSE endpoints are strictly secured. Clients must initiate connections with the appropriate authentication headers or query parameters (e.g., passing the <code>API_SECRET_TOKEN</code> as a bearer token or query string <code>?token=...</code> depending on the client library capabilities) to establish a successful connection.</p>
 <h2 id="real-time-observability-via-json-patch">Real-Time Observability via JSON Patch</h2>
 <p>Every execution node, internal thought process, tool invocation, and validation error within the LangGraph state machine is broadcast in real-time. </p>
 <p>To optimize payload size and network efficiency, the platform generates real-time telemetry updates. Instead of passing bloated, complete state dictionaries on every graph tick, the platform streams data directly from the <strong>Postgres DB Queue</strong>, ensuring persistent, queryable state.</p>

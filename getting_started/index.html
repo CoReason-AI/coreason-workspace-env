@@ -1116,7 +1116,8 @@
 <p>Before running the platform, configure your environment:
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>cp<span class="w"> </span>.env.example<span class="w"> </span>.env
 </code></pre></div>
-Open <code>.env</code> and set your <code>LLM_API_KEY</code>, <code>LLM_MODEL_NAME</code>, and <code>LLM_BASE_URL</code>. This allows you to securely swap between cloud providers or local vLLM deployments without touching the source code.</p>
+Open <code>.env</code> and set your <code>LLM_API_KEY</code>, <code>LLM_MODEL_NAME</code>, and <code>LLM_BASE_URL</code>. This allows you to securely swap between cloud providers or local vLLM deployments without touching the source code.
+Additionally, ensure you set <code>API_SECRET_TOKEN</code> to secure the platform endpoints, and <code>REDIS_QUEUE_NAME</code> (which defaults to <code>tasks</code>) if you are customizing the KEDA worker deployment.</p>
 <h2 id="installation">Installation</h2>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="c1"># Clone the repository</span>
 <a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/CoReason-AI/coreason-workspace-env.git
@@ -1126,7 +1127,7 @@ Open <code>.env</code> and set your <code>LLM_API_KEY</code>, <code>LLM_MODEL_NA
 <a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>uv<span class="w"> </span>sync<span class="w"> </span>--all-extras
 </code></pre></div>
 <h2 id="running-the-platform">Running the Platform</h2>
-<p>The CoReason platform relies on a distributed multi-tenant architecture utilizing PostgreSQL, Redis, and KEDA workers. The easiest way to spin this up locally is via Docker Compose:</p>
+<p>The CoReason platform relies on a distributed multi-tenant architecture utilizing PostgreSQL, Redis, and a background task daemon. The easiest way to spin this up locally is via Docker Compose:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>docker-compose<span class="w"> </span>up<span class="w"> </span>-d<span class="w"> </span>--build
 </code></pre></div>
 <p>This will automatically spin up the <code>platform_server</code>, <code>postgres_checkpointer</code>, <code>redis_queue</code>, and <code>platform_worker</code> components. The REST API and SSE streams will be available, and the MCP server will dynamically query the Postgres database for state tracking.</p>

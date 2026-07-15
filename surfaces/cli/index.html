@@ -1116,7 +1116,9 @@
 <h2 id="connecting-the-cli">Connecting the CLI</h2>
 <p>To launch the CLI and interface with your CoReason Workspace Environment:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1"># Ensure the MCP server definition (.mcp.json) is present in the workspace</span>
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>uv<span class="w"> </span>run<span class="w"> </span>dcode
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="c1"># Export the API token so the CLI can authenticate with the secured platform</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="nb">export</span><span class="w"> </span><span class="nv">COREASON_API_TOKEN</span><span class="o">=</span><span class="s2">&quot;coreason-dev-token&quot;</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>uv<span class="w"> </span>run<span class="w"> </span>dcode
 </code></pre></div>
 <p>Since the environment operates as a headless MCP server, <code>dcode</code> abstracts away the topology complexity. Upstream operations are handled deterministically within the platform and streamed directly to your terminal.</p>
 

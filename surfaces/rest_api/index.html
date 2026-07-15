@@ -849,6 +849,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#authentication" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Authentication
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#endpoints-overview" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1122,6 +1133,8 @@
 <p>Because UUIDv7 incorporates a Unix epoch timestamp in its most significant bits, it prevents Postgres B-Tree index fragmentation while providing native chronological sorting. You should expect all API endpoints to return and require UUIDv7 strings.</p>
 <h2 id="multi-tenant-security-state-isolation">Multi-Tenant Security &amp; State Isolation</h2>
 <p>Because the REST API operates in a multi-user environment, it natively enforces strict tenant data isolation. When a user authenticates, their <code>tenant_id</code> is passed securely to the execution layer. The API guarantees that operations like <code>get_status</code> and <code>export</code> actively filter Postgres queries using <code>AND tenant_id = $2</code>, preventing any possibility of data cross-contamination.</p>
+<h2 id="authentication">Authentication</h2>
+<p>All platform endpoints (except <code>/health</code>) are strictly secured using Bearer Token authentication. Clients must provide a valid token in the <code>Authorization</code> header (<code>Authorization: Bearer &lt;token&gt;</code>). The expected token must match the <code>API_SECRET_TOKEN</code> environment variable configured on the server. Requests missing a valid token will be rejected with a <code>401 Unauthorized</code> response.</p>
 <h2 id="endpoints-overview">Endpoints Overview</h2>
 <p>The API is fully self-documenting. When running the platform, you can view the Swagger UI at <code>http://localhost:8000/docs</code>.</p>
 <h3 id="core-router-spaces">Core Router Spaces</h3>
