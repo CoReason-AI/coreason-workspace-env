@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "coreason-workspace-env"
-version = "2.1.0"
+version = "0.1.1"
 description = "Scalable, Async, Multi-Tenant LangGraph Platform"
 authors = [
   { name="Gowtham A Rao, MD, PhD", email="gowtham.rao@coreason.ai" }
