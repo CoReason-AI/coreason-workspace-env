@@ -46,7 +46,7 @@ class VaultFederationClient:
         headers = {"X-Vault-Namespace": self.vault_namespace}
         
         try:
-            response = requests.post(auth_url, json=payload, headers=headers)
+            response = requests.post(auth_url, json=payload, headers=headers, timeout=10)
             response.raise_for_status()
             self.vault_token = response.json()["auth"]["client_token"]
             logger.info("Successfully federated identity with Enterprise Vault via OIDC.")
@@ -68,7 +68,7 @@ class VaultFederationClient:
             "X-Vault-Namespace": self.vault_namespace
         }
         
-        response = requests.get(url, headers=headers)
+        response = requests.get(url, headers=headers, timeout=10)
         response.raise_for_status()
         return response.json()["data"]["data"]
 

@@ -125,7 +125,7 @@ class ProjectService:
         env = os.environ.copy()
         env["PGPASSWORD"] = settings.POSTGRES_PASSWORD
         try:
-            subprocess.run(pg_dump_cmd, env=env, check=True, capture_output=True)
+            subprocess.run(pg_dump_cmd, env=env, check=True, capture_output=True)  # nosec B603
             files_written.append(pg_dump_path)
         except Exception as e:
             logger.warning(f"pg_dump failed (is Postgres accessible?): {e}")
@@ -156,7 +156,7 @@ class ProjectService:
                 [docker_exe, "save", "-o", docker_tar, "--", image_name],
                 check=True,
                 capture_output=True,
-            )
+            )  # nosec B603
             files_written.append(docker_tar)
         except Exception as e:
             logger.warning(f"Docker export failed (is Docker running?): {e}")
