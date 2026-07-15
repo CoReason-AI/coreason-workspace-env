@@ -37,7 +37,7 @@ class Settings(BaseSettings):
     
     # LLM Configuration
     LLM_MODEL_NAME: str = "nvidia/nemotron-3-nano-30b-a3b:free"
-    LLM_API_KEY: str = "sovereign-key-placeholder"
+    LLM_API_KEY: str = "standalone-key-placeholder"
     LLM_TEMPERATURE: float = 0.0
     LLM_BASE_URL: str = "https://api.openai.com/v1"
     

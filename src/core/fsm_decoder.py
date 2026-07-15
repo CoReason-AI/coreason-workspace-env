@@ -10,7 +10,7 @@ T = TypeVar('T', bound=BaseModel)
 class FSMDecoder:
     """
     Hybrid Deterministic Enforcement (FSM Decoding).
-    For local Sovereign models (e.g., vLLM), we cannot rely entirely on prompt engineering
+    For local Standalone models (e.g., vLLM), we cannot rely entirely on prompt engineering
     to guarantee valid JSON outputs matching Pydantic schemas.
     This class uses `outlines` to compile a Finite State Machine (FSM) based on the 
     Pydantic schema and forces the local LLM to ONLY output tokens that conform to that FSM.
