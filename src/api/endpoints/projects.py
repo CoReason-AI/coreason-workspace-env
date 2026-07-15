@@ -79,13 +79,13 @@ async def delete_project(project_id: str, user: UserIdentity = Depends(get_curre
 async def export_project(project_id: str, output_path: str, skip_state: bool = False, skip_docker: bool = False, user: UserIdentity = Depends(get_current_user)):
     """Export a project for air-gapped transfer."""
     try:
-        from src.core.services.project_service import project_service
-        from src.core.services.portability_service import portability_service
-        result = await portability_service.get_job_status(job_id)
-        if result.get("status") == "not_found":
-            raise HTTPException(status_code=404, detail="Job not found")
+        from src.core.services import project_service
+        result = await project_service.export_project(
+            project_id, 
+            output_path, 
+            skip_state=skip_state, 
+            skip_docker=skip_docker
+        )
         return result
-    except HTTPException:
-        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
