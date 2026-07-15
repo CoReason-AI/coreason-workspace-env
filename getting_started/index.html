@@ -1131,6 +1131,11 @@ Additionally, ensure you set <code>API_SECRET_TOKEN</code> to secure the platfor
 <div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>docker-compose<span class="w"> </span>up<span class="w"> </span>-d<span class="w"> </span>--build
 </code></pre></div>
 <p>This will automatically spin up the <code>platform_server</code>, <code>postgres_checkpointer</code>, <code>redis_queue</code>, and <code>platform_worker</code> components. The REST API and SSE streams will be available, and the MCP server will dynamically query the Postgres database for state tracking.</p>
+<blockquote>
+<p>[!TIP]
+<strong>Going to Production?</strong>
+If you are deploying to an enterprise environment (AWS, Azure), check out our <a href="../guides/deploying/">Deploying Guide</a> for 1-click Terraform, OpenTofu, and CloudFormation templates.</p>
+</blockquote>
 <h2 id="executing-exported-artifacts">Executing Exported Artifacts</h2>
 <p>When you build agents through the platform, it exports an installable ZIP archive containing the generated YAML manifests and a dynamically synthesized <code>pyproject.toml</code>. </p>
 <p>To run a generated agent:
