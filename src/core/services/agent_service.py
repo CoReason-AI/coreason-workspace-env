@@ -58,6 +58,12 @@ class AgentService:
         """
         Reads a specific agent's YAML manifest and orchestrator source.
         """
+        from src.core.security.path_validation import validate_alphanumeric
+        try:
+            validate_alphanumeric(agent_name)
+        except ValueError:
+            return None
+
         agent_dir = _AGENTS_DIR / agent_name
         manifest = agent_dir / "agent.yaml"
         if not manifest.is_file():
@@ -100,6 +106,9 @@ class AgentService:
         Traces the execution via the Langfuse/WORM bridge.
         Returns a job_id for polling.
         """
+        from src.core.security.path_validation import validate_alphanumeric, sanitize_log_input
+        validate_alphanumeric(agent_name)
+
         from src.core.queue import task_queue
 
         job_id = session_id or str(uuid.uuid7())
@@ -117,14 +126,16 @@ class AgentService:
         # Trace the execution enqueue via the Langfuse/WORM bridge
         try:
             from src.core.tracing.langfuse_bridge import tracing_bridge
+            safe_agent_name = sanitize_log_input(agent_name)
+            safe_user_id = sanitize_log_input(user_id)
             tracing_bridge.trace_agent_thought(
-                agent_id=agent_name,
+                agent_id=safe_agent_name,
                 run_id=job_id,
-                thought=f"[EXECUTION_ENQUEUED] Agent '{agent_name}' execution enqueued by user '{user_id}'",
+                thought=f"[EXECUTION_ENQUEUED] Agent '{safe_agent_name}' execution enqueued by user '{safe_user_id}'",
                 metadata={
                     "event": "execution_enqueued",
-                    "user_id": user_id,
-                    "tenant_id": tenant_id,
+                    "user_id": safe_user_id,
+                    "tenant_id": sanitize_log_input(tenant_id),
                     "artifact_type": payload.get("artifact_type"),
                 },
             )
@@ -157,8 +168,15 @@ class AgentService:
         Rewind a session's LangGraph execution state to a specific checkpoint.
         For now, returns a dummy success response.
         """
-        # TODO: Implement actual LangGraph Postgres checkpointer restore
-        logger.info(f"Rewinding session to checkpoint: {checkpoint_id}")
+        # Validate checkpoint_id as a UUID to prevent log/path injection
+        try:
+            uuid.UUID(checkpoint_id)
+        except ValueError:
+            from fastapi import HTTPException
+            raise HTTPException(status_code=400, detail="Invalid checkpoint_id format. Must be a valid UUID.")
+
+        from src.core.security.path_validation import sanitize_log_input
+        logger.info(f"Rewinding session to checkpoint: {sanitize_log_input(checkpoint_id)}")
         return {
             "status": "success",
             "checkpoint_id": checkpoint_id,

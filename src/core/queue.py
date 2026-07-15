@@ -27,7 +27,8 @@ class DistributedTaskQueue:
             "payload": payload
         }
         self.redis_client.lpush(self.queue_name, json.dumps(task))
-        logger.info(f"Enqueued workflow for session {session_id} on {self.queue_name}")
+        from src.core.security.path_validation import sanitize_log_input
+        logger.info(f"Enqueued workflow for session {sanitize_log_input(session_id)} on {self.queue_name}")
 
     def dequeue_workflow(self) -> Dict[str, Any]:
         """

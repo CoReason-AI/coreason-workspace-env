@@ -86,8 +86,13 @@ class ProjectService:
         Bundles: Git workspace + Postgres pg_dump + Docker image.
         """
         from src.core.config import settings
+        from src.core.security.path_validation import validate_safe_path
 
-        export_dir = Path(output_path)
+        # Prevent path traversal and command injection by resolving and pinning inputs
+        safe_project_path = validate_safe_path(project_path)
+        safe_output_path = validate_safe_path(output_path)
+
+        export_dir = safe_output_path
         export_dir.mkdir(parents=True, exist_ok=True)
 
         files_written = []
@@ -116,11 +121,11 @@ class ProjectService:
         logger.info("Packaging True Git VFS Workspace...")
         workspace_tar = str(export_dir / "workspace.tar.gz")
         with tarfile.open(workspace_tar, "w:gz") as tar:
-            tar.add(project_path, arcname=os.path.basename(project_path))
+            tar.add(str(safe_project_path), arcname=safe_project_path.name)
         files_written.append(workspace_tar)
 
         # 3. Export Docker Image
-        project_name = os.path.basename(project_path).lower()
+        project_name = safe_project_path.name.lower()
         image_name = f"coreason/{project_name}:latest"
         docker_tar = str(export_dir / "image.tar")
         try:
