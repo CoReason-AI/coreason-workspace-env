@@ -50,10 +50,56 @@ class _ProjectsNamespace:
         """Delete a project by ID."""
         return await self._svc.delete_project(project_id)
 
-    async def export(self, project_path: str, output_path: str) -> Dict[str, Any]:
+    async def export(self, project_path: str, output_path: str, skip_state: bool = False, skip_docker: bool = False) -> Dict[str, Any]:
         """Export a project for air-gapped transfer."""
-        return await self._svc.export_project(project_path, output_path)
+        return await self._svc.export_project(project_path, output_path, skip_state=skip_state, skip_docker=skip_docker)
 
+    async def import_bundle(self, import_path: str, name: str, description: str = "",
+                            config: Optional[Dict[str, Any]] = None, skip_state: bool = False, skip_docker: bool = False) -> Dict[str, Any]:
+        """Import a project from an air-gapped export bundle."""
+        return await self._svc.import_project(
+            project_id=str(uuid.uuid7()),
+            import_path=import_path,
+            name=name,
+            description=description,
+            config=config,
+            skip_state=skip_state,
+            skip_docker=skip_docker
+        )
+
+    async def get_portability_job(self, job_id: str) -> Dict[str, Any]:
+        from src.core.services.portability_service import portability_service
+        return await portability_service.get_job_status(job_id)
+
+    async def push_bundle(self, project_id: str, registry_url: str, skip_state: bool = False, skip_docker: bool = False) -> Dict[str, Any]:
+        """Push a project to an OCI registry (Industry Standard) and block until completion."""
+        import asyncio
+        from src.core.services.portability_service import portability_service
+        res = await portability_service.export_to_oci(project_id, registry_url, skip_state=skip_state, skip_docker=skip_docker)
+        job_id = res["job_id"]
+        
+        while True:
+            status = await self.get_portability_job(job_id)
+            if status.get("status") == "COMPLETED":
+                return {"status": "success", "job_id": job_id, "registry_url": registry_url}
+            elif status.get("status") == "FAILED":
+                raise RuntimeError(f"OCI Push Failed: {status.get('error')}")
+            await asyncio.sleep(1)
+
+    async def pull_bundle(self, oci_uri: str, name: str, description: str = "", skip_state: bool = False, skip_docker: bool = False) -> Dict[str, Any]:
+        """Pull a project from an OCI registry (Industry Standard) and block until completion."""
+        import asyncio
+        from src.core.services.portability_service import portability_service
+        res = await portability_service.import_from_oci(oci_uri, name, description, skip_state=skip_state, skip_docker=skip_docker)
+        job_id = res["job_id"]
+        
+        while True:
+            status = await self.get_portability_job(job_id)
+            if status.get("status") == "COMPLETED":
+                return {"status": "success", "job_id": job_id, "project_id": status.get("project_id"), "oci_uri": oci_uri}
+            elif status.get("status") == "FAILED":
+                raise RuntimeError(f"OCI Pull Failed: {status.get('error')}")
+            await asyncio.sleep(1)
 
 class _AgentsNamespace:
     """SDK namespace for agent operations."""

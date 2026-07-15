@@ -27,3 +27,10 @@ Once the internal Maker-Checker-Approver pipeline successfully resolves, the pla
 ## Air-Gapped Interoperability
 
 While some observability platforms offer proprietary SaaS mechanisms to expose agents as servers, the CoReason platform embeds this capability directly into its core infrastructure. This eliminates vendor lock-in to external observability providers and allows for highly secure, air-gapped, on-premise enterprise deployments.
+
+### Non-Blocking Portability Tools
+
+Unlike the SDK and CLI—which automatically block and poll on your behalf—the MCP Server exposes the Portability Engine (`push_project`, `pull_project`, `export_project`, `import_project`) completely asynchronously. 
+
+When an AI agent orchestrates this platform, executing an OCI registry push of a 5GB Docker image could take 10 minutes. Rather than blocking the agent's context window, the MCP tool instantly returns a `job_id`. 
+The upstream orchestrator can continue processing other parallel tasks, manually checking the new `get_portability_job_status` tool at its discretion.

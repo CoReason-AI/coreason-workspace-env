@@ -13,12 +13,16 @@ for k in [
             os.environ[k] = '5432'
         elif k == "LLM_TEMPERATURE":
             os.environ[k] = '0.0'
+        elif k == "REDIS_URL":
+            os.environ[k] = 'redis://localhost:6379/0'
         else:
             os.environ[k] = 'test'
 
 import sys
-from pydantic import BaseModel
-from typing import Any
+from pydantic import BaseModel, Field
+from typing import Any, Generic, TypeVar, Optional
+
+T = TypeVar('T')
 class DeterministicOntologyDefinitions:
     class EpistemicQuarantineSnapshot(BaseModel): 
         snapshot_id: str = "test"
@@ -26,7 +30,9 @@ class DeterministicOntologyDefinitions:
     class EpistemicProxyState(BaseModel): 
         proxy_cid: str = "test"
         structural_type: str = "test"
-    class CognitiveDeliberativeEnvelopeState(BaseModel): pass
+    class CognitiveDeliberativeEnvelopeState(BaseModel, Generic[T]):
+        deliberation_trace: str = Field("test", max_length=100000)
+        payload: Optional[T] = None
     class CoreasonBaseState(BaseModel): pass
 
 class DeterministicSpec: pass

@@ -21,6 +21,10 @@ Rather than relying on proprietary, one-off synchronous HTTP requests, `dcode` o
 ### Typer Implementation
 The CLI natively wraps the shared `orchestration_service` using `Typer`. For example, invoking the `coreason build` command seamlessly initiates the full Maker-Checker workflow, guaranteeing exact feature parity with the `/export` HTTP endpoints.
 
+For heavy async operations, such as `coreason push-project`, `coreason pull-project`, `coreason export-project`, and `coreason import-project`, the CLI abstracts the background polling loop entirely. It utilizes the synchronous Python SDK and wraps the execution in a gorgeous `rich` animated spinner, giving you immediate terminal feedback while the system extracts Docker images in the background. You can also pass `--skip-state` and `--skip-docker` directly to these commands.
+
+Additional operational commands include `coreason agents list`, `coreason agents get`, and `coreason mcp list-servers`, which all provide rich JSON output compliant with the API schema.
+
 ## Connecting the CLI
 
 To launch the CLI and interface with your CoReason Workspace Environment:

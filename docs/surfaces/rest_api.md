@@ -31,6 +31,6 @@ The API is fully self-documenting. When running the platform, you can view the S
 
 ### Core Router Spaces
 - `/health`: System and dependency health checks.
-- `/projects`: CRUD operations for agent projects.
+- `/projects`: CRUD operations for agent projects. Includes air-gapped export endpoints (`/export`, `/import`), async OCI endpoints (`/push-oci`, `/pull-oci`), granular exports (`skip_state`, `skip_docker`), and background job polling (`/portability/jobs/{job_id}`).
 - `/agents`: Agent execution, status polling, and definition retrieval.
 - `/streaming`: HTTP-bound Server-Sent Events (SSE) and WebSocket upgrade endpoints for real-time observability.
