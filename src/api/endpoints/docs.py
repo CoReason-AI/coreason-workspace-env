@@ -44,6 +44,9 @@ async def generate_mkdocs(request: GenerateDocsRequest):
         nav=request.config.nav,
     )
     if result["status"] == "error":
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.error(f"Docs generation error: {result['detail']}")
         from fastapi import HTTPException
-        raise HTTPException(status_code=400, detail=result["detail"])
+        raise HTTPException(status_code=400, detail="Documentation generation failed due to a workspace or configuration error.")
     return result
