@@ -2,7 +2,7 @@
 
 Contributor: CoReason, Inc.
 
-Source Code: https://github.com/CoReason-AI/coreason_gitops
+Source Code: https://github.com/CoReason-AI/coreason-workspace-env
 
 ## Purpose
 

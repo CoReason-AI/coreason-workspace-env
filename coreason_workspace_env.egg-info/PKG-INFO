@@ -1,0 +1,23 @@
+Metadata-Version: 2.4
+Name: coreason-workspace-env
+Version: 2.1.0
+Summary: Scalable, Async, Multi-Tenant LangGraph Platform
+Author-email: "Gowtham A Rao, MD, PhD" <gowtham.rao@coreason.ai>
+Classifier: Programming Language :: Python :: 3.14
+Classifier: Operating System :: OS Independent
+Requires-Python: >=3.14
+Description-Content-Type: text/markdown
+License-File: LICENSE.txt
+License-File: NOTICE.txt
+Requires-Dist: fastapi>=0.100
+Requires-Dist: uvicorn>=0.20
+Requires-Dist: asyncpg>=0.29.0
+Requires-Dist: redis>=5.0
+Requires-Dist: pydantic-settings>=2.0
+Requires-Dist: langgraph>=0.0.10
+Requires-Dist: alembic>=1.13.0
+Requires-Dist: psycopg2-binary>=2.9.0
+Requires-Dist: coreason-manifest>=0.98.0
+Dynamic: license-file
+
+# coreason-workspace-env
