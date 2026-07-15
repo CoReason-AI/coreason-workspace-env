@@ -21,16 +21,27 @@ class OrchestrationService:
             return wrapper
         return decorator
 
-    @observe(name="run_factory_graph")
-    async def run_factory_graph(self, user_id: str, session_id: str, input_data: str, output_dir: str = "./generated_agents") -> dict:
+    @observe(name="run_persona_graph")
+    async def run_persona_graph(self, user_id: str, session_id: str, input_data: str, output_dir: str = "./generated_agents") -> dict:
         """
-        Abstracts the LangGraph execution for the factory CEO.
+        Abstracts the LangGraph execution for the active persona (dynamic entrypoint).
         """
         logger.info(f"Starting orchestration for session {session_id} by user {user_id}")
         
-        from src.agents.factory_ceo.orchestrator import FactoryCeoAgent
+        import os
+        import importlib
         
-        ceo = FactoryCeoAgent()
+        # Dynamically load the root agent defined by the active Brain
+        module_path = os.environ.get("AGENT_ENTRYPOINT_MODULE", "src.agents.factory_ceo.orchestrator")
+        class_name = os.environ.get("AGENT_ENTRYPOINT_CLASS", "FactoryCeoAgent")
+        
+        try:
+            module = importlib.import_module(module_path)
+            AgentClass = getattr(module, class_name)
+            ceo = AgentClass()
+        except (ImportError, AttributeError) as e:
+            logger.error(f"Failed to dynamically load Brain entrypoint {module_path}.{class_name}: {e}")
+            raise
         from langchain_core.messages import HumanMessage
         context = {
             "messages": [HumanMessage(content=input_data)],

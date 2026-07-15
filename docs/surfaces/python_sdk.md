@@ -35,7 +35,7 @@ classDiagram
 
 The `CoReasonClient` reads authentication variables directly from your environment (`API_SECRET_TOKEN` and `COREASON_BASE_URL`). 
 
-When you invoke a method, the SDK automatically formats the Pydantic models (imported from `coreason_manifest`) into JSON, appends the Bearer Token, and dispatches the asynchronous HTTP request. It strictly returns native Python dictionaries or Pydantic models.
+When you invoke a method, the SDK automatically formats the Pydantic models (imported from `src.core.ontology`) into JSON, appends the Bearer Token, and dispatches the asynchronous HTTP request. It strictly returns native Python dictionaries or Pydantic models.
 
 ## Usage Example
 

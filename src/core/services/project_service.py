@@ -74,10 +74,13 @@ class ProjectService:
             return dict(row) if row else None
 
     async def delete_project(self, project_id: str) -> bool:
-        """Delete a project by ID."""
+        """Delete a project by ID and its corresponding state schema."""
         pool = await get_db_pool()
+        schema_name = f"project_{project_id.replace('-', '_')}"
         async with pool.acquire() as conn:
             result = await conn.execute("DELETE FROM projects WHERE id = $1", project_id)
+            if result == "DELETE 1":
+                await conn.execute(f"DROP SCHEMA IF EXISTS {schema_name} CASCADE")
             return result == "DELETE 1"
 
     async def export_project(self, project_id: str, output_path: str, skip_state: bool = False, skip_docker: bool = False) -> Dict[str, Any]:
@@ -114,11 +117,13 @@ class ProjectService:
 
             import shutil
             pg_dump_exe = shutil.which("pg_dump") or "/usr/bin/pg_dump"
+            schema_name = f"project_{safe_project_id.replace('-', '_')}"
             pg_dump_cmd = [
                 pg_dump_exe,
                 "-U", settings.POSTGRES_USER,
                 "-h", settings.POSTGRES_HOST,
                 "-p", str(settings.POSTGRES_PORT),
+                "-n", schema_name,
                 "-F", "c",
                 "--",
                 settings.POSTGRES_DB,
@@ -172,6 +177,18 @@ class ProjectService:
             except Exception as e:
                 logger.warning(f"Docker export failed (is Docker running?): {e}")
 
+        # 4. Generate Metadata
+        logger.info("Generating Export Metadata...")
+        metadata = {
+            "original_project_id": safe_project_id,
+            "schema_name": f"project_{safe_project_id.replace('-', '_')}",
+            "exported_at": datetime.now(timezone.utc).isoformat()
+        }
+        metadata_path = export_dir / "metadata.json"
+        with open(metadata_path, "w") as f:
+            json.dump(metadata, f, indent=2)
+        files_written.append(str(metadata_path))
+
         return {
             "status": "success",
             "export_path": str(export_dir),
@@ -197,6 +214,14 @@ class ProjectService:
             raise FileNotFoundError(f"Import path {safe_import_path} does not exist.")
 
         files_read = []
+
+        metadata_file = safe_import_path / "metadata.json"
+        original_schema_name = None
+        if metadata_file.exists():
+            with open(metadata_file, "r") as f:
+                metadata = json.load(f)
+                original_schema_name = metadata.get("schema_name")
+            files_read.append(str(metadata_file))
 
         # 1. Import Postgres LangGraph State (pg_restore)
         if not skip_state:
@@ -228,6 +253,14 @@ class ProjectService:
                 try:
                     subprocess.run(pg_restore_cmd, env=env, check=True, capture_output=True)  # nosec B603
                     files_read.append(pg_dump_path)
+                    
+                    target_schema_name = f"project_{safe_project_id.replace('-', '_')}"
+                    if original_schema_name and original_schema_name != target_schema_name:
+                        logger.info(f"Remapping restored schema {original_schema_name} to {target_schema_name}")
+                        pool = await get_db_pool()
+                        async with pool.acquire() as conn:
+                            await conn.execute(f"DROP SCHEMA IF EXISTS {target_schema_name} CASCADE")
+                            await conn.execute(f"ALTER SCHEMA {original_schema_name} RENAME TO {target_schema_name}")
                 except Exception as e:
                     logger.warning(f"pg_restore failed: {e}")
 

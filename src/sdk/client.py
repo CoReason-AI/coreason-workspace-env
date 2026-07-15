@@ -201,7 +201,7 @@ class _FactoryNamespace:
 
     async def build(self, user_id: str, session_id: str, intent: str) -> Dict[str, Any]:
         """Trigger a factory build for a new agent platform."""
-        return await self._svc.run_factory_graph(user_id, session_id, intent)
+        return await self._svc.run_persona_graph(user_id, session_id, intent)
 
 
 class CoReasonClient:

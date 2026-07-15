@@ -7,12 +7,7 @@ from langgraph.graph import StateGraph, END
 
 logger = logging.getLogger(__name__)
 
-class AgentState(TypedDict):
-    messages: list
-    worker_result: str
-    feedback: str
-    attempts: int
-    final_output: str
+from src.core.ontology import MakerCheckerState
 
 class AgentPmAgent(DeepAgent):
     """
@@ -25,7 +20,7 @@ class AgentPmAgent(DeepAgent):
             with open(yaml_path, "r", encoding="utf-8") as f:
                 self.agent_spec = yaml.safe_load(f)
                 
-        graph = StateGraph(AgentState)
+        graph = StateGraph(MakerCheckerState)
         graph.add_node("maker", self._run_maker)
         graph.add_node("validator", self._run_validator)
         
@@ -42,7 +37,7 @@ class AgentPmAgent(DeepAgent):
         )
         self.graph = graph.compile()
         
-    def _run_maker(self, state: AgentState):
+    def _run_maker(self, state: MakerCheckerState):
         from src.agents.prompt_engineer.orchestrator import PromptEngineerAgent
         from src.agents.yaml_compiler.orchestrator import YamlCompilerAgent
         
@@ -64,7 +59,7 @@ class AgentPmAgent(DeepAgent):
         
         return {"worker_result": str(final_result), "attempts": attempts}
 
-    def _run_validator(self, state: AgentState):
+    def _run_validator(self, state: MakerCheckerState):
         from src.agents.agent_validator.orchestrator import AgentValidatorAgent
         validator = AgentValidatorAgent()
         
@@ -74,7 +69,7 @@ class AgentPmAgent(DeepAgent):
         else:
             return {"feedback": validation.feedback, "final_output": "FAILURE"}
             
-    def _route_validation(self, state: AgentState):
+    def _route_validation(self, state: MakerCheckerState):
         if state.get("final_output", "").startswith("SUCCESS"):
             return "success"
         elif state.get("attempts", 0) >= 3:

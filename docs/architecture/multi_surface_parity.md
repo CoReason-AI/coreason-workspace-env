@@ -12,6 +12,9 @@ The platform exposes five distinct interaction surfaces. None of these surfaces 
 4. **WebSocket / SSE**: Persistent connection adapters for real-time observability and accordion UIs.
 5. **Python SDK**: Native in-process programmatic bindings (`CoReasonClient`).
 
+## Universal Brain Mounting
+Because no interaction surface contains business logic, they all universally mount "The Brain" (intent/logic) by invoking the core `orchestration_service`. Whether a user hits a FastAPI endpoint or types a command in the CLI, the transport adapter calls the exact same `run_persona_graph` entrypoint. This spins up the execution engine (The Body), loads the designated `agent.yaml`, and initiates the non-blocking async execution.
+
 ## E2E Workflow Parity Testing
 
 To mathematically prove this parity, our continuous integration suite includes comprehensive integration tests (`test_e2e_surfaces.py`).

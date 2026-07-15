@@ -13,7 +13,7 @@ api_router.include_router(health.router, prefix="/health", tags=["Health"])
 api_router.include_router(projects.router, prefix="/projects", tags=["Projects"], dependencies=[Depends(get_current_user)])
 api_router.include_router(agents.router, prefix="/agents", tags=["Agents"], dependencies=[Depends(get_current_user)])
 api_router.include_router(mcp.router, prefix="/mcp", tags=["Model Context Protocol"], dependencies=[Depends(get_current_user)])
-api_router.include_router(docs.router, prefix="/docs", tags=["Documentation Service"])
+api_router.include_router(docs.router, prefix="/docs", tags=["Documentation Service"], dependencies=[Depends(get_current_user)])
 
 from fastapi import HTTPException
 from fastapi.responses import FileResponse

@@ -41,6 +41,9 @@ uv sync --all-extras
 
 The CoReason platform relies on a distributed multi-tenant architecture utilizing PostgreSQL, Redis, and a background task daemon. 
 
+> [!NOTE]
+> **Tenant Isolation:** LangGraph state checkpointers do not use the `public` schema. The runtime engine dynamically manages schema isolation (`project_{project_id}`) per tenant, ensuring zero data leakage and safe backups via `pg_dump`. 
+
 ### Standalone Local Deployment
 The easiest way to spin this up locally is via Docker Compose using the Standalone override. This configuration natively spins up **MinIO** for S3-compatible local storage and **Ollama** for local LLM inference (requires an NVIDIA GPU). It bypasses remote images and builds the workspace directly from source.
 

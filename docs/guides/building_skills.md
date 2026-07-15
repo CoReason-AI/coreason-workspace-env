@@ -45,5 +45,5 @@ When authoring a new skill, you must adhere to the following architectural const
 
 1. **Atomic Scope**: The skill must adhere to the Single Responsibility Principle. A data-retrieval primitive must never attempt semantic synthesis.
 2. **Transactional Safety**: If the skill manipulates data or files, it must be idempotent or utilize Write-Ahead Logging (WAL) to prevent partial execution failures.
-3. **Pydantic I/O**: All input and output contracts must be defined using strict Pydantic models (from `coreason-manifest`) with a maximum depth of 3 nested levels.
+3. **Pydantic I/O**: All input and output contracts must be defined using strict Pydantic models (from `src.core.ontology`) with a maximum depth of 3 nested levels.
 4. **Deterministic Governance**: The skill must act as a "bumper" for the stochastic LLM. The LLM invokes the primitive, but the primitive executes deterministically in Python.

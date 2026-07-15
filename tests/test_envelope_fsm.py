@@ -1,6 +1,6 @@
 import pytest
 from pydantic import BaseModel, ValidationError
-from coreason_manifest.spec.ontology import CognitiveDeliberativeEnvelopeState
+from src.core.ontology import CognitiveDeliberativeEnvelopeState
 
 class MockPayload(BaseModel):
     name: str

@@ -8,6 +8,10 @@ Agents within the platform are not instantiated via complex, hardcoded Python bo
 
 This shift to declarative infrastructure treats agent definitions as portable, version-controlled configurations. Platform engineers, data scientists, and domain experts define the persona, objectives, boundaries, and tool access of an agent entirely within YAML, abstracting away the underlying graph compilation logic.
 
+### The Universal `agent.yaml` Standard
+
+There is no distinction between a simple worker agent and the complex global `PlatformOrchestrator`. Both are mounted dynamically by the execution engine (the "Body") via the exact same `agent.yaml` standard manifest format. This enables "Self-Copying Brains" to be exported and injected into other compatible runtime harnesses without friction.
+
 ## Dynamic LangGraph Compilation
 
 The platform acts as a headless agent factory. At runtime, a specialized YAML compiler reads the agent manifest and dynamically synthesizes an executable **LangGraph StateGraph** node.
