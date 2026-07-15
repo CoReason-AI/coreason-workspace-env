@@ -44,6 +44,7 @@ nav:
   - Introduction:
     - Home: index.md
     - Getting Started: getting_started.md
+    - User Guide: guides/user_guide.md
   - Architecture:
     - Landscape Comparison: architecture/landscape_comparison.md
     - DeepAgent Pattern: architecture/deepagent_pattern.md

@@ -1,34 +1,57 @@
-# WebSocket and SSE Streaming
+# WebSocket & Server-Sent Events (SSE)
 
-Long-running multi-agent workflows present a unique observability challenge. Because deterministically routed graphs can execute for several minutes or even hours (especially when waiting on Human-in-the-Loop approvals or massive data ETL operations), synchronous request-response models are insufficient.
+The CoReason Workspace Environment heavily leverages real-time streaming to provide interactive observability into the long-running agent execution processes.
 
-The CoReason Workspace Environment exposes **WebSocket** and **Server-Sent Events (SSE)** as first-class interaction surfaces, enabling real-time telemetry and state interaction.
+To satisfy the "Real-Time Observability & Accordion UX" rule, the platform exposes dedicated WebSockets and SSE streams.
 
-## Authentication
+## Streaming Architecture
 
-Like the REST API, all WebSocket and SSE endpoints are strictly secured. Clients must initiate connections with the appropriate authentication headers or query parameters (e.g., passing the `API_SECRET_TOKEN` as a bearer token or query string `?token=...` depending on the client library capabilities) to establish a successful connection.
+```mermaid
+sequenceDiagram
+    participant UI Dashboard
+    participant FastAPI StreamingResponse
+    participant Redis PubSub
+    participant KEDA Worker (Agent)
+    participant Postgres Checkpointer
 
-## Real-Time Observability via JSON Patch
+    KEDA Worker (Agent)->>Postgres Checkpointer: Persist new state
+    KEDA Worker (Agent)->>Redis PubSub: Publish progress event
+    Redis PubSub-->>FastAPI StreamingResponse: Receive event
+    FastAPI StreamingResponse-->>UI Dashboard: Stream JSON chunk
+```
 
-Every execution node, internal thought process, tool invocation, and validation error within the LangGraph state machine is broadcast in real-time. 
+## The Four Core Streams
 
-To optimize payload size and network efficiency, the platform generates real-time telemetry updates. Instead of passing bloated, complete state dictionaries on every graph tick, the platform streams data directly from the **Postgres DB Queue**, ensuring persistent, queryable state.
+All streams are located under the `/ws` routing prefix and require the same Bearer Token authentication as the REST API.
 
-- **SSE (Server-Sent Events)**: Ideal for uni-directional telemetry, used primarily by headless dashboards or logging aggregators simply looking to monitor a job's progress. Currently, the SSE endpoints (like `/api/v2/agents/{agent_name}/stream`) actively subscribe to Postgres `LISTEN/NOTIFY` channels (e.g. `langgraph_events_{session_id}`) via `asyncpg.add_listener`, yielding true JSON patch events natively from the execution graph.
+1. **`crdt` (Collaborative Editing)**: Emits real-time Operational Transformation (OT) or CRDT events, allowing multiple users (or agents and humans) to concurrently edit artifacts without conflict.
+2. **`tty` (Terminal Passthrough)**: A raw bidirectional pipe that streams standard output and standard error from isolated Docker execution environments directly to the browser.
+3. **`state_sync` (LangGraph State)**: Streams the immutable snapshot updates emitted by the LangGraph Postgres Checkpointer every time a node completes execution.
+4. **`agent_progress` (Tracker Task List)**: Streams structural eventing messages. Agents maintain a structured tracker task list and emit summaries at key steps to populate the UI's Accordion view.
 
-## Time-Travel Debugging (State Sync)
+> [!TIP]
+> **Why separate streams?** Separating streams by semantic meaning (e.g. raw TTY text vs. structured LangGraph state dictionaries) ensures that frontend clients can parse and render the payloads efficiently without complex multiplexing logic.
 
-The WebSocket endpoints stream real-time JSON Patch state updates directly originating from the Postgres checkpointer.
+## Usage Example (JavaScript Client)
 
-Because the state is streamed synchronously, developers can build live interactive tooling on top of the agent. The primary example of this is the platform's native Time-Travel Debugger, accessible via the `dcode` Text User Interface.
+Because SSE operates over standard HTTP, connecting from a browser requires minimal boilerplate:
 
-If an agent hallucinates or encounters an execution failure deep within a complex workflow, the WebSocket connection allows a client to transmit a `rewind` command accompanied by a specific `checkpoint_id`. 
+```javascript
+const eventSource = new EventSource("http://localhost:9005/ws/agent_progress/01J18H1P9F2M1Q6N9B9Y6W4A2B", {
+    headers: {
+        "Authorization": "Bearer coreason-dev-token"
+    }
+});
 
-The orchestrator will:
-1. Halt the current execution graph.
-2. Rollback the database state to the exact node matching the `checkpoint_id`.
-3. Allow the developer to hot-swap code or modify the payload.
-4. Resume execution deterministically from the restored checkpoint.
+eventSource.onmessage = function(event) {
+    const data = JSON.parse(event.data);
+    console.log(`Agent ${data.agent_name} completed task: ${data.task_name}`);
+    
+    // Update Accordion UI...
+    updateAccordion(data);
+};
 
-## Universal Subscription
-Following the Multi-Surface Parity mandate, all other platform surfaces (like the Python SDK and MCP Server) inherently rely on and subscribe to these streaming endpoints for their respective real-time consumers.
+eventSource.onerror = function(err) {
+    console.error("EventSource failed:", err);
+};
+```

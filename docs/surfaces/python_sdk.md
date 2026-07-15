@@ -1,53 +1,75 @@
 # Python SDK
 
-For programmatic access and tight integration, the CoReason Workspace Environment exposes a native Python SDK. 
+The CoReason Workspace Environment exposes a pure-Python SDK for programmatic embedding (`import coreason`).
 
-This SDK acts as the fifth and final interaction surface, providing identical capabilities to the REST API, CLI, and MCP server, but engineered for native in-process execution.
+Because the SDK is simply an HTTP wrapper over the REST API via the `httpx` library, it inherits the exact same capability set and data schemas as the CLI and REST interfaces. 
 
-## In-Process Embedding
+## SDK Architecture
 
-The Python SDK is designed for scenarios where the headless platform needs to be directly embedded into an upstream Python application (such as an existing Airflow pipeline, a custom Django backend, or a Jupyter notebook).
-
-```python
-import coreason
-
-# Initialize the embedded platform client with your API token
-client = coreason.Client(token="coreason-dev-token")
-
-# Execute an agent workflow deterministically
-receipt = client.agents.execute(
-    agent_id="data_extractor",
-    payload={"source_file": "report.pdf"}
-)
-
-print(receipt.outputs)
+```mermaid
+classDiagram
+    class CoReasonClient {
+        +AuthToken token
+        +URL base_url
+    }
+    class ProjectModule {
+        +push_bundle(id, url)
+        +pull_bundle(url, name)
+        +export_project(id)
+    }
+    class AgentModule {
+        +run_factory_graph(intent)
+        +get_execution_status(session_id)
+    }
+    
+    CoReasonClient *-- ProjectModule
+    CoReasonClient *-- AgentModule
+    
+    note for CoReasonClient "Uses HTTPX for Async I/O"
 ```
 
-## Async Native
+## Inner Workings
 
-The entire SDK is built asynchronously using `asyncio`, mirroring the async nature of the underlying FastAPI and LangGraph architecture. This allows for high-throughput concurrency when orchestrating multiple agentic workflows simultaneously.
+The `CoReasonClient` reads authentication variables directly from your environment (`API_SECRET_TOKEN` and `COREASON_BASE_URL`). 
 
-For streaming interactions (like tracking the live LangGraph state of a long-running agent), the SDK yields asynchronous iterators, providing identical telemetry to the WebSocket surface.
+When you invoke a method, the SDK automatically formats the Pydantic models (imported from `coreason_manifest`) into JSON, appends the Bearer Token, and dispatches the asynchronous HTTP request. It strictly returns native Python dictionaries or Pydantic models.
+
+## Usage Example
+
+To embed the platform's capabilities into an external Python script, orchestrator, or Airflow DAG, initialize the client and await the coroutines:
 
 ```python
 import asyncio
-import coreason
+from src.sdk.client import CoReasonClient
 
-async def monitor_agent():
-    client = coreason.AsyncClient(token="coreason-dev-token")
+async def main():
+    # Automatically picks up environment variables
+    client = CoReasonClient()
     
-    # Subscribe to the real-time state sync stream
-    async for state in client.streaming.watch_state(session_id="uuid7-1234"):
-        print(f"Current Node: {state.node_name}")
-        print(f"Pending Edges: {state.next}")
+    print("Pulling external agent bundle from OCI registry...")
+    
+    # 1. Pull the Bundle
+    result = await client.projects.pull_bundle(
+        oci_uri="ghcr.io/my-org/healthcare-agent:v1",
+        name="Healthcare Agent",
+        description="Downloaded via SDK"
+    )
+    
+    if result.get("status") == "success":
+        job_id = result.get("job_id")
+        print(f"Background pull job initiated: {job_id}")
+        
+        # 2. Poll for completion
+        while True:
+            status = await client.projects.get_job_status(job_id)
+            if status.get("state") == "COMPLETED":
+                print("Project successfully imported!")
+                break
+            await asyncio.sleep(2)
 
-asyncio.run(monitor_agent())
+if __name__ == "__main__":
+    asyncio.run(main())
 ```
 
-## Schema Parity
-
-Just like the REST API, the Python SDK relies entirely on the `coreason-manifest` library for its type hints and return schemas. This means IDEs will provide perfect auto-completion for all agent outputs and Epistemic Firewall bounds, leveraging the strictly-typed Pydantic geometry.
-
-## Async Abstraction: The Portability Engine
-For long-running background tasks like OCI Registry exports, the SDK goes out of its way to shield developers from asynchronous polling complexity. 
-When calling `client.projects.push_bundle()`, `client.projects.pull_bundle()`, `client.projects.export_bundle()`, or `client.projects.import_bundle()` with granular flags (e.g. `skip_docker=True`), the SDK triggers the backend task, immediately captures the `job_id`, and runs a blocking `asyncio.sleep` polling loop natively. It will only return execution control back to your script once the job achieves a terminal `COMPLETED` or `FAILED` state.
+> [!CAUTION]
+> The Python SDK relies on `asyncio`. Attempting to call these methods synchronously without `await` or `asyncio.run()` will result in Coroutine exhaustion errors.

@@ -59,6 +59,25 @@ docker compose up -d
 > **Going to Production?**
 > If you are deploying to an enterprise environment (AWS, Azure), check out our [Deploying Guide](guides/deploying.md) for 1-click Terraform, OpenTofu, and CloudFormation templates.
 
+### Interacting with the Platform
+
+Once the containers are running, the API is available locally.
+You can explore and test the endpoints directly from your browser by navigating to the **Swagger UI**:
+
+`http://localhost:9005/docs`
+
+**Authentication**: 
+To execute endpoints via the Swagger UI or via cURL, you must authenticate. Click the green "Authorize" button and input your `API_SECRET_TOKEN` as a Bearer token. If you did not explicitly set this in your `.env` file, use the default local development token: `coreason-dev-token`.
+
+### Standalone Troubleshooting & Testing
+
+If you encounter issues during a local standalone build:
+- **Corrupted Builds (`no such file or directory` errors for `uvicorn`)**: Ensure the `.dockerignore` file exists in the root of the repository and includes `.venv`. Without it, local Windows/macOS `.venv` directories will overwrite the container's internal Linux `.venv` during the multi-stage build `COPY . .` command.
+- **Testing inside Airgapped Containers**: The production `Dockerfile` is strictly "Airgap Ready", meaning build and development tools (like `uv` and `pytest`) are explicitly excluded from the final image stage. If you need to verify environment connectivity inside a running worker container, use the pure-Python standard library test script rather than `pytest`:
+  ```bash
+  docker compose -f docker-compose.yaml -f docker-compose.standalone.yaml exec platform_worker python tests/test_standalone_env.py
+  ```
+
 ## Executing Exported Artifacts
 
 When you build agents through the platform, it exports an installable ZIP archive containing the generated YAML manifests and a dynamically synthesized `pyproject.toml`. 
