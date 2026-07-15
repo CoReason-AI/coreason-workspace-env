@@ -11,28 +11,24 @@
       
       
       
-        <link rel="prev" href="../../architecture/multi_surface_parity/">
-      
-      
-        <link rel="next" href="../cli/">
       
       
         
       
       
-      <link rel="icon" href="../../assets/images/favicon.png">
+      <link rel="icon" href="../assets/images/favicon.png">
       <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
     
     
       
-        <title>MCP Server - CoReason Workspace Environment</title>
+        <title>Deployment & Portability Guide - CoReason Workspace Environment</title>
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
       
         
-        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
       
       
 
@@ -51,7 +47,7 @@
       
     
     
-    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
 
@@ -76,7 +72,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#model-context-protocol-mcp" class="md-skip">
+        <a href="#deployment-portability-guide" class="md-skip">
           Skip to content
         </a>
       
@@ -90,7 +86,7 @@
 
 <header class="md-header" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href="../.." title="CoReason Workspace Environment" class="md-header__button md-logo" aria-label="CoReason Workspace Environment" data-md-component="logo">
+    <a href=".." title="CoReason Workspace Environment" class="md-header__button md-logo" aria-label="CoReason Workspace Environment" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -110,7 +106,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              MCP Server
+              Deployment &amp; Portability Guide
             
           </span>
         </div>
@@ -213,7 +209,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../.." class="md-tabs__link">
+        <a href=".." class="md-tabs__link">
           
   
   
@@ -233,7 +229,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../architecture/landscape_comparison/" class="md-tabs__link">
+        <a href="../architecture/landscape_comparison.md" class="md-tabs__link">
           
   
   
@@ -249,13 +245,11 @@
   
   
   
-    
-  
   
     
     
-      <li class="md-tabs__item md-tabs__item--active">
-        <a href="./" class="md-tabs__link">
+      <li class="md-tabs__item">
+        <a href="../surfaces/mcp_server.md" class="md-tabs__link">
           
   
   
@@ -275,7 +269,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../guides/building_skills/" class="md-tabs__link">
+        <a href="../guides/building_skills.md" class="md-tabs__link">
           
   
   
@@ -311,7 +305,7 @@
 
 <nav class="md-nav md-nav--primary md-nav--lifted md-nav--integrated" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href="../.." title="CoReason Workspace Environment" class="md-nav__button md-logo" aria-label="CoReason Workspace Environment" data-md-component="logo">
+    <a href=".." title="CoReason Workspace Environment" class="md-nav__button md-logo" aria-label="CoReason Workspace Environment" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -381,7 +375,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../.." class="md-nav__link">
+      <a href=".." class="md-nav__link">
         
   
   
@@ -409,7 +403,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../getting_started/" class="md-nav__link">
+      <a href="../getting_started/" class="md-nav__link">
         
   
   
@@ -437,7 +431,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../guides/user_guide/" class="md-nav__link">
+      <a href="../guides/user_guide.md" class="md-nav__link">
         
   
   
@@ -524,7 +518,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../architecture/landscape_comparison/" class="md-nav__link">
+      <a href="../architecture/landscape_comparison.md" class="md-nav__link">
         
   
   
@@ -552,7 +546,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../architecture/deepagent_pattern/" class="md-nav__link">
+      <a href="../architecture/deepagent_pattern.md" class="md-nav__link">
         
   
   
@@ -580,7 +574,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../architecture/context_engineering/" class="md-nav__link">
+      <a href="../architecture/context_engineering.md" class="md-nav__link">
         
   
   
@@ -608,7 +602,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../architecture/epistemic_firewall/" class="md-nav__link">
+      <a href="../architecture/epistemic_firewall.md" class="md-nav__link">
         
   
   
@@ -636,7 +630,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../architecture/maker_checker/" class="md-nav__link">
+      <a href="../architecture/maker_checker.md" class="md-nav__link">
         
   
   
@@ -664,7 +658,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../architecture/multi_surface_parity/" class="md-nav__link">
+      <a href="../architecture/multi_surface_parity.md" class="md-nav__link">
         
   
   
@@ -696,31 +690,26 @@
       
   
   
-    
   
   
-  
     
     
     
     
-      
-        
-        
       
       
         
       
     
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
         
           
-          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
             
   
   
@@ -738,7 +727,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_3">
             <span class="md-nav__icon md-icon"></span>
             
@@ -753,37 +742,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    MCP Server
-  
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../surfaces/mcp_server.md" class="md-nav__link">
         
   
   
@@ -799,59 +761,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#mcp-architecture" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        MCP Architecture
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#inner-workings-namespaces" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Inner Workings &amp; Namespaces
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#usage-example-configuration" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Usage Example (Configuration)
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -864,7 +773,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../cli/" class="md-nav__link">
+      <a href="../surfaces/cli.md" class="md-nav__link">
         
   
   
@@ -892,7 +801,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../rest_api/" class="md-nav__link">
+      <a href="../surfaces/rest_api.md" class="md-nav__link">
         
   
   
@@ -920,7 +829,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../websocket_sse/" class="md-nav__link">
+      <a href="../surfaces/websocket_sse.md" class="md-nav__link">
         
   
   
@@ -948,7 +857,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../python_sdk/" class="md-nav__link">
+      <a href="../surfaces/python_sdk.md" class="md-nav__link">
         
   
   
@@ -1035,7 +944,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../guides/building_skills/" class="md-nav__link">
+      <a href="../guides/building_skills.md" class="md-nav__link">
         
   
   
@@ -1063,7 +972,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../guides/writing_validation_rules/" class="md-nav__link">
+      <a href="../guides/writing_validation_rules.md" class="md-nav__link">
         
   
   
@@ -1091,7 +1000,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../guides/deploying/" class="md-nav__link">
+      <a href="../guides/deploying.md" class="md-nav__link">
         
   
   
@@ -1136,48 +1045,39 @@
 
 
 
-<h1 id="model-context-protocol-mcp">Model Context Protocol (MCP)</h1>
-<p>Since the CoReason platform acts as an agent-building factory, it natively exposes itself as a <strong>Model Context Protocol (MCP)</strong> server. This allows upstream AI agents, IDEs (like Cursor or Windsurf), and parent orchestrators to interface with the factory natively.</p>
-<p>The platform uses <code>FastMCP</code> to map its internal core services directly to standard MCP JSON-RPC schemas over <code>stdio</code> and <code>SSE</code>.</p>
-<h2 id="mcp-architecture">MCP Architecture</h2>
-<pre class="mermaid"><code>flowchart LR
-    A[Upstream IDE / Orchestrator] &lt;--&gt;|JSON-RPC over stdio / SSE| B(FastMCP Server)
-    B --&gt; C{Tool Routers}
-    C --&gt; D[Causal Server]
-    C --&gt; E[Memory Server]
-    C --&gt; F[Project Server]
-    D --&gt; G[(PostgreSQL)]
-    E --&gt; G
-    F --&gt; G</code></pre>
-<h2 id="inner-workings-namespaces">Inner Workings &amp; Namespaces</h2>
-<p>The MCP Server groups tools logically into domains based on the underlying capabilities of the platform:</p>
+<h1 id="deployment-portability-guide">Deployment &amp; Portability Guide</h1>
+<p>The CoReason Workspace Environment is designed to be highly portable and secure, specifically tailored for data-sovereign, zero-trust environments (including Standalone and Private Cloud topologies).</p>
+<h2 id="1-containerized-services">1. Containerized Services</h2>
+<p>To support asynchronous concurrency and horizontal scaling, the platform utilizes specialized Docker containers:
+- <strong><code>platform_server</code></strong>: A FastAPI web server handling synchronous REST API and SSE requests.
+- <strong><code>platform_worker</code></strong>: A <code>keda_worker</code> daemon pulling agent execution tasks off the Redis queue asynchronously.
+- <strong><code>postgres_checkpointer</code></strong>: Handles multi-tenant safe StateGraph checkpoints and events.</p>
+<h2 id="2-deployment-architectures">2. Deployment Architectures</h2>
+<h3 id="enterprise-kubernetes-helm">Enterprise Kubernetes (Helm)</h3>
+<p>For large-scale, distributed deployments, the entire stack is packaged as a unified Helm chart for clusters like EKS, GKE, or AKS. The worker daemon is seamlessly autoscaled by KEDA based on Redis queue depth.</p>
+<h3 id="marketplace-infrastructure-as-code">Marketplace &amp; Infrastructure as Code</h3>
+<ul>
+<li><strong>OpenTofu &amp; Terraform</strong>: Complete IaC templates for AWS (EKS/RDS) and Azure (AKS/PostgreSQL) are located in <code>deploy/terraform/</code>.</li>
+<li><strong>AWS CloudFormation</strong>: A 1-click serverless AWS ECS Fargate deployment template is located in <code>deploy/cloudformation/coreason-enterprise.yaml</code>.</li>
+<li><strong>GitHub Actions</strong>: A reusable workflow is available in <code>.github/workflows/deploy-helm.yml</code> for automated CI/CD deployments.</li>
+</ul>
+<h3 id="air-gapped-edge-k3s">Air-Gapped Edge (K3s)</h3>
+<p>For internet-denied environments, the platform is available as a standalone K3s distribution, forcing all language models and tools to run locally via internal endpoints.</p>
+<h2 id="3-immutable-agent-sandboxes">3. Immutable Agent Sandboxes</h2>
+<p>A critical security mandate is <strong>Deterministic Dependencies</strong>. The platform utilizes the <strong>NemoClaw for Deep Agents</strong> blueprint.
+- <strong>Governed Sandboxes</strong>: Agents operate strictly within isolated Kubernetes pod sandboxes managed by the NVIDIA OpenShell Gateway.
+- <strong>No Dynamic Installs</strong>: Dynamic <code>pip install</code> commands at runtime are forbidden. All dependencies must be strictly locked and baked into the image during CI/CD.</p>
+<h2 id="4-portability-engine">4. Portability Engine</h2>
+<p>The Portability Engine allows sharing, versioning, and deploying agent projects across environments. Due to massive file sizes, the core <code>portability_service.py</code> is fully asynchronous and tracks progress via <code>portability_jobs</code>.</p>
+<h3 id="modalities">Modalities</h3>
 <ol>
-<li><strong>Causal Server Tools</strong>: Allows upstream agents to map causal relationships, build diagrams, and interact with the platform's reasoning engine.</li>
-<li><strong>Memory Server Tools</strong>: Provides access to the platform's internal knowledge base and state persistence.</li>
-<li><strong>Project Tools</strong>: Directly exposes the platform's <code>build</code>, <code>push-oci</code>, and <code>export</code> capabilities to upstream agents.</li>
+<li><strong>Local Bundles (Air-Gapped)</strong>: Extracts the workspace into <code>workspace.tar.gz</code>, dumps tenant data into <code>pg_dump.sql</code>, and exports Docker images. Triggered via <code>export-project</code> and <code>import-project</code>.</li>
+<li><strong>OCI Registry (Industry Standard)</strong>: Packages the project alongside an RO-Crate metadata file and pushes it directly to compliant OCI registries (GHCR, AWS ECR, Docker Hub) using <code>oras-py</code>. Triggered via <code>push-project</code> and <code>pull-project</code>.</li>
 </ol>
-<blockquote>
-<p>[!IMPORTANT]
-Because the MCP Server binds to the exact same <code>src.core.services</code> layer as the REST API, any action an agent takes via an MCP tool call uses the same rigorous Pydantic validation and UUIDv7 logic as if a human invoked the REST endpoint. This is guaranteed by our <a href="../../architecture/multi_surface_parity/">Multi-Surface Parity Testing</a>.</p>
-</blockquote>
-<h2 id="usage-example-configuration">Usage Example (Configuration)</h2>
-<p>To connect an IDE or external orchestrator to the CoReason MCP Server using the <code>stdio</code> transport, add the following configuration to your <code>mcp.json</code> or <code>claude_desktop_config.json</code>:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="p">{</span>
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span><span class="nt">&quot;mcpServers&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">    </span><span class="nt">&quot;coreason_factory&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">      </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;uv&quot;</span><span class="p">,</span>
-<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">      </span><span class="nt">&quot;args&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
-<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="w">        </span><span class="s2">&quot;run&quot;</span><span class="p">,</span>
-<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="w">        </span><span class="s2">&quot;coreason-mcp&quot;</span>
-<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="w">      </span><span class="p">],</span>
-<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="w">      </span><span class="nt">&quot;env&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="w">        </span><span class="nt">&quot;API_SECRET_TOKEN&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;coreason-dev-token&quot;</span>
-<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="w">      </span><span class="p">}</span>
-<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="w">    </span><span class="p">}</span>
-<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="w">  </span><span class="p">}</span>
-<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a><span class="p">}</span>
-</code></pre></div>
-<p>Once connected, your agent will natively inherit tools such as <code>build_agent_platform</code>, <code>list_active_projects</code>, and <code>export_oci_bundle</code>.</p>
+<h3 id="granular-exports">Granular Exports</h3>
+<p>To bypass heavy layers when only sharing logic:
+- <code>--skip-docker</code>: Bypasses the <code>docker save</code> command.
+- <code>--skip-state</code>: Bypasses the <code>pg_dump</code> command, excluding conversation history and RAG embeddings.</p>
 
 
 
@@ -1233,10 +1133,10 @@ Because the MCP Server binds to the exact same <code>src.core.services</code> la
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "toc.integrate", "navigation.top", "search.suggest", "search.highlight", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.sections", "toc.integrate", "navigation.top", "search.suggest", "search.highlight", "content.code.copy"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
       
     
   </body>

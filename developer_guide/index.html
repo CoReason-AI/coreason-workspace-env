@@ -11,28 +11,24 @@
       
       
       
-        <link rel="prev" href="../cli/">
-      
-      
-        <link rel="next" href="../websocket_sse/">
       
       
         
       
       
-      <link rel="icon" href="../../assets/images/favicon.png">
+      <link rel="icon" href="../assets/images/favicon.png">
       <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
     
     
       
-        <title>REST API - CoReason Workspace Environment</title>
+        <title>Developer Guide: Extending & Testing the Platform - CoReason Workspace Environment</title>
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
       
         
-        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
       
       
 
@@ -51,7 +47,7 @@
       
     
     
-    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
 
@@ -76,7 +72,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#rest-api" class="md-skip">
+        <a href="#developer-guide-extending-testing-the-platform" class="md-skip">
           Skip to content
         </a>
       
@@ -90,7 +86,7 @@
 
 <header class="md-header" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href="../.." title="CoReason Workspace Environment" class="md-header__button md-logo" aria-label="CoReason Workspace Environment" data-md-component="logo">
+    <a href=".." title="CoReason Workspace Environment" class="md-header__button md-logo" aria-label="CoReason Workspace Environment" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -110,7 +106,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              REST API
+              Developer Guide: Extending &amp; Testing the Platform
             
           </span>
         </div>
@@ -213,7 +209,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../.." class="md-tabs__link">
+        <a href=".." class="md-tabs__link">
           
   
   
@@ -233,7 +229,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../architecture/landscape_comparison/" class="md-tabs__link">
+        <a href="../architecture/landscape_comparison.md" class="md-tabs__link">
           
   
   
@@ -249,13 +245,11 @@
   
   
   
-    
-  
   
     
     
-      <li class="md-tabs__item md-tabs__item--active">
-        <a href="../mcp_server/" class="md-tabs__link">
+      <li class="md-tabs__item">
+        <a href="../surfaces/mcp_server.md" class="md-tabs__link">
           
   
   
@@ -275,7 +269,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../guides/building_skills/" class="md-tabs__link">
+        <a href="../guides/building_skills.md" class="md-tabs__link">
           
   
   
@@ -311,7 +305,7 @@
 
 <nav class="md-nav md-nav--primary md-nav--lifted md-nav--integrated" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href="../.." title="CoReason Workspace Environment" class="md-nav__button md-logo" aria-label="CoReason Workspace Environment" data-md-component="logo">
+    <a href=".." title="CoReason Workspace Environment" class="md-nav__button md-logo" aria-label="CoReason Workspace Environment" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -381,7 +375,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../.." class="md-nav__link">
+      <a href=".." class="md-nav__link">
         
   
   
@@ -409,7 +403,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../getting_started/" class="md-nav__link">
+      <a href="../getting_started/" class="md-nav__link">
         
   
   
@@ -437,7 +431,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../guides/user_guide/" class="md-nav__link">
+      <a href="../guides/user_guide.md" class="md-nav__link">
         
   
   
@@ -524,7 +518,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../architecture/landscape_comparison/" class="md-nav__link">
+      <a href="../architecture/landscape_comparison.md" class="md-nav__link">
         
   
   
@@ -552,7 +546,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../architecture/deepagent_pattern/" class="md-nav__link">
+      <a href="../architecture/deepagent_pattern.md" class="md-nav__link">
         
   
   
@@ -580,7 +574,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../architecture/context_engineering/" class="md-nav__link">
+      <a href="../architecture/context_engineering.md" class="md-nav__link">
         
   
   
@@ -608,7 +602,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../architecture/epistemic_firewall/" class="md-nav__link">
+      <a href="../architecture/epistemic_firewall.md" class="md-nav__link">
         
   
   
@@ -636,7 +630,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../architecture/maker_checker/" class="md-nav__link">
+      <a href="../architecture/maker_checker.md" class="md-nav__link">
         
   
   
@@ -664,7 +658,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../architecture/multi_surface_parity/" class="md-nav__link">
+      <a href="../architecture/multi_surface_parity.md" class="md-nav__link">
         
   
   
@@ -696,31 +690,26 @@
       
   
   
-    
   
   
-  
     
     
     
     
-      
-        
-        
       
       
         
       
     
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
         
           
-          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
             
   
   
@@ -738,7 +727,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_3">
             <span class="md-nav__icon md-icon"></span>
             
@@ -756,7 +745,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../mcp_server/" class="md-nav__link">
+      <a href="../surfaces/mcp_server.md" class="md-nav__link">
         
   
   
@@ -784,7 +773,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../cli/" class="md-nav__link">
+      <a href="../surfaces/cli.md" class="md-nav__link">
         
   
   
@@ -809,37 +798,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    REST API
-  
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../surfaces/rest_api.md" class="md-nav__link">
         
   
   
@@ -855,176 +817,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#architecture-validation-pipeline" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Architecture &amp; Validation Pipeline
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#pydantic-schema-purity" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Pydantic Schema Purity
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#uuidv7-primary-keys" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        UUIDv7 Primary Keys
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#multi-tenant-security-state-isolation" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Multi-Tenant Security &amp; State Isolation
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#authentication" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Authentication
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Authentication">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#example-authenticated-request" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Example: Authenticated Request
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#endpoints-overview" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Endpoints Overview
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Endpoints Overview">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#core-router-spaces" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Core Router Spaces
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Core Router Spaces">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#1-system-health-health" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        1. System Health (/health)
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#2-project-management-projects" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        2. Project Management (/projects)
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#3-agent-execution-agents" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        3. Agent Execution (/agents)
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#4-real-time-streaming-streaming" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        4. Real-time Streaming (/streaming)
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -1037,7 +829,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../websocket_sse/" class="md-nav__link">
+      <a href="../surfaces/websocket_sse.md" class="md-nav__link">
         
   
   
@@ -1065,7 +857,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../python_sdk/" class="md-nav__link">
+      <a href="../surfaces/python_sdk.md" class="md-nav__link">
         
   
   
@@ -1152,7 +944,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../guides/building_skills/" class="md-nav__link">
+      <a href="../guides/building_skills.md" class="md-nav__link">
         
   
   
@@ -1180,7 +972,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../guides/writing_validation_rules/" class="md-nav__link">
+      <a href="../guides/writing_validation_rules.md" class="md-nav__link">
         
   
   
@@ -1208,7 +1000,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../guides/deploying/" class="md-nav__link">
+      <a href="../guides/deploying.md" class="md-nav__link">
         
   
   
@@ -1253,72 +1045,57 @@
 
 
 
-<h1 id="rest-api">REST API</h1>
-<p>The CoReason Workspace Environment exposes a comprehensive <strong>FastAPI-powered REST API</strong>. </p>
-<p>Following the platform's Multi-Surface Parity mandate, the REST API does not duplicate business logic. It serves strictly as a transport adapter over the shared <code>src.core.services</code> layer, ensuring that operations triggered via HTTP behave identically to those triggered via the CLI or MCP server.</p>
-<blockquote>
-<p>[!NOTE]
-To prove this execution equivalence, the REST API undergoes strict <a href="../../architecture/multi_surface_parity/">Multi-Surface Parity Testing</a> alongside the other transport layers using an ephemeral Testcontainers database.</p>
-</blockquote>
-<h2 id="architecture-validation-pipeline">Architecture &amp; Validation Pipeline</h2>
-<pre class="mermaid"><code>sequenceDiagram
-    participant Client
-    participant FastAPI Router
-    participant Core Services
-    participant PostgreSQL
-
-    Client-&gt;&gt;FastAPI Router: POST /projects/export (Bearer Token)
-    Note over FastAPI Router: Validates Authentication
-    FastAPI Router-&gt;&gt;FastAPI Router: Pydantic Schema Validation
-    alt Validation Failed
-        FastAPI Router--&gt;&gt;Client: 422 Unprocessable Entity
-    else Validation Passed
-        FastAPI Router-&gt;&gt;Core Services: export_project(project_id)
-        Core Services-&gt;&gt;PostgreSQL: Verify Tenant ID Isolation
-        PostgreSQL--&gt;&gt;Core Services: Data retrieved
-        Core Services--&gt;&gt;FastAPI Router: Bundled Artifact
-        FastAPI Router--&gt;&gt;Client: 200 OK (application/zip)
-    end</code></pre>
-<h2 id="pydantic-schema-purity">Pydantic Schema Purity</h2>
-<p>All API payloads, models, and responses are strictly governed by the centralized <code>src.core.ontology</code> module. </p>
+<h1 id="developer-guide-extending-testing-the-platform">Developer Guide: Extending &amp; Testing the Platform</h1>
+<p>This guide outlines how to extend the CoReason Workspace Environment with custom skills, write deterministic validation rules, and test your agent architectures.</p>
+<h2 id="1-building-skills">1. Building Skills</h2>
+<p>An agent's capabilities are extended through modular, progressively disclosed <strong>Skills</strong>. Skills encapsulate complex workflows, domain knowledge, or specific tool integrations into strictly-typed, atomic Python <code>@tools</code>. </p>
+<h3 id="skill-architecture">Skill Architecture</h3>
+<p>Skills are stored in the shared library at <code>src/core/skills/</code>. They are functionally split:
+- <code>src/core/skills/building/</code>: Standards and execution tools for Maker agents.
+- <code>src/core/skills/validation/</code>: Formal pass/fail checklists and AST parsers for the Checker (<code>agent_validator</code>).</p>
+<p>A standard skill directory contains:
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>skills/&lt;skill_name&gt;/
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>├── SKILL.md            # Required: Core instructions and metadata
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>├── scripts/            # Helper Python scripts for deterministic execution
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>├── examples/           # Reference implementations
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>└── references/         # Extended documentation
+</code></pre></div></p>
+<h3 id="the-skillmd-file">The SKILL.md File</h3>
+<p>The <code>SKILL.md</code> file is the absolute source of truth. It contains YAML frontmatter and a Markdown body.
+- <strong>Frontmatter</strong>: The <code>name</code> and <code>description</code> are critical for Progressive Disclosure.
+- <strong>Body</strong>: The Markdown body contains specific instructions the agent will read <em>after</em> triggering the skill. Keep under 500 lines.</p>
+<h3 id="core-mandates">Core Mandates</h3>
+<ol>
+<li><strong>Atomic Scope</strong>: The skill must adhere to the Single Responsibility Principle.</li>
+<li><strong>Transactional Safety</strong>: If the skill manipulates data, it must be idempotent or utilize Write-Ahead Logging (WAL).</li>
+<li><strong>Pydantic I/O</strong>: All input/output contracts must use strict Pydantic models with max depth of 3.</li>
+<li><strong>Deterministic Governance</strong>: The skill executes deterministically in Python, acting as a bumper for the stochastic LLM.</li>
+</ol>
+<h2 id="2-writing-validation-rules">2. Writing Validation Rules</h2>
+<p>The platform rejects stochastic self-correction and relies on a deterministic <strong>Maker-Checker-Approver</strong> pipeline. Validation rules (stored in <code>src/core/skills/validation/</code>) are the deterministic software logic that physically prevents hallucinated data from progressing.</p>
+<h3 id="types-of-validation-rules">Types of Validation Rules</h3>
+<ol>
+<li><strong>Pydantic Boundary Validation</strong>: Loads the generated artifact and executes <code>Model.model_validate(json_data)</code>. Raises <code>ValidationError</code> if fields are missing/invalid.</li>
+<li><strong>Abstract Syntax Tree (AST) Parsing</strong>: Parses Python code to ensure malicious blocks (like <code>eval()</code>) are not present.</li>
+<li><strong>Isolated Sandbox Execution</strong>: Compiles and executes the generated artifact within an ephemeral WebAssembly (Wasm) sandbox to validate the mathematical result.</li>
+</ol>
+<h3 id="the-rule-writing-mandate">The Rule Writing Mandate</h3>
 <ul>
-<li><strong>Centralized Schemas:</strong> The platform natively forbids the creation of duplicated local schema files inside agent directories. All Pydantic geometry is imported directly from the <code>src.core.ontology</code> module.</li>
-<li><strong>Zero-Trust Validation:</strong> The FastAPI router relies on these strict Pydantic definitions to mathematically reject malformed payloads before they ever reach the execution layer, enforcing the Epistemic Firewall at the network edge.</li>
+<li><strong>No LLM Calls</strong>: You are strictly forbidden from utilizing a language model to "grade" the artifact.</li>
+<li><strong>Actionable Remediation</strong>: A failed validation must return a deterministic <code>GuardrailViolationEvent</code> payload containing explicit instructions on how the Maker agent should remediate the failure.</li>
 </ul>
-<blockquote>
-<p>[!CAUTION]
-Bypassing Pydantic validation via raw JSON parsing is strictly prohibited in this repository. All API endpoints must declare their input body using a strict subclass of <code>CoreasonBaseState</code> from <code>src.core.ontology</code>.</p>
-</blockquote>
-<h2 id="uuidv7-primary-keys">UUIDv7 Primary Keys</h2>
-<p>The REST API utilizes UUIDv7 natively for all database primary keys and session identifiers (e.g., <code>snapshot_id</code>, <code>project_id</code>). </p>
-<p>Because UUIDv7 incorporates a Unix epoch timestamp in its most significant bits, it prevents Postgres B-Tree index fragmentation while providing native chronological sorting. You should expect all API endpoints to return and require UUIDv7 strings.</p>
-<h2 id="multi-tenant-security-state-isolation">Multi-Tenant Security &amp; State Isolation</h2>
-<p>Because the REST API operates in a multi-user environment, it natively enforces strict tenant data isolation. When a user authenticates, their <code>tenant_id</code> is passed securely to the execution layer. The API guarantees that operations like <code>get_status</code> and <code>export</code> actively filter Postgres queries using <code>AND tenant_id = $2</code>, preventing any possibility of data cross-contamination.</p>
-<h2 id="authentication">Authentication</h2>
-<p>All platform endpoints (except <code>/health</code>) are strictly secured using Bearer Token authentication. Clients must provide a valid token in the <code>Authorization</code> header (<code>Authorization: Bearer &lt;token&gt;</code>). The expected token must match the <code>API_SECRET_TOKEN</code> environment variable configured on the server. If this environment variable is not explicitly set, the platform will fallback to the default local development token: <code>coreason-dev-token</code>. Requests missing a valid token will be rejected with a <code>401 Unauthorized</code> response.</p>
-<h3 id="example-authenticated-request">Example: Authenticated Request</h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>curl<span class="w"> </span>-X<span class="w"> </span>GET<span class="w"> </span><span class="s2">&quot;http://localhost:9005/projects&quot;</span><span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">     </span>-H<span class="w"> </span><span class="s2">&quot;Authorization: Bearer </span><span class="nv">$API_SECRET_TOKEN</span><span class="s2">&quot;</span><span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">     </span>-H<span class="w"> </span><span class="s2">&quot;Content-Type: application/json&quot;</span>
-</code></pre></div>
-<h2 id="endpoints-overview">Endpoints Overview</h2>
-<p>The API is fully self-documenting. When running the platform, you can view the Swagger UI at <code>http://localhost:9005/docs</code>. To test endpoints directly from the browser, click the "Authorize" button and input your <code>API_SECRET_TOKEN</code>.</p>
-<h3 id="core-router-spaces">Core Router Spaces</h3>
-<h4 id="1-system-health-health">1. System Health (<code>/health</code>)</h4>
-<p>System and dependency health checks.
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>curl<span class="w"> </span>-X<span class="w"> </span>GET<span class="w"> </span><span class="s2">&quot;http://localhost:9005/api/v1/health/&quot;</span>
+<h2 id="3-end-to-end-testing">3. End-to-End Testing</h2>
+<p>To ensure stability across complex LangGraph architectures, the platform implements a strict <strong>Mock-Free E2E Testing</strong> paradigm.</p>
+<h3 id="mock-free-philosophy">Mock-Free Philosophy</h3>
+<ol>
+<li><strong>No Database Mocking</strong>: Tests utilize a stateful <code>DummyConnection</code> and <code>DummyPool</code> that actually parse and store SQL statements in an in-memory dictionary.</li>
+<li><strong>Deterministic LLM Harness</strong>: We use a <code>DeterministicTestChatModel</code> that deterministically yields structurally perfect Pydantic output, eliminating brittle prompt-engineering logic during CI/CD.</li>
+</ol>
+<h3 id="running-tests">Running Tests</h3>
+<p>To run the full E2E map-reduce testing suite:
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>uv<span class="w"> </span>run<span class="w"> </span>pytest<span class="w"> </span>tests/test_e2e_factory.py<span class="w"> </span>-v
 </code></pre></div></p>
-<h4 id="2-project-management-projects">2. Project Management (<code>/projects</code>)</h4>
-<p>CRUD operations for agent projects. Includes air-gapped export endpoints (<code>/export</code>, <code>/import</code>), async OCI endpoints (<code>/push-oci</code>, <code>/pull-oci</code>), granular exports (<code>skip_state</code>, <code>skip_docker</code>), and background job polling (<code>/portability/jobs/{job_id}</code>).</p>
-<p><strong>Exporting a Project (Airgap Ready):</strong>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span><span class="s2">&quot;http://localhost:9005/projects/export/01J18H1P9F2M1Q6N9B9Y6W4A2B&quot;</span><span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">     </span>-H<span class="w"> </span><span class="s2">&quot;Authorization: Bearer </span><span class="nv">$API_SECRET_TOKEN</span><span class="s2">&quot;</span><span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">     </span>--output<span class="w"> </span>project_bundle.zip
-</code></pre></div></p>
-<h4 id="3-agent-execution-agents">3. Agent Execution (<code>/agents</code>)</h4>
-<p>Agent execution, status polling, and definition retrieval.</p>
-<h4 id="4-real-time-streaming-streaming">4. Real-time Streaming (<code>/streaming</code>)</h4>
-<p>HTTP-bound Server-Sent Events (SSE) and WebSocket upgrade endpoints for real-time observability. See the <a href="../websocket_sse/">WebSocket &amp; SSE</a> documentation for full implementation details.</p>
+<p>This ensures the entire runtime—from API input, down through hierarchical agent delegation, to the checkpointer and final artifact generation—is mathematically proven to work.</p>
 
 
 
@@ -1374,10 +1151,10 @@ Bypassing Pydantic validation via raw JSON parsing is strictly prohibited in thi
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "toc.integrate", "navigation.top", "search.suggest", "search.highlight", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.sections", "toc.integrate", "navigation.top", "search.suggest", "search.highlight", "content.code.copy"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
       
     
   </body>
