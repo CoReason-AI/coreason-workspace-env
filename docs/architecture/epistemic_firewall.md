@@ -1,19 +1,26 @@
-# Epistemic Firewall
+# The Epistemic Firewall
 
-The **Epistemic Firewall** is a crucial security and architectural component designed for **Zero-Trust Knowledge**. 
+As Agentic Retrieval-Augmented Generation (RAG) matures, the most severe architectural vulnerability facing enterprise deployments is **Data Provenance Poisoning**. Standard vector stores operate on a model of implicit trust; if an attacker or a faulty pipeline injects a malicious or hallucinated document into the database, the retrieving agent treats it as absolute ground truth.
 
-Generative agents are prone to hallucination when ingesting massive, unstructured human transcripts directly. The Epistemic Firewall prevents this by physically blocking LLMs from reading raw text payloads.
+The CoReason platform fundamentally rearchitects enterprise data retrieval through the implementation of an **Epistemic Firewall** based on strict Zero-Trust principles.
 
-## The Ingestion Pipeline
+## Decoupling Probabilistic Reasoning
 
-1. **Quarantine**: Raw text (transcripts, docs) is intercepted and stored in `epistemic_quarantine_snapshots`.
-2. **Extraction**: The `knowledge_archivist` agent reads the quarantined text and uses a deterministic LLM output (`CognitiveDeliberativeEnvelopeState[DocumentKnowledgeGraphManifest]`) to extract discrete, structured facts.
-3. **Storage**: These facts are embedded and stored in a `pgvector` database. The raw text is never passed further down the pipeline.
+Generative language models within the platform are mathematically forbidden from executing direct queries against high-entropy raw data lakes or unverified external APIs. 
 
-## The Retrieval Pipeline
+The Epistemic Firewall acts as a structural boundary that physically decouples the agent's probabilistic reasoning from deterministic computation and verified data retrieval. The LLM is a blind, mathematically bounded planner. It only ever receives declarative, strongly typed representations of data.
 
-When a downstream agent needs information, it must consult the `knowledge_consultant` agent.
-1. The consultant queries the `pgvector` database.
-2. It returns a `KnowledgeReceipt` that contains strictly the fetched facts alongside their cryptographic citations (provenance hashes).
+## Cryptographic Provenance
 
-By forcing all knowledge to pass through this structural extraction and citation process, we guarantee zero-trust, hallucination-free knowledge retrieval.
+To enforce the Epistemic Firewall, the platform introduces a multi-stage cryptographic pipeline that redefines how agents consume non-parametric knowledge.
+
+1. **Quarantine and Ingestion**: Raw data is initially quarantined. An isolated ingestion pipeline processes documents, mathematically extracting them into a highly structured `pgvector` database.
+2. **Cryptographic Signing**: During extraction, the system generates a SHA-256 hash of the specific data chunk, which is then cryptographically signed using an enterprise private key, such as **Ed25519**.
+3. **Verification**: When an agent requires information, it does not query the vector database directly. Instead, a deterministic sub-routine retrieves the data and verifies the cryptographic signature against a public key infrastructure.
+4. **KnowledgeReceipt Injection**: If the signature is mathematically valid, the data is wrapped in a strongly typed `KnowledgeReceipt`. This receipt—containing the verified data, its Merkle-DAG derivation history, and its cryptographic provenance—is then securely injected into the agent's context.
+
+## Zero-Trust Retrieval
+
+If a retrieved chunk's signature is invalid or missing, the retrieval gateway automatically drops it, triggering an immediate security alert. 
+
+This implementation of **proof-carrying data** entirely mitigates prompt injection via contaminated memory stores. Every quantitative output, regulatory reference, or factual claim processed by the language model is guaranteed to originate exclusively from a verified, tamper-evident source.

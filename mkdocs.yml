@@ -45,6 +45,7 @@ nav:
     - Home: index.md
     - Getting Started: getting_started.md
   - Architecture:
+    - Landscape Comparison: architecture/landscape_comparison.md
     - DeepAgent Pattern: architecture/deepagent_pattern.md
     - Context Engineering: architecture/context_engineering.md
     - Epistemic Firewall: architecture/epistemic_firewall.md

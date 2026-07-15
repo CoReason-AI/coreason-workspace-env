@@ -159,6 +159,14 @@ async def cmd_docs_generate(args):
 
 
 # ──────────────────────────────────────────────
+# State Sync
+# ──────────────────────────────────────────────
+async def cmd_state_watch(args):
+    from src.cli.state_sync import watch_state_stream
+    await watch_state_stream(session_id=args.session_id, host=args.host, pretty=args.pretty)
+
+
+# ──────────────────────────────────────────────
 # Main parser
 # ──────────────────────────────────────────────
 def build_parser() -> argparse.ArgumentParser:
@@ -235,6 +243,14 @@ def build_parser() -> argparse.ArgumentParser:
     gen_d.add_argument("--site-name", required=True, help="MkDocs site name")
     gen_d.add_argument("--pages", required=True, help="JSON array of page objects")
 
+    # state
+    state_parser = subparsers.add_parser("state", help="Manage state synchronization")
+    state_sub = state_parser.add_subparsers(dest="subcommand")
+
+    watch_s = state_sub.add_parser("watch", help="Watch live state sync and time-travel")
+    watch_s.add_argument("--session-id", required=True, help="Session ID to watch")
+    watch_s.add_argument("--host", default="ws://localhost:8000", help="Base WebSocket URL")
+
     return parser
 
 
@@ -255,6 +271,7 @@ _DISPATCH = {
     ("mcp", "list-servers"): cmd_mcp_list_servers,
     ("mcp", "execute-tool"): cmd_mcp_execute_tool,
     ("docs", "generate"): cmd_docs_generate,
+    ("state", "watch"): cmd_state_watch,
 }
 
 
@@ -280,6 +297,7 @@ def main():
 
     asyncio.run(handler(args))
 
+cli_entry = main
 
 if __name__ == "__main__":
     main()

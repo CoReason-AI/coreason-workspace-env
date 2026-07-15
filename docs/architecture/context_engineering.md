@@ -1,30 +1,26 @@
-# Context Engineering Harness
+# Context Engineering
 
-The CoReason platform strictly adheres to the **Context Engineering Harness** philosophy when designing multi-agent systems. This architectural pattern fundamentally separates the *acquisition* of information from the *execution* of tasks.
+Context Engineering is the practice of treating context assembly as a disciplined, mathematical control plane *prior* to kinetic execution.
 
-Traditional LLM applications often blend chatting and doing, leading to unpredictable failure states where an agent attempts a kinetic action (like writing a file or querying a database) before it fully understands the user's intent. The Context Engineering Harness prevents this through strict decoupling.
+A frequent vulnerability in naive agent systems is premature execution: orchestrators delegating tasks to downstream worker nodes before the operational parameters of the request are fully defined. This leads to agents making stochastic guesses, causing severe hallucination and contextual drift.
 
-## The Three Pillars of Context Engineering
+## The Threat of Deliberation Cascades
 
-### 1. State Machine Orchestrators (The "Front Desk")
-Primary orchestrators are the only agents permitted to interact with the human user. They act as rigid state machines, not open-ended conversationalists. Their sole purpose is to populate a specific Pydantic data schema. 
+In heuristic frameworks (like AutoGen or CrewAI), the routing of tasks depends entirely on the language model's immediate interpretation of the unstructured conversation history. When a prompt is ambiguous or a user provides incomplete information, these frameworks suffer from **deliberation cascades**: agents loop aimlessly, delegate tasks incorrectly, or completely lose track of the primary objective because their context window has become diluted.
 
-They execute a continuous loop of:
-*   **Evaluate**: Actively measure the current state of the conversation against the required Pydantic data schema. What fields are missing? What constraints are violated?
-*   **Interrogate**: Ask the user highly targeted, clarifying questions to fill the missing gaps. 
-*   **Delegate**: The moment the internal context threshold is met (the Pydantic model is fully valid), the orchestrator *stops talking* to the user and instantly delegates the saturated context payload to a downstream sub-agent.
+## Pre-Dispatch Schema Saturation
 
-### 2. Deterministic Sub-Agents (The "Factory Floor")
-Sub-agents are the workers. They are mathematically forbidden from interrogating the user. 
-*   They accept a fully saturated, validated context payload from the Orchestrator.
-*   They execute the computational, generative, or destructive task (e.g., compiling code, modifying the database, fetching external APIs).
-*   They return execution control (and the final state payload) back to the Orchestrator.
+The CoReason platform mathematically eliminates this failure mode through **Schema Saturation**. 
 
-### 3. Strict Decoupling
-Never mix user-interrogation logic with deterministic generation logic in the same agent YAML definition. 
-*   If an agent has a tool that modifies the filesystem, it should not have a system prompt telling it to "chat nicely with the user."
-*   If an agent is designed to interview the user, it should not have access to kinetic execution tools.
+Before any deterministic worker node is activated, a supervisory routing node (operating as a state machine) actively interrogates the user's input or the incoming API payload against a predefined `Pydantic` schema.
 
-## Why This Matters
+This acts as a programmatic choke point:
+1. **Evaluate**: The orchestrator actively measures the input against the required data schema.
+2. **Interrogate**: If any required parameter within the schema is missing or invalid, the state machine mathematically forbids progression to the execution nodes. It instantly routes the flow back to the user (asking targeted, clarifying questions).
+3. **Delegate**: Only when the target schema achieves 100% saturation is the structured, perfectly validated payload released to the specialized sub-agents.
 
-By forcing this separation, we guarantee that expensive or destructive operations only occur when the system has mathematically proven (via Pydantic validation) that it possesses the exact parameters required to succeed. It transforms the stochastic nature of LLMs into a deterministic pipeline.
+## Strict Decoupling
+
+The architectural rule enforced by Schema Saturation is **Strict Decoupling**: never mix user-interrogation logic with deterministic generation logic in the same agent definition.
+
+By enforcing pre-dispatch schema saturation, the orchestrator acts as a deterministic router. Sub-agents (like compilers or SQL generators) operate deterministically on perfectly saturated context payloads. They do not interrogate the user, they simply accept the payload, execute their task, and return execution control.
