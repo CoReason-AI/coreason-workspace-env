@@ -4,11 +4,11 @@ The CoReason Workspace Environment mandates strict **Multi-Surface Parity**. The
 
 All CLI operations are natively integrated into the shared `src.core.services` layer. Anything achievable through the web dashboard or API is equally achievable in an air-gapped terminal.
 
-## The DeepAgents TUI (`dcode`)
+## The NemoClaw CLI Installer & DeepAgents TUI (`dcode`)
 
-The environment utilizes the advanced **DeepAgents Code TUI** (`dcode`) as its primary terminal-based user interface.
+The environment utilizes the advanced **DeepAgents Code TUI** (`dcode`) as its primary terminal-based user interface, deployed and governed by the **NemoClaw CLI installer**. 
 
-This powerful Text User Interface is invoked directly via the `dcode` shell alias.
+This powerful Text User Interface is invoked directly via the `dcode` shell alias. As part of the NemoClaw for Deep Agents blueprint, `dcode` runs the agent explicitly inside an NVIDIA OpenShell secure sandbox, powered by Nemotron 3 Ultra.
 
 Rather than relying on proprietary, one-off synchronous HTTP requests, `dcode` operates as a native **MCP Client**. It automatically discovers the platform's headless MCP server and interacts with the internal LangGraph state machine via standard tools and prompt resources.
 

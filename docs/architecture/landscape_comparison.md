@@ -131,6 +131,17 @@ The subsequent matrix synthesizes the comparative analysis, benchmarking the pro
 | **Operational Deployment** | Multi-Surface Parity | Python SDK / LangServe API | C\# and Python SDKs | Python SDK | Python SDK / CLI |
 | **Primary Utility** | High-security, long-horizon automation | Highly customized logic paths | Azure-integrated environments | Rapid multi-agent prototyping | Artifact-heavy workflows |
 
+## **The NemoClaw for Deep Agents Blueprint**
+
+A critical architectural milestone for the baseline platform is the integration of the **NemoClaw for Deep Agents** blueprint, recently launched by LangChain and NVIDIA. It serves as a unified enterprise stack designed to run an autonomous coding agent on highly sensitive codebases without the risk of data exfiltration or rogue operations.
+
+The NemoClaw Blueprint formally packages the platform's core components into a singular, governed environment:
+*   **LangGraph & Deep Agents Code (`dcode`)**: Provides the agentic harness, managing persistent memory, custom skills, sub-agent delegation, and multi-step task planning.
+*   **Nemotron 3 Ultra**: Operates as the underlying reasoning engine powering the agent's cognition.
+*   **NVIDIA OpenShell**: Functions as the secure runtime sandbox, physically isolating the agent by enforcing strict filesystem boundaries, dropping process capabilities, and maintaining default-deny network policies.
+
+By standardizing on the NemoClaw reference architecture and CLI installer, the platform ensures that massive, legacy codebases can be documented and modernized in waves without source code or credentials ever leaving the secure boundary. Interactive OpenShell sessions maintain strict lifecycle governance, ensuring that LangGraph process trees and supervisor processes are deterministically terminated upon user disconnect, preventing resource leaks and maintaining sandbox purity.
+
 ## **Conclusion**
 
 The evolution of multi-agent systems has revealed a profound bifurcation in the market between frameworks designed for rapid, experimental prototyping and platforms engineered for rigorous, enterprise-grade production. Frameworks heavily reliant on heuristic routing, unstructured conversational delegation, and stochastic self-correction introduce unacceptable levels of operational risk at scale. The lack of deterministic state management inevitably leads to deliberation cascades, while the absence of programmatic boundary checks allows logical errors to compound invisibly.  
