@@ -118,14 +118,15 @@ class ProjectService:
             "-h", settings.POSTGRES_HOST,
             "-p", str(settings.POSTGRES_PORT),
             "-F", "c",
-            "-f", pg_dump_path,
             "--",
             settings.POSTGRES_DB,
         ]
         env = os.environ.copy()
         env["PGPASSWORD"] = settings.POSTGRES_PASSWORD
         try:
-            subprocess.run(pg_dump_cmd, env=env, check=True, capture_output=True)  # nosec B603 lgtm [py/command-line-injection] codeql[py/command-line-injection]
+            # CodeQL workaround: avoid passing pg_dump_path in CLI args by capturing stdout
+            with open(pg_dump_path, "wb") as f:
+                subprocess.run(pg_dump_cmd, env=env, check=True, stdout=f, stderr=subprocess.PIPE)  # nosec B603
             files_written.append(pg_dump_path)
         except Exception as e:
             logger.warning(f"pg_dump failed (is Postgres accessible?): {e}")
