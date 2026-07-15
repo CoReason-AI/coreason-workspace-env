@@ -810,6 +810,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#typer-implementation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Typer Implementation
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -1100,6 +1111,8 @@
 <li><strong>Accordion Task Tracking</strong>: Agent steps, tracker task lists, and summary updates are displayed via expandable accordions, shielding you from raw log spew.</li>
 <li><strong>Real-Time State Streaming</strong>: Connects to the platform's RFC 6902 JSON Patch streams to observe deterministic workflow routing without polling.</li>
 </ul>
+<h3 id="typer-implementation">Typer Implementation</h3>
+<p>The CLI natively wraps the shared <code>orchestration_service</code> using <code>Typer</code>. For example, invoking the <code>coreason build</code> command seamlessly initiates the full Maker-Checker workflow, guaranteeing exact feature parity with the <code>/export</code> HTTP endpoints.</p>
 <h2 id="connecting-the-cli">Connecting the CLI</h2>
 <p>To launch the CLI and interface with your CoReason Workspace Environment:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1"># Ensure the MCP server definition (.mcp.json) is present in the workspace</span>

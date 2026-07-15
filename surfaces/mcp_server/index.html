@@ -1094,6 +1094,7 @@
 - Mathematical AST and Pydantic validation
 - Cryptographic data retrieval</p>
 <p>Once the internal Maker-Checker-Approver pipeline successfully resolves, the platform returns the verified, structured output back to the consumer via standard input/output streams (stdio), Server-Sent Events (SSE), or streamable HTTP.</p>
+<p><em>Technical Note: The MCP Server itself remains stateless; it resolves requests (such as <code>get_workspace_state</code>) by dynamically querying the underlying Postgres <code>langgraph_state</code> checkpointer. </em><em>This integration natively enforces Multi-Tenant State Isolation</em><em>, actively filtering queries by <code>tenant_id</code> to strictly prevent cross-tenant data leakage. This enables true, secure cross-process state inspection for external IDEs like Cursor.</em></p>
 <h2 id="air-gapped-interoperability">Air-Gapped Interoperability</h2>
 <p>While some observability platforms offer proprietary SaaS mechanisms to expose agents as servers, the CoReason platform embeds this capability directly into its core infrastructure. This eliminates vendor lock-in to external observability providers and allows for highly secure, air-gapped, on-premise enterprise deployments.</p>
 

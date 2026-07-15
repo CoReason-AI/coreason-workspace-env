@@ -1085,10 +1085,9 @@
 <p>The CoReason Workspace Environment exposes <strong>WebSocket</strong> and <strong>Server-Sent Events (SSE)</strong> as first-class interaction surfaces, enabling real-time telemetry and state interaction.</p>
 <h2 id="real-time-observability-via-json-patch">Real-Time Observability via JSON Patch</h2>
 <p>Every execution node, internal thought process, tool invocation, and validation error within the LangGraph state machine is broadcast in real-time. </p>
-<p>To optimize payload size and network efficiency, the platform utilizes a <code>StateDeltaPublisher</code>. Instead of passing bloated, complete state dictionaries on every graph tick, the platform generates and broadcasts standard <strong>RFC 6902 JSON Patch</strong> streams over Redis PubSub.</p>
+<p>To optimize payload size and network efficiency, the platform generates real-time telemetry updates. Instead of passing bloated, complete state dictionaries on every graph tick, the platform streams data directly from the <strong>Postgres DB Queue</strong>, ensuring persistent, queryable state.</p>
 <ul>
-<li><strong>SSE (Server-Sent Events)</strong>: Ideal for uni-directional telemetry, used primarily by headless dashboards or logging aggregators simply looking to monitor a job's progress.</li>
-<li><strong>WebSockets</strong>: A full-duplex bi-directional channel enabling interaction with the live JSON Patch state stream.</li>
+<li><strong>SSE (Server-Sent Events)</strong>: Ideal for uni-directional telemetry, used primarily by headless dashboards or logging aggregators simply looking to monitor a job's progress. Currently, the SSE endpoints (like <code>/api/v2/agents/{agent_name}/stream</code>) actively subscribe to Postgres <code>LISTEN/NOTIFY</code> channels (e.g. <code>langgraph_events_{session_id}</code>) via <code>asyncpg.add_listener</code>, yielding true JSON patch events natively from the execution graph.</li>
 </ul>
 <h2 id="time-travel-debugging-state-sync">Time-Travel Debugging (State Sync)</h2>
 <p>The WebSocket endpoints stream real-time JSON Patch state updates directly originating from the Postgres checkpointer.</p>

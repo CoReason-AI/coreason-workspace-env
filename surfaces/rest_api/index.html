@@ -838,6 +838,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#multi-tenant-security-state-isolation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Multi-Tenant Security &amp; State Isolation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#endpoints-overview" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1109,6 +1120,8 @@
 <h2 id="uuidv7-primary-keys">UUIDv7 Primary Keys</h2>
 <p>The REST API utilizes UUIDv7 natively for all database primary keys and session identifiers (e.g., <code>snapshot_id</code>, <code>project_id</code>). </p>
 <p>Because UUIDv7 incorporates a Unix epoch timestamp in its most significant bits, it prevents Postgres B-Tree index fragmentation while providing native chronological sorting. You should expect all API endpoints to return and require UUIDv7 strings.</p>
+<h2 id="multi-tenant-security-state-isolation">Multi-Tenant Security &amp; State Isolation</h2>
+<p>Because the REST API operates in a multi-user environment, it natively enforces strict tenant data isolation. When a user authenticates, their <code>tenant_id</code> is passed securely to the execution layer. The API guarantees that operations like <code>get_status</code> and <code>export</code> actively filter Postgres queries using <code>AND tenant_id = $2</code>, preventing any possibility of data cross-contamination.</p>
 <h2 id="endpoints-overview">Endpoints Overview</h2>
 <p>The API is fully self-documenting. When running the platform, you can view the Swagger UI at <code>http://localhost:8000/docs</code>.</p>
 <h3 id="core-router-spaces">Core Router Spaces</h3>
