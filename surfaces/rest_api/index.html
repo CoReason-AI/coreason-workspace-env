@@ -657,6 +657,34 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architecture/multi_surface_parity/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Multi-Surface Parity
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -1228,6 +1256,10 @@
 <h1 id="rest-api">REST API</h1>
 <p>The CoReason Workspace Environment exposes a comprehensive <strong>FastAPI-powered REST API</strong>. </p>
 <p>Following the platform's Multi-Surface Parity mandate, the REST API does not duplicate business logic. It serves strictly as a transport adapter over the shared <code>src.core.services</code> layer, ensuring that operations triggered via HTTP behave identically to those triggered via the CLI or MCP server.</p>
+<blockquote>
+<p>[!NOTE]
+To prove this execution equivalence, the REST API undergoes strict <a href="../../architecture/multi_surface_parity/">Multi-Surface Parity Testing</a> alongside the other transport layers using an ephemeral Testcontainers database.</p>
+</blockquote>
 <h2 id="architecture-validation-pipeline">Architecture &amp; Validation Pipeline</h2>
 <pre class="mermaid"><code>sequenceDiagram
     participant Client

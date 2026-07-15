@@ -657,6 +657,34 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architecture/multi_surface_parity/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Multi-Surface Parity
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -1111,6 +1139,10 @@
 <h1 id="python-sdk">Python SDK</h1>
 <p>The CoReason Workspace Environment exposes a pure-Python SDK for programmatic embedding (<code>import coreason</code>).</p>
 <p>Because the SDK is simply an HTTP wrapper over the REST API via the <code>httpx</code> library, it inherits the exact same capability set and data schemas as the CLI and REST interfaces. </p>
+<blockquote>
+<p>[!NOTE]
+This behavioral guarantee is actively validated by our <a href="../../architecture/multi_surface_parity/">Multi-Surface Parity Testing</a> suite, which executes identical test workflows through the SDK against an ephemeral Testcontainers PostgreSQL database. </p>
+</blockquote>
 <h2 id="sdk-architecture">SDK Architecture</h2>
 <pre class="mermaid"><code>classDiagram
     class CoReasonClient {

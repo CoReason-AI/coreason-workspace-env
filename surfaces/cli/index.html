@@ -657,6 +657,34 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architecture/multi_surface_parity/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Multi-Surface Parity
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -1150,6 +1178,10 @@
 <h1 id="command-line-interface-cli">Command Line Interface (CLI)</h1>
 <p>The CoReason Workspace Environment provides a fully-featured headless CLI built using <strong>Typer</strong>. </p>
 <p>Following the Multi-Surface Interaction Parity mandate, the CLI is a thin transport adapter over the shared <code>src.core.services</code> layer. Anything achievable via the REST API or Swagger UI is mathematically guaranteed to be achievable natively from the terminal. This ensures usability in air-gapped, CI/CD, and terminal-only execution environments.</p>
+<blockquote>
+<p>[!NOTE]
+To prove this execution equivalence, the CLI layer undergoes strict <a href="../../architecture/multi_surface_parity/">Multi-Surface Parity Testing</a> within our Testcontainers CI suite.</p>
+</blockquote>
 <h2 id="architecture">Architecture</h2>
 <p>The CLI acts as a synchronous entrypoint that maps user arguments to asynchronous background execution services via <code>asyncio.run()</code>.</p>
 <pre class="mermaid"><code>flowchart TD

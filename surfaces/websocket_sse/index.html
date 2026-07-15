@@ -657,6 +657,34 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architecture/multi_surface_parity/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Multi-Surface Parity
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -1111,6 +1139,10 @@
 <h1 id="websocket-server-sent-events-sse">WebSocket &amp; Server-Sent Events (SSE)</h1>
 <p>The CoReason Workspace Environment heavily leverages real-time streaming to provide interactive observability into the long-running agent execution processes.</p>
 <p>To satisfy the "Real-Time Observability &amp; Accordion UX" rule, the platform exposes dedicated WebSockets and SSE streams.</p>
+<blockquote>
+<p>[!NOTE]
+The WebSocket routing and pub/sub layer undergoes <a href="../../architecture/multi_surface_parity/">Multi-Surface Parity Testing</a> using an ephemeral Testcontainers Redis instance, ensuring events emitted by the core layer reliably traverse the network edge.</p>
+</blockquote>
 <h2 id="streaming-architecture">Streaming Architecture</h2>
 <pre class="mermaid"><code>sequenceDiagram
     participant UI Dashboard
