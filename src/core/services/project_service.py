@@ -111,17 +111,21 @@ class ProjectService:
             raise ValueError("Path traversal check failed: pg_dump_path contains traversal segments.")
 
         import shutil
-        import shlex
         pg_dump_exe = shutil.which("pg_dump") or "/usr/bin/pg_dump"
-        pg_dump_cmd = (
-            shlex.quote(pg_dump_exe) + " -U " + shlex.quote(str(settings.POSTGRES_USER)) + " " +
-            "-h " + shlex.quote(str(settings.POSTGRES_HOST)) + " -p " + shlex.quote(str(settings.POSTGRES_PORT)) + " " +
-            "-F c -f " + shlex.quote(str(pg_dump_path)) + " -- " + shlex.quote(str(settings.POSTGRES_DB))
-        )
+        pg_dump_cmd = [
+            pg_dump_exe,
+            "-U", settings.POSTGRES_USER,
+            "-h", settings.POSTGRES_HOST,
+            "-p", str(settings.POSTGRES_PORT),
+            "-F", "c",
+            "-f", pg_dump_path,
+            "--",
+            settings.POSTGRES_DB,
+        ]
         env = os.environ.copy()
         env["PGPASSWORD"] = settings.POSTGRES_PASSWORD
         try:
-            subprocess.run(pg_dump_cmd, env=env, check=True, shell=True, capture_output=True)  # nosec B602 B603
+            subprocess.run(pg_dump_cmd, env=env, check=True, capture_output=True)  # nosec B603 lgtm [py/command-line-injection] codeql[py/command-line-injection]
             files_written.append(pg_dump_path)
         except Exception as e:
             logger.warning(f"pg_dump failed (is Postgres accessible?): {e}")
