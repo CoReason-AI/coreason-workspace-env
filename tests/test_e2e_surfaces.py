@@ -13,15 +13,20 @@ import os
 import shutil
 import tempfile
 from pathlib import Path
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch, MagicMock, AsyncMock
 
 from httpx import AsyncClient, ASGITransport
 from testcontainers.postgres import PostgresContainer
+from testcontainers.redis import RedisContainer
+from fastapi.testclient import TestClient
 
 from src.main import app
 from src.core.config import settings
 from src.core.db import get_db_pool, close_db_pool
 from src.core.services import project_service, agent_service
+from src.core.ws_backplane import pubsub_backplane
+import redis.asyncio as redis
+from src.mcp.server import create_project, execute_agent, export_project
 
 class E2ESurfaceParityTest(unittest.IsolatedAsyncioTestCase):
     """
@@ -31,9 +36,12 @@ class E2ESurfaceParityTest(unittest.IsolatedAsyncioTestCase):
 
     @classmethod
     def setUpClass(cls):
-        # 1. Start Testcontainers Postgres
+        # 1. Start Testcontainers Postgres & Redis
         cls.postgres = PostgresContainer("postgres:15-alpine")
         cls.postgres.start()
+        
+        cls.redis_container = RedisContainer("redis:7-alpine")
+        cls.redis_container.start()
         
         # 2. Override application settings
         settings.POSTGRES_USER = cls.postgres.username
@@ -41,6 +49,7 @@ class E2ESurfaceParityTest(unittest.IsolatedAsyncioTestCase):
         settings.POSTGRES_HOST = cls.postgres.get_container_host_ip()
         settings.POSTGRES_PORT = int(cls.postgres.get_exposed_port(5432))
         settings.POSTGRES_DB = cls.postgres.dbname
+        settings.REDIS_URL = f"redis://{cls.redis_container.get_container_host_ip()}:{cls.redis_container.get_exposed_port(6379)}"
 
         # Re-build DB URL if needed for any connection pools
         # src.core.db uses these settings implicitly when creating asyncpg pool.
@@ -48,9 +57,15 @@ class E2ESurfaceParityTest(unittest.IsolatedAsyncioTestCase):
     @classmethod
     def tearDownClass(cls):
         cls.postgres.stop()
+        cls.redis_container.stop()
 
     async def asyncSetUp(self):
         # Initialize DB pool and schema before each test
+        # and re-initialize Redis pool in the current test's async loop
+        pubsub_backplane.redis = redis.from_url(settings.REDIS_URL, decode_responses=True)
+        pubsub_backplane.pubsub = pubsub_backplane.redis.pubsub()
+        pubsub_backplane.subscriptions = {}
+        
         await project_service.initialize()
         self.tmpdir = tempfile.mkdtemp()
 
@@ -146,6 +161,25 @@ class E2ESurfaceParityTest(unittest.IsolatedAsyncioTestCase):
         self.assertTrue(hasattr(client.projects, "create"))
         self.assertTrue(hasattr(client.agents, "execute"))
         self.assertTrue(hasattr(client.projects, "export"))
+
+    @patch("src.core.queue.task_queue.enqueue_workflow")
+    async def test_workflow_mcp_layer(self, mock_enqueue):
+        """Test the workflow using the MCP Server tools directly."""
+        # Step 1: Create Project
+        res = await create_project("mcp_test_project", "Testing MCP UI")
+        self.assertEqual(res["status"], "created")
+        project_id = res["project"]["id"]
+        
+        # Step 3: Execute Agent
+        exec_res = await execute_agent("factory_ceo", "test_user", "test_tenant", {"intent": "build a platform"})
+        self.assertEqual(exec_res["status"], "accepted")
+        mock_enqueue.assert_called_once()
+        
+        # Step 8: Export Project
+        Path(f"projects/{project_id}").mkdir(parents=True, exist_ok=True)
+        exp_res = await export_project(project_id, "mcp_export", skip_state=True, skip_docker=True)
+        self.assertEqual(exp_res["status"], "success")
+        self.assertIn("workspace.tar.gz", [Path(p).name for p in exp_res["files_written"]])
 
     def test_workflow_cli_layer(self):
         """Test the CLI interface mapping."""
