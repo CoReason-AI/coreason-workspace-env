@@ -83,6 +83,16 @@ When writing system prompts for agent YAMLs:
 - **Sub-agent prompts** must include: "DO NOT interrogate the user", "DO NOT ask clarifying questions", deterministic execution constraints, and explicit failure modes for incomplete payloads
 - Every prompt must reference the agent's skill dependencies so the agent knows what standards to enforce
 
+---
+
+## 6. Accordion Progress Tracking (Task List & Summarization)
+
+To support the real-time observability requirement and enable a rich "accordion" UX experience across our streaming surfaces (CLI, WebSockets, MCP):
+
+- **Tracker Task List**: Agents must dynamically maintain and emit a structured "Tracker Task List" as they evaluate, interrogate, and delegate. This provides visibility into the execution plan.
+- **Key Step Summarization**: At the completion of each major phase or delegation step, agents must emit a concise summary of the outcome.
+- **System Prompting**: You must inject instructions into all agent system prompts mandating that they stream these progress updates and phase summaries back to the harness. This powers the collapsible accordion UI elements downstream.
+
 ## Schema Purity & Data Persistence
 1. **God Context Schema Imports**: The coreason-manifest PyPI package is the absolute single source of truth for all schemas. Never duplicate or create local schema files (e.g. ontology.py or state.py). Always import directly from coreason_manifest (e.g., rom coreason_manifest.spec.ontology import CoreasonBaseState).
 2. **UUIDv7 Natively**: The environment uses Python 3.14 natively. Always use uuid.uuid7() when generating UUIDs (e.g., for snapshot_id, project_id). Never use uuid.uuid4(). UUIDv7 prevents Postgres B-Tree index fragmentation and provides native chronological sorting.

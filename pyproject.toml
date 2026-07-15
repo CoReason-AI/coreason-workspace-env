@@ -34,6 +34,7 @@ dependencies = [
     "prompt-toolkit>=3.0.52",
     "jsonpatch>=1.33",
     "deepagents-code>=0.1.0",
+    "fastmcp>=1.0.0",
 ]
 
 

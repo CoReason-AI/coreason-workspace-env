@@ -7,280 +7,162 @@ All tools delegate to src.core.services (same shared business logic as API/CLI/S
 Usage:
     python -m src.mcp.server
 """
-import json
 import asyncio
 import logging
 import uuid
-from typing import Any
+from typing import Any, Dict, List, Optional
 
-from mcp.server.stdio import stdio_server
-from mcp.server import Server
+from fastmcp import FastMCP
+from dotenv import load_dotenv
 
+load_dotenv()
 logger = logging.getLogger(__name__)
 
-
-def _build_server() -> Server:
-    """Build and configure the MCP Server with all platform tools."""
-    server = Server("coreason-platform")
-
-    @server.list_tools()
-    async def handle_list_tools() -> list:
-        return [
-            {
-                "name": "health_check",
-                "description": "Check platform health — Postgres, Redis connectivity and version info.",
-                "inputSchema": {"type": "object", "properties": {}, "required": []},
-            },
-            {
-                "name": "get_version",
-                "description": "Get platform version info.",
-                "inputSchema": {"type": "object", "properties": {}, "required": []},
-            },
-            {
-                "name": "list_projects",
-                "description": "List all projects in the workspace.",
-                "inputSchema": {"type": "object", "properties": {}, "required": []},
-            },
-            {
-                "name": "create_project",
-                "description": "Create a new project.",
-                "inputSchema": {
-                    "type": "object",
-                    "properties": {
-                        "name": {"type": "string", "description": "Unique project name"},
-                        "description": {"type": "string", "description": "Project description"},
-                    },
-                    "required": ["name"],
-                },
-            },
-            {
-                "name": "get_project",
-                "description": "Fetch a single project by ID.",
-                "inputSchema": {
-                    "type": "object",
-                    "properties": {"project_id": {"type": "string"}},
-                    "required": ["project_id"],
-                },
-            },
-            {
-                "name": "delete_project",
-                "description": "Delete a project by ID.",
-                "inputSchema": {
-                    "type": "object",
-                    "properties": {"project_id": {"type": "string"}},
-                    "required": ["project_id"],
-                },
-            },
-            {
-                "name": "export_project",
-                "description": "Export a project for air-gapped transfer.",
-                "inputSchema": {
-                    "type": "object",
-                    "properties": {
-                        "project_id": {"type": "string"},
-                        "output_path": {"type": "string"}
-                    },
-                    "required": ["project_id", "output_path"],
-                },
-            },
-            {
-                "name": "list_agents",
-                "description": "List all agents in the factory with their metadata.",
-                "inputSchema": {"type": "object", "properties": {}, "required": []},
-            },
-            {
-                "name": "get_agent",
-                "description": "Get a specific agent's manifest and metadata.",
-                "inputSchema": {
-                    "type": "object",
-                    "properties": {"agent_name": {"type": "string"}},
-                    "required": ["agent_name"],
-                },
-            },
-            {
-                "name": "execute_agent",
-                "description": "Trigger a LangGraph execution flow for a specified agent.",
-                "inputSchema": {
-                    "type": "object",
-                    "properties": {
-                        "agent_name": {"type": "string"},
-                        "user_id": {"type": "string"},
-                        "tenant_id": {"type": "string"},
-                        "payload": {"type": "object"},
-                    },
-                    "required": ["agent_name", "user_id", "tenant_id"],
-                },
-            },
-            {
-                "name": "get_execution_status",
-                "description": "Check the status of an enqueued agent execution.",
-                "inputSchema": {
-                    "type": "object",
-                    "properties": {"job_id": {"type": "string"}},
-                    "required": ["job_id"],
-                },
-            },
-            {
-                "name": "list_mcp_servers",
-                "description": "List connected MCP servers and their tools.",
-                "inputSchema": {"type": "object", "properties": {}, "required": []},
-            },
-            {
-                "name": "execute_mcp_tool",
-                "description": "Execute a tool on a connected MCP server.",
-                "inputSchema": {
-                    "type": "object",
-                    "properties": {
-                        "server_name": {"type": "string"},
-                        "tool_name": {"type": "string"},
-                        "arguments": {"type": "object"},
-                        "session_id": {"type": "string"},
-                    },
-                    "required": ["server_name", "tool_name"],
-                },
-            },
-            {
-                "name": "generate_docs",
-                "description": "Generate an MkDocs scaffold with config and markdown pages.",
-                "inputSchema": {
-                    "type": "object",
-                    "properties": {
-                        "workspace_path": {"type": "string"},
-                        "site_name": {"type": "string"},
-                        "pages": {
-                            "type": "array",
-                            "items": {
-                                "type": "object",
-                                "properties": {
-                                    "title": {"type": "string"},
-                                    "filename": {"type": "string"},
-                                    "content": {"type": "string"},
-                                },
-                                "required": ["title", "filename", "content"],
-                            },
-                        },
-                    },
-                    "required": ["workspace_path", "site_name", "pages"],
-                },
-            },
-            {
-                "name": "rewind_checkpoint",
-                "description": "Rewind a session to a specific UUIDv7 checkpoint ID.",
-                "inputSchema": {
-                    "type": "object",
-                    "properties": {
-                        "checkpoint_id": {"type": "string"}
-                    },
-                    "required": ["checkpoint_id"],
-                },
-            },
-        ]
-
-    @server.call_tool()
-    async def handle_call_tool(name: str, arguments: dict) -> list:
-        result = await _dispatch_tool(name, arguments)
-        return [{"type": "text", "text": json.dumps(result, default=str)}]
-
-    return server
+mcp = FastMCP("coreason-platform")
 
 
-async def _dispatch_tool(name: str, args: dict) -> Any:
-    """Dispatch MCP tool calls to the shared service layer."""
-    from dotenv import load_dotenv
-    load_dotenv()
-
-    if name == "health_check":
-        from src.core.services import health_service
-        return await health_service.check()
-
-    elif name == "get_version":
-        from src.core.services import health_service
-        return health_service.get_version()
-
-    elif name == "list_projects":
-        from src.core.services import project_service
-        return {"projects": await project_service.list_projects()}
-
-    elif name == "create_project":
-        from src.core.services import project_service
-        project = await project_service.create_project(
-            project_id=str(uuid.uuid7()),
-            name=args["name"],
-            description=args.get("description", ""),
-        )
-        return {"status": "created", "project": project}
-
-    elif name == "get_project":
-        from src.core.services import project_service
-        project = await project_service.get_project(args["project_id"])
-        return {"project": project} if project else {"error": "Not found"}
-
-    elif name == "delete_project":
-        from src.core.services import project_service
-        deleted = await project_service.delete_project(args["project_id"])
-        return {"status": "deleted"} if deleted else {"error": "Not found"}
-
-    elif name == "export_project":
-        from src.core.services import project_service
-        return await project_service.export_project(args["project_id"], args["output_path"])
-
-    elif name == "list_agents":
-        from src.core.services import agent_service
-        return {"agents": agent_service.list_agents()}
-
-    elif name == "get_agent":
-        from src.core.services import agent_service
-        agent = agent_service.get_agent(args["agent_name"])
-        return {"agent": agent} if agent else {"error": "Not found"}
-
-    elif name == "execute_agent":
-        from src.core.services import agent_service
-        return await agent_service.execute_agent(
-            agent_name=args["agent_name"],
-            payload=args.get("payload", {}),
-            user_id=args["user_id"],
-            tenant_id=args["tenant_id"],
-        )
-
-    elif name == "get_execution_status":
-        from src.core.services import agent_service
-        return agent_service.get_execution_status(args["job_id"])
-
-    elif name == "list_mcp_servers":
-        from src.core.services import mcp_tool_service
-        return {"servers": mcp_tool_service.list_servers()}
-
-    elif name == "execute_mcp_tool":
-        from src.core.services import mcp_tool_service
-        return await mcp_tool_service.execute_tool(
-            server_name=args["server_name"],
-            tool_name=args["tool_name"],
-            arguments=args.get("arguments", {}),
-            session_id=args.get("session_id", "mcp-session"),
-        )
-
-    elif name == "generate_docs":
-        from src.core.services import docs_service
-        return docs_service.generate_mkdocs(
-            workspace_path=args["workspace_path"],
-            site_name=args["site_name"],
-            pages=args["pages"],
-        )
-
-    elif name == "rewind_checkpoint":
-        from src.core.services import agent_service
-        return agent_service.rewind_checkpoint(args["checkpoint_id"])
-
-    else:
-        return {"error": f"Unknown tool: {name}"}
+@mcp.tool()
+async def health_check() -> Dict[str, Any]:
+    """Check platform health — Postgres, Redis connectivity and version info."""
+    from src.core.services import health_service
+    return await health_service.check()
 
 
-async def main():
-    server = _build_server()
-    async with stdio_server() as (read_stream, write_stream):
-        await server.run(read_stream, write_stream, server.create_initialization_options())
+@mcp.tool()
+async def get_version() -> Dict[str, Any]:
+    """Get platform version info."""
+    from src.core.services import health_service
+    return health_service.get_version()
+
+
+@mcp.tool()
+async def list_projects() -> Dict[str, Any]:
+    """List all projects in the workspace."""
+    from src.core.services import project_service
+    return {"projects": await project_service.list_projects()}
+
+
+@mcp.tool()
+async def create_project(name: str, description: str = "") -> Dict[str, Any]:
+    """Create a new project."""
+    from src.core.services import project_service
+    project = await project_service.create_project(
+        project_id=str(uuid.uuid7()),
+        name=name,
+        description=description,
+    )
+    return {"status": "created", "project": project}
+
+
+@mcp.tool()
+async def get_project(project_id: str) -> Dict[str, Any]:
+    """Fetch a single project by ID."""
+    from src.core.services import project_service
+    project = await project_service.get_project(project_id)
+    return {"project": project} if project else {"error": "Not found"}
+
+
+@mcp.tool()
+async def delete_project(project_id: str) -> Dict[str, Any]:
+    """Delete a project by ID."""
+    from src.core.services import project_service
+    deleted = await project_service.delete_project(project_id)
+    return {"status": "deleted"} if deleted else {"error": "Not found"}
+
+
+@mcp.tool()
+async def export_project(project_id: str, output_path: str) -> Dict[str, Any]:
+    """Export a project for air-gapped transfer."""
+    from src.core.services import project_service
+    return await project_service.export_project(project_id, output_path)
+
+
+@mcp.tool()
+async def list_agents() -> Dict[str, Any]:
+    """List all agents in the factory with their metadata."""
+    from src.core.services import agent_service
+    return {"agents": agent_service.list_agents()}
+
+
+@mcp.tool()
+async def get_agent(agent_name: str) -> Dict[str, Any]:
+    """Get a specific agent's manifest and metadata."""
+    from src.core.services import agent_service
+    agent = agent_service.get_agent(agent_name)
+    return {"agent": agent} if agent else {"error": "Not found"}
+
+
+@mcp.tool()
+async def execute_agent(
+    agent_name: str,
+    user_id: str,
+    tenant_id: str,
+    payload: Optional[Dict[str, Any]] = None,
+) -> Dict[str, Any]:
+    """Trigger a LangGraph execution flow for a specified agent."""
+    from src.core.services import agent_service
+    return await agent_service.execute_agent(
+        agent_name=agent_name,
+        payload=payload or {},
+        user_id=user_id,
+        tenant_id=tenant_id,
+    )
+
+
+@mcp.tool()
+async def get_execution_status(job_id: str) -> Dict[str, Any]:
+    """Check the status of an enqueued agent execution."""
+    from src.core.services import agent_service
+    return agent_service.get_execution_status(job_id)
+
+
+@mcp.tool()
+async def list_mcp_servers() -> Dict[str, Any]:
+    """List connected MCP servers and their tools."""
+    from src.core.services import mcp_tool_service
+    return {"servers": mcp_tool_service.list_servers()}
+
+
+@mcp.tool()
+async def execute_mcp_tool(
+    server_name: str,
+    tool_name: str,
+    arguments: Optional[Dict[str, Any]] = None,
+    session_id: str = "mcp-session",
+) -> Dict[str, Any]:
+    """Execute a tool on a connected MCP server."""
+    from src.core.services import mcp_tool_service
+    return await mcp_tool_service.execute_tool(
+        server_name=server_name,
+        tool_name=tool_name,
+        arguments=arguments or {},
+        session_id=session_id,
+    )
+
+
+@mcp.tool()
+async def generate_docs(
+    workspace_path: str,
+    site_name: str,
+    pages: List[Dict[str, str]],
+) -> Dict[str, Any]:
+    """Generate an MkDocs scaffold with config and markdown pages."""
+    from src.core.services import docs_service
+    return docs_service.generate_mkdocs(
+        workspace_path=workspace_path,
+        site_name=site_name,
+        pages=pages,
+    )
+
+
+@mcp.tool()
+async def rewind_checkpoint(checkpoint_id: str) -> Dict[str, Any]:
+    """Rewind a session to a specific UUIDv7 checkpoint ID."""
+    from src.core.services import agent_service
+    return agent_service.rewind_checkpoint(checkpoint_id)
 
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
-    asyncio.run(main())
+    # fastmcp handles stdio transport mapping automatically when run
+    mcp.run()

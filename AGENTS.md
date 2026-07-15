@@ -60,7 +60,9 @@ The platform exposes **five first-class interaction surfaces**. Every platform c
 
 5. **MCP-Native Identity**: Since this platform builds systems that are *deployable as MCPs*, the platform itself must be consumable as an MCP server. Every agent, project operation, and administrative action should be exposed as MCP tools so upstream AI agents and IDEs can orchestrate the platform natively.
 
-6. **Real-Time Observability**: Long-running agent executions must stream progress via WebSocket/SSE. The CLI, SDK, and MCP surfaces must all be able to subscribe to these streams for their respective consumers (CLI prints incremental lines, SDK yields async iterators, MCP emits progress notifications).
+6. **Real-Time Observability & Accordion UX**: Long-running agent executions must stream progress via WebSocket/SSE. The CLI, SDK, and MCP surfaces must all be able to subscribe to these streams for their respective consumers.
+   - **Tracker Task List**: Agents must maintain a structured tracker task list as they plan and work.
+   - **Key Step Summarization**: Agents must summarize their progress at key steps. This structural eventing (Task List + Summarization) allows downstream clients to render an interactive "Accordion" experience for the user.
 
 ## Schema Purity & Data Persistence
 1. **God Context Schema Imports**: The coreason-manifest PyPI package is the absolute single source of truth for all schemas. Never duplicate or create local schema files (e.g. ontology.py or state.py). Always import directly from coreason_manifest (e.g., rom coreason_manifest.spec.ontology import CoreasonBaseState).

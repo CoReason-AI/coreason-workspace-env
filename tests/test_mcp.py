@@ -26,7 +26,29 @@ class TestDualMCP(unittest.IsolatedAsyncioTestCase):
         
         self.assertIn("JIT_APPROVAL_REQUIRED", str(context.exception))
 
-
-
+    async def test_fastmcp_server_schemas(self):
+        """Test that FastMCP correctly generated Pydantic-compliant schemas without boilerplate dictionaries."""
+        from src.mcp.server import mcp
+        
+        # Get the registered tools
+        tools = await mcp.list_tools()
+        
+        # Assert tools exist and are converted from decorators
+        self.assertGreater(len(tools), 10, "FastMCP should have registered all 14 tools")
+        
+        # Find the create_project tool
+        create_project_tool = next((t for t in tools if t.name == "create_project"), None)
+        self.assertIsNotNone(create_project_tool)
+        
+        # FastMCP automatically generates JSON Schema from Pydantic type hints
+        schema = create_project_tool.inputSchema
+        self.assertIn("name", schema["required"])
+        self.assertEqual(schema["properties"]["name"]["type"], "string")
+        
+        # Check generate_docs to ensure List[Dict] array schema parsing works
+        generate_docs_tool = next((t for t in tools if t.name == "generate_docs"), None)
+        self.assertIsNotNone(generate_docs_tool)
+        pages_schema = generate_docs_tool.inputSchema["properties"]["pages"]
+        self.assertEqual(pages_schema["type"], "array")
 if __name__ == '__main__':
     unittest.main()

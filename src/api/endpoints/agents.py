@@ -57,3 +57,16 @@ async def execute_agent(req: ExecuteAgentRequest):
 async def get_job_status(job_id: str):
     """Check the status of an enqueued agent execution."""
     return agent_service.get_execution_status(job_id)
+
+
+class RewindCheckpointRequest(BaseModel):
+    checkpoint_id: str = Field(..., description="UUIDv7 of the checkpoint to rewind to")
+
+
+@router.post("/rewind")
+async def rewind_checkpoint(req: RewindCheckpointRequest):
+    """Rewind a session to a specific UUIDv7 checkpoint ID."""
+    try:
+        return agent_service.rewind_checkpoint(req.checkpoint_id)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))

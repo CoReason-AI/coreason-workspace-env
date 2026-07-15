@@ -91,6 +91,10 @@ class _AgentsNamespace:
         """Check the status of an enqueued job."""
         return self._svc.get_execution_status(job_id)
 
+    def rewind_checkpoint(self, checkpoint_id: str) -> Dict[str, Any]:
+        """Rewind a session to a specific UUIDv7 checkpoint ID."""
+        return self._svc.rewind_checkpoint(checkpoint_id)
+
 
 class _MCPNamespace:
     """SDK namespace for MCP server operations."""
