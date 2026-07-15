@@ -15,6 +15,7 @@
 [![LangGraph](https://img.shields.io/badge/LangGraph-Native-black?style=flat)]()
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.100+-009688?style=flat&logo=fastapi&logoColor=white)]()
 [![MCP](https://img.shields.io/badge/MCP-Server-8A2BE2?style=flat)]()
+[![Redis](https://img.shields.io/badge/Redis-PubSub-DC382D?style=flat&logo=redis&logoColor=white)]()
 
 **The Headless Agent Development Platform.**
 
@@ -31,10 +32,10 @@ uv run mkdocs serve
 ```
 
 ### Key Pillars
-1. **[DeepAgent Pattern](docs/architecture/deepagent_pattern.md)**: YAML-driven progressive disclosure.
-2. **[Maker-Checker Pipeline](docs/architecture/maker_checker.md)**: Strict separation of duties.
+1. **[DeepAgent Pattern](docs/architecture/deepagent_pattern.md)**: YAML-driven progressive disclosure and structured eventing (Accordion UX).
+2. **[Maker-Checker Pipeline](docs/architecture/maker_checker.md)**: Strict separation of duties and Tier 1 Deterministic Validation.
 3. **[Epistemic Firewall](docs/architecture/epistemic_firewall.md)**: Zero-trust knowledge retrieval and strict provenance tracking.
-4. **[Interaction Surfaces](docs/surfaces/mcp_server.md)**: Complete parity across MCP, CLI, REST API, WebSocket, and SDK.
+4. **[Interaction Surfaces](docs/surfaces/mcp_server.md)**: Complete parity across MCP, DeepAgents TUI (dcode), REST API, WebSocket (JSON Patch Streaming), and SDK.
 
 ## Maintenance & Rules
 

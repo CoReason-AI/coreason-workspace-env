@@ -12,18 +12,26 @@ Because both the generator and the critic are susceptible to the identical funda
 
 The CoReason platform fundamentally rejects stochastic self-correction for structural and syntactical validation. Instead, it enforces a rigid **Maker-Checker-Approver** pipeline that natively integrates mathematical and programmatic boundary checks.
 
-### 1. The Maker (Generation)
+### 1. Tier 1 Deterministic Validation (Fail Fast)
+
+Before heavily orchestrating complex tasks, the platform implements a strictly-typed **Tier 1 Validation Registry**. 
+
+If incoming payloads or agent-generated structures fail these core definitions, the pipeline instantly errors out or triggers a deterministic rollback. This completely eliminates wasted LLM tokens processing fundamentally invalid payloads.
+
+### 2. The Maker (Generation)
 An isolated sub-agent (the Maker) generates the required artifact, such as Python code, JSON payloads, or SQL queries.
 
-### 2. The Checker (Deterministic Validation)
-Rather than passing this artifact to another language model, it is intercepted by a purely deterministic LangGraph node (the Checker). **This node executes zero generative LLM calls.**
+### 3. The Checker (Deterministic Validation)
+Rather than passing this artifact to another language model, it is intercepted by a purely deterministic LangGraph node (the Checker). **This node executes zero generative LLM calls.** 
 
-Instead, it runs the artifact against rigid validation boundaries:
+Furthermore, elements like the `jinja2_ast_auditor` are strictly decoupled from the stochastic LLM tool registry, ensuring they act only as rigid evaluation bounds rather than flexible tools.
+
+It runs the artifact against rigid validation boundaries:
 - Abstract Syntax Tree (AST) parsers
 - Strictly enforced `Pydantic` data validation models
 - Isolated code execution sandboxes
 
-### 3. Remediation or The Approver
+### 4. Remediation or The Approver
 If the AST check fails or the generated JSON violates the Pydantic boundaries, the Checker node programmatically generates a deterministic error payload and automatically routes the state machine back to the Maker agent for remediation.
 
 Only when the artifact mathematically passes *all* deterministic boundary checks does the system allow it to proceed to an **Approver** (a Project Manager agent or a Human-in-the-Loop) for final semantic approval.

@@ -27,3 +27,11 @@ By utilizing dynamic YAML-to-LangGraph compilation, the CoReason platform native
 ## Project-Oriented Isolation
 
 As an agent-building factory, the platform strictly isolates one agent per folder (`src/agents/<agent_name>`). The `name` field in every `agent.yaml` MUST exactly match the `snake_case` name of the folder it resides in. This namespace and taxonomy consistency mathematically ensures that internal routing IDs perfectly match the filesystem routing logic.
+
+## Structural Eventing: Trackers & Accordion UX
+
+To prevent cognitive overload from raw streaming log spew, the platform strictly enforces structural eventing inside agent workflows:
+- **Tracker Task Lists**: Agents are mandated to maintain and stream structured TODO checklists outlining their planned and completed tasks.
+- **Accordion Summaries**: Agents summarize their progress at key execution steps, providing human-readable checkpoint digests.
+
+This structural data is broadcast seamlessly over JSON Patch state streams, allowing downstream clients (like the `dcode` DeepAgents Code TUI) to render polished **Accordion UX** interfaces. Users can monitor macro-level progress via task summaries and expand accordions only when they need to drill down into raw LLM telemetry.

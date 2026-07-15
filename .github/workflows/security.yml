@@ -1,0 +1,92 @@
+name: Security Audit
+
+on:
+  push:
+    branches: [ develop, main ]
+  pull_request:
+    branches: [ develop, main ]
+  schedule:
+    - cron: '0 0 * * *'
+  workflow_dispatch:
+
+permissions: read-all
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+
+jobs:
+  secret-scan:
+    name: Secret Scanning
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
+        with:
+          fetch-depth: 0
+      - name: Gitleaks Secret Scan
+        run: |
+          # Use the Gitleaks Docker image to avoid license requirements of the managed GitHub Action
+          docker run -v ${{ github.workspace }}:/path zricethezav/gitleaks:latest detect --source=/path --verbose --redact
+        continue-on-error: true
+
+  sca-audit:
+    name: Software Composition Analysis
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+      actions: read
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@c95a14d0e5bab51a9f56296a4eb0e416910cd350 # v2.10.3
+        with:
+          egress-policy: audit
+
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@887a942a15af3a7626099df99e897a18d9e5ab3a # v5.1.0
+        with:
+          enable-cache: true
+          python-version: '3.14'
+
+      - name: Python SCA Audit (pip-audit)
+        run: |
+          if [ -f "pyproject.toml" ]; then
+            uv export --format requirements-txt > requirements.txt
+            uv tool run pip-audit -r requirements.txt -f sarif -o pip-audit.sarif || echo "Vulnerabilities found!"
+            uv tool run pip-audit -r requirements.txt -f html -o pip-audit-report.html || true
+          fi
+        shell: bash
+
+      - name: Node.js SCA Audit (npm audit)
+        run: |
+          if [ -f "package.json" ]; then
+            npm install --package-lock-only
+            npm audit --json > npm-audit.json || true
+            npx @microsoft/npm-audit-sarif -i npm-audit.json -o npm-audit.sarif || true
+          fi
+        shell: bash
+
+      - name: Black Duck Compliance Check
+        run: |
+          echo "INFO: Ready for Black Duck integration."
+        shell: bash
+
+      - name: Upload SARIF Reports to GitHub Advanced Security
+        uses: github/codeql-action/upload-sarif@02c5e83432fe5497fd85b873b6c9f16a8578e1d9 # v3.37.0
+        with:
+          sarif_file: .
+        continue-on-error: true
+
+      - name: Upload Compliance Reports as Artifacts
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: security-audit-reports
+          path: |
+            pip-audit-report.html
+            npm-audit.json
+          retention-days: 14
+
+

@@ -4,20 +4,22 @@ Long-running multi-agent workflows present a unique observability challenge. Bec
 
 The CoReason Workspace Environment exposes **WebSocket** and **Server-Sent Events (SSE)** as first-class interaction surfaces, enabling real-time telemetry and state interaction.
 
-## Real-Time Observability
+## Real-Time Observability via JSON Patch
 
 Every execution node, internal thought process, tool invocation, and validation error within the LangGraph state machine is broadcast in real-time. 
 
+To optimize payload size and network efficiency, the platform utilizes a `StateDeltaPublisher`. Instead of passing bloated, complete state dictionaries on every graph tick, the platform generates and broadcasts standard **RFC 6902 JSON Patch** streams over Redis PubSub.
+
 - **SSE (Server-Sent Events)**: Ideal for uni-directional telemetry, used primarily by headless dashboards or logging aggregators simply looking to monitor a job's progress.
-- **WebSockets**: A full-duplex bi-directional channel enabling interaction with the live state stream.
+- **WebSockets**: A full-duplex bi-directional channel enabling interaction with the live JSON Patch state stream.
 
 ## Time-Travel Debugging (State Sync)
 
-The `src/api/streaming/state_sync.py` WebSocket endpoint streams real-time LangGraph state updates directly from the Postgres checkpointer.
+The WebSocket endpoints stream real-time JSON Patch state updates directly originating from the Postgres checkpointer.
 
-Because the state is streamed synchronously, developers can build live interactive tooling on top of the agent. The primary example of this is the platform's native Time-Travel Debugger.
+Because the state is streamed synchronously, developers can build live interactive tooling on top of the agent. The primary example of this is the platform's native Time-Travel Debugger, accessible via the `dcode` Text User Interface.
 
-If an agent hallucinates or encounters an execution failure deep within a complex workflow, the WebSocket connection allows a client (such as the CoReason CLI) to transmit a `rewind` command accompanied by a specific `checkpoint_id`. 
+If an agent hallucinates or encounters an execution failure deep within a complex workflow, the WebSocket connection allows a client to transmit a `rewind` command accompanied by a specific `checkpoint_id`. 
 
 The orchestrator will:
 1. Halt the current execution graph.
@@ -26,4 +28,4 @@ The orchestrator will:
 4. Resume execution deterministically from the restored checkpoint.
 
 ## Universal Subscription
-Following the Multi-Surface Parity mandate, all other platform surfaces (CLI, Python SDK, MCP Server) inherently rely on and subscribe to these streaming endpoints for their respective real-time consumers.
+Following the Multi-Surface Parity mandate, all other platform surfaces (like the Python SDK and MCP Server) inherently rely on and subscribe to these streaming endpoints for their respective real-time consumers.

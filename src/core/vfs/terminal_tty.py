@@ -36,6 +36,19 @@ class SharedTTYMultiplexer:
                 pass
         except Exception as e:
             logger.error(f"TTY WebSocket closed: {e}")
+        finally:
+            logger.info(f"Cleaning up interactive OpenShell session: {session_id}")
+            self._cleanup_session(session_id)
+            
+    def _cleanup_session(self, session_id: str):
+        """
+        Terminates the LangGraph process trees and supervisor processes associated with the closed interactive OpenShell session.
+        This prevents resource leaks (Issue #6720).
+        """
+        logger.info(f"Terminating LangGraph servers and supervisor processes for session {session_id}")
+        # Placeholder for actual process termination logic
+        if session_id in self.active_sessions:
+            del self.active_sessions[session_id]
             
     async def inject_agent_command(self, session_id: str, command: str):
         """

@@ -1,0 +1,50 @@
+name: Nightly Deep Fuzzing (Hypothesis State-Space Exploration)
+
+on:
+  schedule:
+    - cron: '0 3 * * *' # Daily at 03:00 UTC
+  workflow_dispatch:
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+
+permissions: read-all
+
+jobs:
+  deep-fuzz:
+    name: Deep Property-Based Fuzzing
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
+        with:
+          enable-cache: true
+          python-version: "3.14"
+
+      - name: Install dependencies
+        run: uv sync --all-extras --dev
+
+      - name: Run Deep Fuzzing (ci-deep profile)
+        run: >-
+          uv run pytest tests/ontology/test_hypothesis.py
+          --hypothesis-profile=ci-deep
+          -x
+          --tb=long
+          --no-header
+          --no-cov
+          -q
+
+      - name: Upload Hypothesis Database
+        if: failure()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: hypothesis-counterexamples
+          path: .hypothesis/
+          retention-days: 30
+
+

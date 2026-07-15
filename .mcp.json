@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "coreason-platform": {
+      "command": "uv",
+      "args": ["run", "python", "-m", "src.mcp.server"]
+    }
+  }
+}

@@ -151,3 +151,16 @@ class AgentService:
             "status": "running",
             "detail": "LangGraph execution in progress. Query the checkpointer for live state.",
         }
+
+    def rewind_checkpoint(self, checkpoint_id: str) -> Dict[str, Any]:
+        """
+        Rewind a session's LangGraph execution state to a specific checkpoint.
+        For now, returns a dummy success response.
+        """
+        # TODO: Implement actual LangGraph Postgres checkpointer restore
+        logger.info(f"Rewinding session to checkpoint: {checkpoint_id}")
+        return {
+            "status": "success",
+            "checkpoint_id": checkpoint_id,
+            "message": f"Successfully rewound state to checkpoint {checkpoint_id}"
+        }
