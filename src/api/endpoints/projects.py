@@ -89,3 +89,55 @@ async def export_project(project_id: str, output_path: str, skip_state: bool = F
         return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/import")
+async def import_project(req: ImportProjectRequest, skip_state: bool = False, skip_docker: bool = False, user: UserIdentity = Depends(get_current_user)):
+    """Import an air-gapped project."""
+    project_id = str(uuid.uuid7())
+    try:
+        from src.core.services import project_service
+        result = await project_service.import_project(
+            project_id=project_id,
+            import_path=req.import_path,
+            name=req.name,
+            description=req.description,
+            config=req.config,
+            skip_state=skip_state,
+            skip_docker=skip_docker
+        )
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/{project_id}/push")
+async def push_project(project_id: str, req: PushProjectRequest, skip_state: bool = False, skip_docker: bool = False, user: UserIdentity = Depends(get_current_user)):
+    """Push project to OCI registry."""
+    try:
+        from src.sdk.client import CoReasonClient
+        client = CoReasonClient()
+        result = await client.projects.push_bundle(
+            project_id, 
+            req.registry_url, 
+            skip_state=skip_state, 
+            skip_docker=skip_docker
+        )
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/pull")
+async def pull_project(req: PullProjectRequest, skip_state: bool = False, skip_docker: bool = False, user: UserIdentity = Depends(get_current_user)):
+    """Pull project from OCI registry."""
+    try:
+        from src.sdk.client import CoReasonClient
+        client = CoReasonClient()
+        result = await client.projects.pull_bundle(
+            req.oci_uri, 
+            req.name, 
+            req.description, 
+            skip_state=skip_state, 
+            skip_docker=skip_docker
+        )
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
