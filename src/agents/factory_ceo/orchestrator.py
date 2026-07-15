@@ -16,10 +16,9 @@ class FactoryCeoAgent(DeepAgent):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-import os
-import psycopg2
+from src.core.db import get_db_pool
 
-def epistemic_interceptor_node(state: dict[str, Any]) -> dict[str, Any]:
+async def epistemic_interceptor_node(state: dict[str, Any]) -> dict[str, Any]:
     """
     LangGraph Node that physically intercepts large raw human transcripts
     BEFORE they enter the factory_ceo's context window.
@@ -32,16 +31,14 @@ def epistemic_interceptor_node(state: dict[str, Any]) -> dict[str, Any]:
             raw_payload=raw_payload
         )
         
-        # Persist to WORM Postgres table for enterprise statelessness
-        db_dsn = os.environ.get("POSTGRES_DSN", "postgresql://admin:password@localhost:5432/knowledge_db")
+        # Persist to WORM Postgres table for enterprise statelessness using global pool
         try:
-            with psycopg2.connect(db_dsn) as conn:
-                with conn.cursor() as cur:
-                    cur.execute(
-                        "INSERT INTO epistemic_quarantine_snapshots (snapshot_id, raw_payload) VALUES (%s, %s) ON CONFLICT DO NOTHING",
-                        (snapshot.snapshot_id, snapshot.raw_payload)
-                    )
-                conn.commit()
+            pool = await get_db_pool()
+            async with pool.acquire() as conn:
+                await conn.execute(
+                    "INSERT INTO epistemic_quarantine_snapshots (snapshot_id, raw_payload) VALUES ($1, $2) ON CONFLICT DO NOTHING",
+                    snapshot.snapshot_id, snapshot.raw_payload
+                )
         except Exception as e:
             # Fallback or log if Postgres is unavailable, but fail-open for testing
             pass
