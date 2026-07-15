@@ -41,6 +41,10 @@ docker-compose up -d --build
 
 This will automatically spin up the `platform_server`, `postgres_checkpointer`, `redis_queue`, and `platform_worker` components. The REST API and SSE streams will be available, and the MCP server will dynamically query the Postgres database for state tracking.
 
+> [!TIP]
+> **Going to Production?**
+> If you are deploying to an enterprise environment (AWS, Azure), check out our [Deploying Guide](guides/deploying.md) for 1-click Terraform, OpenTofu, and CloudFormation templates.
+
 ## Executing Exported Artifacts
 
 When you build agents through the platform, it exports an installable ZIP archive containing the generated YAML manifests and a dynamically synthesized `pyproject.toml`. 
