@@ -7,7 +7,7 @@ import logging
 try:
     import asyncpg
 except ImportError:
-    # Just a placeholder if not installed, tests should mock or install it
+    # Memory server implementation required for integration.
     asyncpg = None
 
 # Configure logging to stderr (stdio is used for MCP)

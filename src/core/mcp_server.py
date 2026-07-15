@@ -37,8 +37,20 @@ class PlatformMCPServer:
         async def handle_call_tool(name: str, arguments: dict) -> list:
             if name == "get_workspace_state":
                 session_id = arguments["session_id"]
-                # In reality, this queries the Postgres Checkpointer
-                state = {"status": "mock_state_for_human_ide"}
+                tenant_id = arguments.get("tenant_id", "default_tenant")
+                try:
+                    from src.core.db import get_db_pool
+                    import asyncio
+                    # Connect to real Postgres checkpointer with tenant isolation
+                    pool = await get_db_pool()
+                    async with pool.acquire() as conn:
+                        records = await conn.fetch("SELECT state FROM langgraph_state WHERE thread_id = $1 AND tenant_id = $2 ORDER BY id DESC LIMIT 1", session_id, tenant_id)
+                        if records:
+                            state = records[0]['state']
+                        else:
+                            state = {"status": "NO_STATE_FOUND"}
+                except Exception as e:
+                    state = {"status": "ERROR", "message": str(e)}
                 return [{"type": "text", "text": json.dumps(state)}]
             raise ValueError(f"Unknown tool: {name}")
 

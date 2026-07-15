@@ -162,6 +162,14 @@ async def rewind_checkpoint(checkpoint_id: str) -> Dict[str, Any]:
     return agent_service.rewind_checkpoint(checkpoint_id)
 
 
+@mcp.tool()
+async def trigger_factory_build(user_id: str, session_id: str, intent: str) -> Dict[str, Any]:
+    """Trigger a factory build for a new agent platform."""
+    from src.core.services.orchestration_service import OrchestrationService
+    orch = OrchestrationService()
+    return await orch.run_factory_graph(user_id, session_id, intent)
+
+
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
     # fastmcp handles stdio transport mapping automatically when run

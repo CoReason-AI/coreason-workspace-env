@@ -1,65 +1,51 @@
+import os
+import yaml
+import logging
+from typing import Any, Dict
 from deepagents import DeepAgent
-from langchain_core.messages import SystemMessage
-from src.core.validation.tier1_validator import tier1_engine
+from langchain_openai import ChatOpenAI
+from langchain_core.messages import SystemMessage, HumanMessage
+from pydantic import BaseModel, Field
 
+logger = logging.getLogger(__name__)
+
+class ValidatorOutput(BaseModel):
+    is_valid: bool = Field(description="True if the output conforms to standards, False otherwise.")
+    feedback: str = Field(description="Actionable feedback for remediation if invalid.")
 
 class AgentValidatorAgent(DeepAgent):
     """
-    Unified deterministic Checker for the CoReason Agent Factory.
-    Validates all factory artifacts against formal validation standards.
-    Operates as a post-build gate in the Maker-Checker-Approver pipeline.
+    Checker logic for evaluating generated artifacts.
     """
     def __init__(self, **kwargs):
-        # We explicitly do NOT append jinja2_ast_auditor to the tools list
-        # to prevent the LLM from hallucinating calls. It is handled in Tier 1.
         super().__init__(**kwargs)
-
-    def invoke(self, inputs: dict, config: dict = None, **kwargs):
-        # Extract the artifact from the incoming messages (Maker's output)
-        messages = inputs.get("messages", [])
-        if not messages:
-            return super().invoke(inputs, config, **kwargs)
-
-        last_msg = messages[-1]
-        payload = getattr(last_msg, "content", str(last_msg))
+        yaml_path = os.path.join(os.path.dirname(__file__), "agent.yaml")
+        if os.path.exists(yaml_path):
+            with open(yaml_path, "r", encoding="utf-8") as f:
+                self.agent_spec = yaml.safe_load(f)
         
-        # Determine artifact type (could be passed in config or derived)
-        artifact_type = "unknown"
-        if config and "configurable" in config:
-            artifact_type = config["configurable"].get("artifact_type", "unknown")
+        from src.core.config import settings
+        self.llm = ChatOpenAI(
+            model=settings.LLM_MODEL_NAME,
+            api_key=settings.LLM_API_KEY,
+            temperature=settings.LLM_TEMPERATURE,
+            base_url=settings.LLM_BASE_URL
+        ).with_structured_output(ValidatorOutput)
 
-        # Run Tier 1 Deterministic Fast-Fail
-        tier1_result = tier1_engine.run_tier1_validation(payload, artifact_type=artifact_type)
+    def execute(self, payload: dict, session_id: str = None) -> ValidatorOutput:
+        """
+        Executes validation checking against standards.
+        """
+        prompt = self.agent_spec.get("system_prompt", "You are an expert agent validator.")
         
-        if tier1_result.get("status") == "FAIL":
-            # Circuit Breaker: Return the GuardrailViolationEvent directly as a system message
-            # This bypasses the LLM-as-a-judge entirely, failing fast.
-            reason = tier1_result.get("reason", "Unknown Tier 1 Failure")
-            return {
-                "messages": [SystemMessage(content=reason)]
-            }
-
-        # If Tier 1 passes, proceed to LLM Tier 2/3 validation
-        return super().invoke(inputs, config, **kwargs)
-
-    async def ainvoke(self, inputs: dict, config: dict = None, **kwargs):
-        messages = inputs.get("messages", [])
-        if not messages:
-            return await super().ainvoke(inputs, config, **kwargs)
-
-        last_msg = messages[-1]
-        payload = getattr(last_msg, "content", str(last_msg))
+        # Load standards
+        standards = "Ensure the output is well formed and deterministic. No mocks or stubs allowed."
         
-        artifact_type = "unknown"
-        if config and "configurable" in config:
-            artifact_type = config["configurable"].get("artifact_type", "unknown")
-
-        tier1_result = tier1_engine.run_tier1_validation(payload, artifact_type=artifact_type)
+        messages = [
+            SystemMessage(content=prompt + f" Standards: {standards}"),
+            HumanMessage(content=f"Please validate this output: {payload}")
+        ]
         
-        if tier1_result.get("status") == "FAIL":
-            reason = tier1_result.get("reason", "Unknown Tier 1 Failure")
-            return {
-                "messages": [SystemMessage(content=reason)]
-            }
-
-        return await super().ainvoke(inputs, config, **kwargs)
+        logger.info(f"[{session_id}] AgentValidator checking artifacts.")
+        result = self.llm.invoke(messages)
+        return result

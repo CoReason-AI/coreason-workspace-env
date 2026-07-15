@@ -1,63 +1,91 @@
+import os
+import yaml
 import logging
-from typing import Any
-from langgraph.graph import StateGraph, START, END
+from typing import Any, Dict, TypedDict
 from deepagents import DeepAgent
-from src.core.schemas.epistemic_firewall import LibrarianRoutingState
-
-# 1. Import the compiled graphs from the sub-agents
-from src.agents.knowledge_archivist.orchestrator import compiled_archivist_graph
-from src.agents.knowledge_consultant.orchestrator import compiled_consultant_graph
+from langgraph.graph import StateGraph, END
 
 logger = logging.getLogger(__name__)
 
-def router_node(state: LibrarianRoutingState) -> dict[str, Any]:
-    """Node that evaluates the routing state."""
-    logger.info(f"Librarian routing proxy: {state.proxy.proxy_cid}")
-    return {}
-
-def route_task(state: LibrarianRoutingState) -> str:
-    """
-    Conditional edge to determine if payload is an ingestion task or retrieval task.
-    """
-    if state.proxy.structural_type == "HumanTranscript":
-        return "knowledge_archivist"
-    return "knowledge_consultant"
-
-# 2. Replace stubs with actual Sub-Graph invocations
-async def knowledge_archivist_node(state: LibrarianRoutingState) -> dict[str, Any]:
-    logger.info("Librarian PM: Delegating to Knowledge Archivist...")
-    # Invoke the actual archivist graph
-    result = await compiled_archivist_graph.ainvoke(state)
-    return {"directives": result.get("directives", "Archivist execution completed.")}
-
-async def knowledge_consultant_node(state: LibrarianRoutingState) -> dict[str, Any]:
-    logger.info("Librarian PM: Delegating to Knowledge Consultant...")
-    # Invoke the actual consultant graph
-    result = await compiled_consultant_graph.ainvoke(state)
-    return {"directives": result.get("directives", "Consultant execution completed.")}
-
-workflow = StateGraph(LibrarianRoutingState)
-workflow.add_node("router", router_node)
-workflow.add_node("knowledge_archivist", knowledge_archivist_node)
-workflow.add_node("knowledge_consultant", knowledge_consultant_node)
-
-workflow.add_edge(START, "router")
-workflow.add_conditional_edges(
-    "router",
-    route_task,
-    {
-        "knowledge_archivist": "knowledge_archivist",
-        "knowledge_consultant": "knowledge_consultant"
-    }
-)
-workflow.add_edge("knowledge_archivist", END)
-workflow.add_edge("knowledge_consultant", END)
-
-compiled_librarian_graph = workflow.compile()
+class AgentState(TypedDict):
+    messages: list
+    worker_result: str
+    feedback: str
+    attempts: int
+    final_output: str
 
 class LibrarianPmAgent(DeepAgent):
     """
-    Orchestrator for librarian_pm.
+    Project Manager for orchestrating the Knowledge Base pipeline.
     """
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        yaml_path = os.path.join(os.path.dirname(__file__), "agent.yaml")
+        if os.path.exists(yaml_path):
+            with open(yaml_path, "r", encoding="utf-8") as f:
+                self.agent_spec = yaml.safe_load(f)
+                
+        graph = StateGraph(AgentState)
+        graph.add_node("maker", self._run_maker)
+        graph.add_node("validator", self._run_validator)
+        
+        graph.set_entry_point("maker")
+        graph.add_edge("maker", "validator")
+        graph.add_conditional_edges(
+            "validator",
+            self._route_validation,
+            {
+                "success": END,
+                "retry": "maker",
+                "failed": END
+            }
+        )
+        self.graph = graph.compile()
+        
+    def _run_maker(self, state: AgentState):
+        from src.agents.context_compressor.orchestrator import ContextCompressorAgent
+        worker = ContextCompressorAgent()
+        context = state.get("messages", [])
+        feedback = state.get("feedback", "")
+        worker_context = f"{context}\nFeedback from previous run: {feedback}" if feedback else str(context)
+        
+        attempts = state.get("attempts", 0) + 1
+        result = worker.execute(worker_context, "librarian_pm_loop")
+        return {"worker_result": result, "attempts": attempts}
+
+    def _run_validator(self, state: AgentState):
+        from src.agents.agent_validator.orchestrator import AgentValidatorAgent
+        validator = AgentValidatorAgent()
+        
+        validation = validator.execute(state["worker_result"], "librarian_pm_loop")
+        if validation.is_valid:
+            return {"feedback": "", "final_output": f"SUCCESS: {state['worker_result']}"}
+        else:
+            return {"feedback": validation.feedback, "final_output": "FAILURE"}
+            
+    def _route_validation(self, state: AgentState):
+        if state.get("final_output", "").startswith("SUCCESS"):
+            return "success"
+        elif state.get("attempts", 0) >= 3:
+            return "failed"
+        else:
+            return "retry"
+
+    def execute(self, state: dict, session_id: str = None) -> str:
+        """
+        Executes Maker-Checker loop using a declarative LangGraph StateGraph.
+        """
+        logger.info(f"[{session_id}] LibrarianPM initiating LangGraph StateGraph pipeline.")
+        initial_state = {
+            "messages": state.get("messages", []),
+            "worker_result": "",
+            "feedback": "",
+            "attempts": 0,
+            "final_output": ""
+        }
+        
+        result = self.graph.invoke(initial_state)
+        
+        if result.get("final_output", "").startswith("SUCCESS"):
+            return result["final_output"]
+        return "FAILURE: Max retries exceeded during validation loop."

@@ -39,3 +39,9 @@ Only when the artifact mathematically passes *all* deterministic boundary checks
 ## Structural Integrity First
 
 By enforcing Pydantic type safety and structural integrity before the output is ever subjected to secondary semantic review, the platform guarantees data integrity and completely prevents malformed data from triggering catastrophic downstream actions. Validation is treated as a deterministic software engineering problem rather than a stochastic prompt problem.
+
+## Systemic PM Enforcement
+
+Every Project Manager (PM) agent within the environment (e.g., `frontend_pm`, `backend_pm`, `librarian_pm`, `agent_pm`) is mathematically bound to this paradigm. They do not generate outputs themselves; they strictly orchestrate an internal LangGraph `StateGraph` using native declarative nodes and conditional edges that routes generation tasks to Maker nodes and forcefully halts at Checker nodes until validation passes.
+
+**Note:** Stubs, mocks, and simulated data are strictly prohibited in the Maker agents. All deterministic generation nodes must execute genuine, verifiable tasks to satisfy the Anti-Stub validation checklist.

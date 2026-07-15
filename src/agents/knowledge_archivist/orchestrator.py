@@ -44,10 +44,12 @@ async def ingestion_node(state: LibrarianRoutingState) -> dict[str, Any]:
 
     # 2. Use structured decoding
     logger.info("Extracting DocumentKnowledgeGraphManifest via structured decoding.")
+    from src.core.config import settings
     llm = ChatOpenAI(
-        model="nvidia/nemotron-3-nano-30b-a3b:free",
-        api_key="sovereign-key-placeholder",
-        temperature=0.0
+        model=settings.LLM_MODEL_NAME,
+        api_key=settings.LLM_API_KEY,
+        temperature=settings.LLM_TEMPERATURE,
+        base_url=settings.LLM_BASE_URL
     )
     structured_llm = llm.with_structured_output(CognitiveDeliberativeEnvelopeState[DocumentKnowledgeGraphManifest])
     envelope = await structured_llm.ainvoke(f"Extract nodes and edges from: {raw_text}")

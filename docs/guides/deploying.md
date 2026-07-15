@@ -2,6 +2,13 @@
 
 The CoReason Workspace Environment is designed to be highly portable and secure. Because it frequently processes sensitive corporate data or proprietary logic, the deployment architecture is strictly tailored for sovereign, zero-trust environments.
 
+## Containerized Services
+
+To support true asynchronous concurrency and horizontal scaling, the platform utilizes specialized Docker containers defined in the `docker-compose.yaml`:
+- **`platform_server`**: A FastAPI web server handling synchronous REST API and SSE requests.
+- **`platform_worker`**: A Celery/KEDA worker node pulling agent execution tasks off the Redis queue asynchronously.
+- **`postgres_checkpointer`**: Handles multi-tenant safe StateGraph checkpoints and events.
+
 ## Deployment Architectures
 
 The platform can be deployed in two primary configurations:

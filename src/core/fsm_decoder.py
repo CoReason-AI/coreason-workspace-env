@@ -36,12 +36,12 @@ class FSMDecoder:
             result_json = generator(prompt)
             return schema.model_validate_json(result_json)
         else:
-            # Fallback for Cloud API models (e.g. OpenAI/Anthropic API)
-            # which do not support token-level FSM overriding.
-            # In LangGraph, this relies on a separate auto-correction loop node.
-            logger.warning("FSM Decoding bypassed (using remote API). Using standard generation.")
-            # Mocking the output for this platform bootstrap
-            raise NotImplementedError("Cloud API Structured Generation requires LangChain BindTools.")
+            logger.warning("FSM Decoding bypassed (using remote API). Falling back to LangChain structured outputs.")
+            # Genuine fallback for Cloud API models using with_structured_output
+            from langchain_openai import ChatOpenAI
+            llm = ChatOpenAI(model="gpt-4o", temperature=0).with_structured_output(schema)
+            from langchain_core.messages import HumanMessage
+            return llm.invoke([HumanMessage(content=prompt)])
 
 # Singleton instance
 fsm_decoder = FSMDecoder()

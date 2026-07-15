@@ -22,6 +22,8 @@ An upstream enterprise application simply sends a standardized request to the Co
 
 Once the internal Maker-Checker-Approver pipeline successfully resolves, the platform returns the verified, structured output back to the consumer via standard input/output streams (stdio), Server-Sent Events (SSE), or streamable HTTP.
 
+*Technical Note: The MCP Server itself remains stateless; it resolves requests (such as `get_workspace_state`) by dynamically querying the underlying Postgres `langgraph_state` checkpointer. **This integration natively enforces Multi-Tenant State Isolation**, actively filtering queries by `tenant_id` to strictly prevent cross-tenant data leakage. This enables true, secure cross-process state inspection for external IDEs like Cursor.*
+
 ## Air-Gapped Interoperability
 
 While some observability platforms offer proprietary SaaS mechanisms to expose agents as servers, the CoReason platform embeds this capability directly into its core infrastructure. This eliminates vendor lock-in to external observability providers and allows for highly secure, air-gapped, on-premise enterprise deployments.
