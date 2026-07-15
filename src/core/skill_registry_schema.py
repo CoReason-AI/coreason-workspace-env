@@ -17,6 +17,7 @@ ARTIFACT_TYPES = [
     "workflow",     # Workflow topology / LangGraph DAG
     "diagram",      # Architecture diagram / visual communication
     "legacy_ir",    # Legacy codebase intermediate representation
+    "knowledge_receipt", # Epistemic Firewall strict provenance return
 ]
 
 
