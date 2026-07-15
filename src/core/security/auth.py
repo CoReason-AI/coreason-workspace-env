@@ -1,9 +1,10 @@
-import os
 import jwt
 from typing import Optional
 from fastapi import Request, HTTPException, Security
 from fastapi.security import OAuth2PasswordBearer
 from pydantic import BaseModel
+
+from src.core.config import settings
 
 class UserIdentity(BaseModel):
     user_id: str
@@ -15,10 +16,6 @@ class UserIdentity(BaseModel):
 # This FastAPI server strictly validates the resulting JWT issued by that edge proxy or Azure AD.
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
-def get_jwt_secret() -> str:
-    # Strict SSOT: No default fallback
-    return os.environ["JWT_SECRET_KEY"]
-
 def verify_token(token: str) -> UserIdentity:
     """
     Verifies the JWT token and extracts the UserIdentity.
@@ -26,12 +23,16 @@ def verify_token(token: str) -> UserIdentity:
     try:
         payload = jwt.decode(
             token, 
-            get_jwt_secret(), 
+            settings.JWT_SECRET_KEY, 
             algorithms=["HS256"], 
             audience="coreason-platform"
         )
+        user_id = payload.get("sub")
+        if not user_id:
+            raise jwt.InvalidTokenError("Subject claim 'sub' is missing.")
+            
         return UserIdentity(
-            user_id=payload.get("sub"),
+            user_id=user_id,
             email=payload.get("email"),
             roles=payload.get("roles", []),
             session_id=payload.get("sid", "default-session")
@@ -40,6 +41,7 @@ def verify_token(token: str) -> UserIdentity:
         raise HTTPException(status_code=401, detail="Token has expired.")
     except jwt.InvalidTokenError as e:
         raise HTTPException(status_code=401, detail=f"Invalid token: {str(e)}")
+
 
 async def get_current_user(token: str = Security(oauth2_scheme)) -> UserIdentity:
     """

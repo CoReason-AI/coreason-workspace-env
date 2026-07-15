@@ -5,10 +5,11 @@ Thin adapter over src.core.services.project_service.
 import uuid
 from typing import Optional
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel, Field
 
 from src.core.services import project_service
+from src.core.security.auth import get_current_user, UserIdentity
 
 router = APIRouter()
 
@@ -20,14 +21,14 @@ class CreateProjectRequest(BaseModel):
 
 
 @router.get("/")
-async def list_projects():
+async def list_projects(user: UserIdentity = Depends(get_current_user)):
     """List all projects in the workspace."""
     projects = await project_service.list_projects()
     return {"projects": projects}
 
 
 @router.post("/", status_code=201)
-async def create_project(req: CreateProjectRequest):
+async def create_project(req: CreateProjectRequest, user: UserIdentity = Depends(get_current_user)):
     """Create a new project."""
     project_id = str(uuid.uuid7())
     try:
@@ -43,7 +44,7 @@ async def create_project(req: CreateProjectRequest):
 
 
 @router.get("/{project_id}")
-async def get_project(project_id: str):
+async def get_project(project_id: str, user: UserIdentity = Depends(get_current_user)):
     """Fetch a single project by ID."""
     project = await project_service.get_project(project_id)
     if not project:
@@ -52,7 +53,7 @@ async def get_project(project_id: str):
 
 
 @router.delete("/{project_id}")
-async def delete_project(project_id: str):
+async def delete_project(project_id: str, user: UserIdentity = Depends(get_current_user)):
     """Delete a project by ID."""
     deleted = await project_service.delete_project(project_id)
     if not deleted:
@@ -61,10 +62,11 @@ async def delete_project(project_id: str):
 
 
 @router.post("/{project_id}/export")
-async def export_project(project_id: str, output_path: str):
+async def export_project(project_id: str, output_path: str, user: UserIdentity = Depends(get_current_user)):
     """Export a project for air-gapped transfer."""
     project = await project_service.get_project(project_id)
     if not project:
         raise HTTPException(status_code=404, detail=f"Project '{project_id}' not found")
     result = await project_service.export_project(project_id, output_path)
     return result
+

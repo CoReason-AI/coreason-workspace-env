@@ -49,3 +49,4 @@ class Settings(BaseSettings):
 # Instantiate settings. This will immediately throw an error if the .env file
 # or environment variables are missing required CISO keys.
 settings = Settings()
+

@@ -1,7 +1,38 @@
 version: '3.8'
 
 services:
-  # LangGraph PostgreSQL Checkpointer Database
+  # 1. Main FastAPI Platform Server
+  platform_server:
+    image: ghcr.io/coreason-ai/coreason-workspace-env:develop
+    ports:
+      - "9005:8000"
+    env_file:
+      - .env
+    volumes:
+      - ./src:/home/coreason/project/src
+    depends_on:
+      redis_queue:
+        condition: service_started
+      postgres_checkpointer:
+        condition: service_healthy
+    restart: always
+
+  # 2. Background Task Worker (Pulls and runs enqueued agent tasks)
+  platform_worker:
+    image: ghcr.io/coreason-ai/coreason-workspace-env:develop
+    env_file:
+      - .env
+    command: ["/home/coreason/project/.venv/bin/python", "-m", "src.workers.keda_worker"]
+    volumes:
+      - ./src:/home/coreason/project/src
+    depends_on:
+      redis_queue:
+        condition: service_started
+      postgres_checkpointer:
+        condition: service_healthy
+    restart: always
+
+  # 3. LangGraph PostgreSQL Checkpointer Database
   postgres_checkpointer:
     image: postgres:15-alpine
     environment:
@@ -17,14 +48,16 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+    restart: always
 
-  # Redis for Celery/KEDA Async Task Queue (Optional but recommended for scaling)
+  # 4. Redis for task queue
   redis_queue:
     image: redis:7-alpine
     ports:
       - "6379:6379"
+    restart: always
 
-  # HashiCorp Vault (Dev Server for local secrets federation)
+  # 5. HashiCorp Vault (Dev Server for local secrets federation)
   vault:
     image: hashicorp/vault:latest
     ports:
@@ -34,10 +67,9 @@ services:
       VAULT_DEV_LISTEN_ADDRESS: "0.0.0.0:8200"
     cap_add:
       - IPC_LOCK
+    restart: always
 
-  # Langfuse — Self-Hosted LLM Observability & Tracing
-  # Provides visual debugging dashboards for System-2 reasoning traces.
-  # Bridges to the WORM auditor via shared run_id and cryptographic hash.
+  # 6. Langfuse — Self-Hosted LLM Observability & Tracing
   langfuse:
     image: langfuse/langfuse:latest
     ports:
@@ -56,6 +88,15 @@ services:
       interval: 10s
       timeout: 5s
       retries: 10
+    restart: always
+
+  # 7. Watchtower — Auto-update containers on new registry releases
+  watchtower:
+    image: containrrr/watchtower
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: --cleanup --interval 600
+    restart: always
 
   platform_server:
     build: .

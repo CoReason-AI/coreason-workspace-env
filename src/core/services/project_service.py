@@ -80,14 +80,22 @@ class ProjectService:
             result = await conn.execute("DELETE FROM projects WHERE id = $1", project_id)
             return result == "DELETE 1"
 
-    async def export_project(self, project_path: str, output_path: str) -> Dict[str, Any]:
+    async def export_project(self, project_id: str, output_path: str) -> Dict[str, Any]:
         """
         Exports a project for full air-gapped portability.
         Bundles: Git workspace + Postgres pg_dump + Docker image.
         """
         from src.core.config import settings
+        from src.core.security.path_validation import validate_safe_path, validate_alphanumeric, WORKSPACE_ROOT
 
-        export_dir = Path(output_path)
+        import re
+        # Prevent path traversal and command injection by resolving and pinning inputs
+        safe_project_id = validate_alphanumeric(project_id)
+        projects_root = WORKSPACE_ROOT / "projects"
+        safe_project_path = validate_safe_path(safe_project_id, base_dir=projects_root)
+        safe_output_path = validate_safe_path(output_path)
+
+        export_dir = safe_output_path
         export_dir.mkdir(parents=True, exist_ok=True)
 
         files_written = []
@@ -95,6 +103,13 @@ class ProjectService:
         # 1. Export Postgres LangGraph State (pg_dump)
         logger.info("Snapshotting LangGraph Postgres Checkpointer State...")
         pg_dump_path = str(export_dir / "langgraph_state.dump")
+        
+        # Strict inline regex validation to satisfy CodeQL's py/command-line-injection scanner
+        if not re.match(r"^[a-zA-Z0-9_\-\./]+$", pg_dump_path):
+            raise ValueError("Command injection check failed: pg_dump_path is unsafe.")
+        if ".." in pg_dump_path:
+            raise ValueError("Path traversal check failed: pg_dump_path contains traversal segments.")
+
         pg_dump_cmd = [
             "pg_dump",
             "-U", settings.POSTGRES_USER,
@@ -116,13 +131,22 @@ class ProjectService:
         logger.info("Packaging True Git VFS Workspace...")
         workspace_tar = str(export_dir / "workspace.tar.gz")
         with tarfile.open(workspace_tar, "w:gz") as tar:
-            tar.add(project_path, arcname=os.path.basename(project_path))
+            tar.add(str(safe_project_path), arcname=safe_project_path.name)
         files_written.append(workspace_tar)
 
         # 3. Export Docker Image
-        project_name = os.path.basename(project_path).lower()
+        project_name = safe_project_path.name.lower()
         image_name = f"coreason/{project_name}:latest"
         docker_tar = str(export_dir / "image.tar")
+        
+        # Strict inline regex validation to satisfy CodeQL's py/command-line-injection scanner
+        if not re.match(r"^[a-zA-Z0-9_\-\./]+$", docker_tar):
+            raise ValueError("Command injection check failed: docker_tar is unsafe.")
+        if ".." in docker_tar:
+            raise ValueError("Path traversal check failed: docker_tar contains traversal segments.")
+        if not re.match(r"^coreason/[a-zA-Z0-9_-]+:latest$", image_name):
+            raise ValueError("Command injection check failed: image_name is unsafe.")
+
         try:
             subprocess.run(
                 ["docker", "save", "-o", docker_tar, image_name],
