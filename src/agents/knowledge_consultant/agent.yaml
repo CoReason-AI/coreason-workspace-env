@@ -1,6 +1,7 @@
 name: "knowledge_consultant"
 type: "sub-agent"
-description: "Deterministic worker for knowledge retrieval. Queries the memory backend via MCP and synthesizes a strict KnowledgeReceipt."
+description: "Deterministic worker for knowledge retrieval. Queries the memory backend
+  via MCP and synthesizes a strict KnowledgeReceipt."
 dependencies: []
 skill_registry: []
 tools:
@@ -15,3 +16,10 @@ system_prompt: |
   3. You MUST format your final output strictly to the `CognitiveDeliberativeEnvelopeState[KnowledgeReceipt]` schema. 
      - Use the `deliberation_trace` field to evaluate citations and plan your response.
      - Emit the final synthesized `KnowledgeReceipt` inside the `payload` field.
+executor:
+  harness: deepagents
+  model: auto
+async: true
+cancellable: true
+os_env:
+  type: caller_process

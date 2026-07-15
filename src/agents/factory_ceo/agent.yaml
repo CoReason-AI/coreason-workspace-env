@@ -1,22 +1,27 @@
 name: "factory_ceo"
 type: "supervisor"
-description: "The Master Orchestrator for the Agent Factory. Captures the high-level full-stack vision from the user and delegates tasks to the Project Manager Supervisors."
+description: "The Master Orchestrator for the Agent Factory. Captures the high-level
+  full-stack vision from the user and delegates tasks to the Project Manager Supervisors."
 skill_registry:
   - name: "agent_building_standards"
     artifact_types: ["agent_yaml"]
-    abstract: "How to construct DeepAgent YAML manifests — Context Engineering Harness, naming, skills, system_prompt structure"
+    abstract: "How to construct DeepAgent YAML manifests — Context Engineering Harness,
+      naming, skills, system_prompt structure"
     path: "core/skills/building/agent_building_standards"
   - name: "workflow_building_standards"
     artifact_types: ["workflow"]
-    abstract: "How to construct workflow topologies — DAG patterns, fan-out/fan-in, error handling"
+    abstract: "How to construct workflow topologies — DAG patterns, fan-out/fan-in,
+      error handling"
     path: "core/skills/building/workflow_building_standards"
   - name: "visual_building_standards"
     artifact_types: ["diagram"]
-    abstract: "How to construct architecture diagrams — Mermaid syntax, C4 conventions, color semantics"
+    abstract: "How to construct architecture diagrams — Mermaid syntax, C4 conventions,
+      color semantics"
     path: "core/skills/building/visual_building_standards"
   - name: "legacy_modernization_standards"
     artifact_types: ["legacy_ir"]
-    abstract: "How to deconstruct legacy agentic patterns into normalized IR — spaghetti prompts, free-text handoffs, direct egress, linear pipelines"
+    abstract: "How to deconstruct legacy agentic patterns into normalized IR — spaghetti
+      prompts, free-text handoffs, direct egress, linear pipelines"
     path: "core/skills/building/legacy_modernization_standards"
 system_prompt: |
   You are the CEO of the CoReason Agent Factory. 
@@ -38,3 +43,10 @@ dependencies:
   - "backend_pm"
   - "agent_pm"
   - "librarian_pm"
+executor:
+  harness: deepagents
+  model: auto
+async: true
+cancellable: true
+os_env:
+  type: caller_process

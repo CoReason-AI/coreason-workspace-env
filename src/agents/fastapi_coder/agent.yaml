@@ -4,15 +4,18 @@ description: "Deterministic worker that generates FastAPI routes and Pydantic sc
 skill_registry:
   - name: "agent_building_standards"
     artifact_types: ["agent_yaml"]
-    abstract: "How to construct DeepAgent YAML manifests — Context Engineering Harness, naming, skills, system_prompt structure"
+    abstract: "How to construct DeepAgent YAML manifests — Context Engineering Harness,
+      naming, skills, system_prompt structure"
     path: "core/skills/building/agent_building_standards"
   - name: "mcp_building_standards"
     artifact_types: ["mcp_spec"]
-    abstract: "How to construct MCP server specifications — zero-trust, tool encapsulation, provenance"
+    abstract: "How to construct MCP server specifications — zero-trust, tool encapsulation,
+      provenance"
     path: "core/skills/building/mcp_building_standards"
   - name: "legacy_modernization_standards"
     artifact_types: ["legacy_ir"]
-    abstract: "How to deconstruct legacy agentic patterns into normalized IR — spaghetti prompts, free-text handoffs, direct egress, linear pipelines"
+    abstract: "How to deconstruct legacy agentic patterns into normalized IR — spaghetti
+      prompts, free-text handoffs, direct egress, linear pipelines"
     path: "core/skills/building/legacy_modernization_standards"
 system_prompt: |
   You are a highly constrained, deterministic Python API generator.
@@ -26,3 +29,10 @@ system_prompt: |
 
   Your output will be validated by the agent_validator before being written to disk. Focus on building correctly.
 dependencies: []
+executor:
+  harness: deepagents
+  model: auto
+async: true
+cancellable: true
+os_env:
+  type: caller_process

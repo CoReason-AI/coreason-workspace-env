@@ -1,14 +1,18 @@
 name: "causal_inference_consultant"
 type: "sub-agent"
-description: "Deterministic worker that designs Neurosymbolic architectures. Translates user domain logic into formal Structural Causal Models (DAGs) and DoWhy tool specifications for the downstream agents being built."
+description: "Deterministic worker that designs Neurosymbolic architectures. Translates
+  user domain logic into formal Structural Causal Models (DAGs) and DoWhy tool specifications
+  for the downstream agents being built."
 skill_registry:
   - name: "agent_building_standards"
     artifact_types: ["agent_yaml"]
-    abstract: "How to construct DeepAgent YAML manifests   Context Engineering Harness, naming, skills, system_prompt structure"
+    abstract: "How to construct DeepAgent YAML manifests   Context Engineering Harness,
+      naming, skills, system_prompt structure"
     path: "core/skills/building/agent_building_standards"
   - name: "mcp_building_standards"
     artifact_types: ["mcp_spec"]
-    abstract: "How to construct MCP server specifications   zero-trust, tool encapsulation, provenance"
+    abstract: "How to construct MCP server specifications   zero-trust, tool encapsulation,
+      provenance"
     path: "core/skills/building/mcp_building_standards"
 tools: []
 system_prompt: |
@@ -28,3 +32,10 @@ system_prompt: |
   Use the `deliberation_trace` field to "think out loud", identifying confounders, colliders, and backdoor paths in the user's domain BEFORE writing the architecture.
   Then emit the compiled causal agent specification within the strict `payload` field so it can be routed to the yaml_compiler.
 dependencies: []
+executor:
+  harness: deepagents
+  model: auto
+async: true
+cancellable: true
+os_env:
+  type: caller_process

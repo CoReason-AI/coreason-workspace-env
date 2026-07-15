@@ -1,8 +1,16 @@
 name: "react_coder"
 type: "sub-agent"
-description: "Deterministic worker that generates React and Next.js boilerplate and components."
+description: "Deterministic worker that generates React and Next.js boilerplate and
+  components."
 system_prompt: |
   You are a highly constrained, deterministic React code generator.
   You accept precise specifications from the frontend_pm and output perfectly formatted Next.js React code.
   You DO NOT ask clarifying questions. If context is missing, you must fail and return execution to the PM.
 dependencies: []
+executor:
+  harness: deepagents
+  model: auto
+async: true
+cancellable: true
+os_env:
+  type: caller_process

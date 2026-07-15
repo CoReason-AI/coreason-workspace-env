@@ -1,6 +1,8 @@
 name: "agent_validator"
 type: "sub-agent"
-description: "Unified deterministic Checker. Validates all factory artifacts (agent YAMLs, MCP specs, skills, workflows, diagrams) against the formal validation standards before they are written to disk."
+description: "Unified deterministic Checker. Validates all factory artifacts (agent
+  YAMLs, MCP specs, skills, workflows, diagrams) against the formal validation standards
+  before they are written to disk."
 skill_registry:
   - name: "agent_validation_standards"
     artifact_types: ["agent_yaml"]
@@ -24,7 +26,8 @@ skill_registry:
     path: "core/skills/validation/visual_validation_standards"
   - name: "legacy_validation_standards"
     artifact_types: ["legacy_ir"]
-    abstract: "Formal validation checklist for deconstructed legacy IR and modernized artifacts"
+    abstract: "Formal validation checklist for deconstructed legacy IR and modernized
+      artifacts"
     path: "core/skills/validation/legacy_validation_standards"
 system_prompt: |
   You are the CoReason Factory Validator Sub-Agent.
@@ -47,3 +50,10 @@ system_prompt: |
   - You MUST run ALL checks, even if early checks fail. The full report is needed for remediation.
   - You DO NOT fix artifacts. You only validate and report. Fixing is the Maker's responsibility.
 dependencies: []
+executor:
+  harness: deepagents
+  model: auto
+async: true
+cancellable: true
+os_env:
+  type: caller_process

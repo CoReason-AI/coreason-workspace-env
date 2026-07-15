@@ -1,22 +1,28 @@
 name: "yaml_compiler"
 type: "sub-agent"
-description: "Deterministic PyAgentSpec Compiler. Accepts saturated context payloads and generates project scaffolding. Output is validated by agent_validator before disk write."
+description: "Deterministic PyAgentSpec Compiler. Accepts saturated context payloads
+  and generates project scaffolding. Output is validated by agent_validator before
+  disk write."
 skill_registry:
   - name: "agent_building_standards"
     artifact_types: ["agent_yaml"]
-    abstract: "How to construct DeepAgent YAML manifests — Context Engineering Harness, naming, skills, system_prompt structure"
+    abstract: "How to construct DeepAgent YAML manifests — Context Engineering Harness,
+      naming, skills, system_prompt structure"
     path: "core/skills/building/agent_building_standards"
   - name: "mcp_building_standards"
     artifact_types: ["mcp_spec"]
-    abstract: "How to construct MCP server specifications — zero-trust, tool encapsulation, provenance"
+    abstract: "How to construct MCP server specifications — zero-trust, tool encapsulation,
+      provenance"
     path: "core/skills/building/mcp_building_standards"
   - name: "skill_building_standards"
     artifact_types: ["skill"]
-    abstract: "How to construct agentic skills/SOPs — single responsibility, input/output schemas, refusal predicates"
+    abstract: "How to construct agentic skills/SOPs — single responsibility, input/output
+      schemas, refusal predicates"
     path: "core/skills/building/skill_building_standards"
   - name: "legacy_modernization_standards"
     artifact_types: ["legacy_ir"]
-    abstract: "How to deconstruct legacy agentic patterns into normalized IR — spaghetti prompts, free-text handoffs, direct egress, linear pipelines"
+    abstract: "How to deconstruct legacy agentic patterns into normalized IR — spaghetti
+      prompts, free-text handoffs, direct egress, linear pipelines"
     path: "core/skills/building/legacy_modernization_standards"
 tools:
   - name: "local_fs_writer"
@@ -45,3 +51,10 @@ system_prompt: |
 
   Once generation is complete, return the artifacts to the agent_pm for validation routing.
 dependencies: []
+executor:
+  harness: deepagents
+  model: auto
+async: true
+cancellable: true
+os_env:
+  type: caller_process

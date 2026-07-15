@@ -93,11 +93,11 @@ To support the real-time observability requirement and enable a rich "accordion"
 - **Key Step Summarization**: At the completion of each major phase or delegation step, agents must emit a concise summary of the outcome.
 - **System Prompting**: You must inject instructions into all agent system prompts mandating that they stream these progress updates and phase summaries back to the harness. This powers the collapsible accordion UI elements downstream.
 
-## Schema Purity & Data Persistence
-1. **God Context Schema Imports**: The coreason-manifest PyPI package is the absolute single source of truth for all schemas. Never duplicate or create local schema files (e.g. ontology.py or state.py). Always import directly from coreason_manifest (e.g., rom coreason_manifest.spec.ontology import CoreasonBaseState).
+## 7. Schema Purity & Data Persistence
+1. **God Context Schema Imports**: The coreason-manifest PyPI package is the absolute single source of truth for all schemas. Never duplicate or create local schema files (e.g. ontology.py or state.py). Always import directly from coreason_manifest (e.g., from coreason_manifest.spec.ontology import CoreasonBaseState).
 2. **UUIDv7 Natively**: The environment uses Python 3.14 natively. Always use uuid.uuid7() when generating UUIDs (e.g., for snapshot_id, project_id). Never use uuid.uuid4(). UUIDv7 prevents Postgres B-Tree index fragmentation and provides native chronological sorting.
 
-## 6. Strict Separation of Empirical Data and Synthesis
+## 8. Strict Separation of Empirical Data and Synthesis
 
 When generating any reports, dashboards, or Markdown documents that contain computed output, mathematical metrics, or empirical telemetry, agents must NEVER write or generate the Markdown file or text directly inline (e.g., via f-strings, prints, or LLM-generated `.md` files).
 
@@ -107,3 +107,18 @@ Instead, agents MUST strictly follow the **"Jinja2 Decoupling" Pattern** (3-step
 3. **Write the Compiler:** Create a separate Python script that loads the JSON file, loads the Jinja2 template, and explicitly executes the `template.render()` command to write out the final `.md` file.
 
 This strictly guarantees that the View (Markdown) is cleanly separated from the Controller (Python logic/LLM outputs).
+
+---
+
+## 9. Omnigent Native Compatibility
+
+All generated agents must be natively compatible with the [Omnigent](https://omnigent.ai/) meta-harness. When generating `agent.yaml` files, the following structural constraints MUST be applied:
+
+1. **Executor Configuration**: Every agent must specify an `executor` block detailing its runtime harness and model.
+   - Default to `harness: deepagents` or `harness: claude-sdk` if unspecified.
+   - Default to `model: auto` or a specific model ID (e.g., `databricks-claude-sonnet-4-6`).
+2. **Operating System Environment**: Any agent that uses local filesystem, shell, or execution tools must declare an `os_env` block to ensure it runs inside a managed OpenShell sandbox.
+   - Use `type: caller_process`.
+   - Omnigent will automatically enforce `linux_bwrap` or `darwin_seatbelt` based on the host. Do not hardcode the sandbox type unless explicitly required.
+3. **Async / Cancellable**: Explicitly declare `async: true` and `cancellable: true` to support robust lifecycle hooks.
+

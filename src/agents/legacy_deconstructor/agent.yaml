@@ -1,10 +1,13 @@
 name: "legacy_deconstructor"
 type: "sub-agent"
-description: "Deterministic worker that ingests legacy agentic codebases and produces a normalized LegacyIR (Intermediate Representation). Pure static analysis — no code execution."
+description: "Deterministic worker that ingests legacy agentic codebases and produces
+  a normalized LegacyIR (Intermediate Representation). Pure static analysis — no code
+  execution."
 skill_registry:
   - name: "legacy_modernization_standards"
     artifact_types: ["legacy_ir"]
-    abstract: "How to deconstruct legacy agentic patterns into normalized IR — spaghetti prompts, free-text handoffs, direct egress, linear pipelines"
+    abstract: "How to deconstruct legacy agentic patterns into normalized IR — spaghetti
+      prompts, free-text handoffs, direct egress, linear pipelines"
     path: "core/skills/building/legacy_modernization_standards"
 tools:
   - name: "local_fs_reader"
@@ -35,3 +38,10 @@ system_prompt: |
 
   Your output will be routed to the agent_validator for formal validation before the IR is consumed by downstream Makers.
 dependencies: []
+executor:
+  harness: deepagents
+  model: auto
+async: true
+cancellable: true
+os_env:
+  type: caller_process
