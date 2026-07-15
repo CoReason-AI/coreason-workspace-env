@@ -1,5 +1,5 @@
 import logging
-from coreason_manifest.spec.ontology import EpistemicQuarantineSnapshot
+from src.core.ontology import EpistemicQuarantineSnapshot
 from src.core.db import get_db_pool
 
 logger = logging.getLogger(__name__)

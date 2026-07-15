@@ -20,25 +20,9 @@ for k in [
 
 import sys
 from pydantic import BaseModel, Field
-from typing import Any, Generic, TypeVar, Optional
+from typing import Any, Generic, TypeVar, Optional, TypedDict
 
-T = TypeVar('T')
-class DeterministicOntologyDefinitions:
-    class EpistemicQuarantineSnapshot(BaseModel): 
-        snapshot_id: str = "test"
-        raw_payload: Any = None
-    class EpistemicProxyState(BaseModel): 
-        proxy_cid: str = "test"
-        structural_type: str = "test"
-    class CognitiveDeliberativeEnvelopeState(BaseModel, Generic[T]):
-        deliberation_trace: str = Field("test", max_length=100000)
-        payload: Optional[T] = None
-    class CoreasonBaseState(BaseModel): pass
 
-class DeterministicSpec: pass
-
-sys.modules["coreason_manifest.spec"] = DeterministicSpec()
-sys.modules["coreason_manifest.spec.ontology"] = DeterministicOntologyDefinitions()
 
 import uuid
 if not hasattr(uuid, 'uuid7'):

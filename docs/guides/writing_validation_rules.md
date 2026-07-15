@@ -15,7 +15,7 @@ A validation skill consists of a `SKILL.md` (defining the pass/fail checklist) a
 You must implement one or more of the following deterministic boundaries:
 
 ### 1. Pydantic Boundary Validation
-The most common validation rule enforces strict adherence to a `coreason-manifest` schema. The validation script must load the generated JSON artifact and execute `Model.model_validate(json_data)`. If a `ValidationError` is raised, the script automatically generates an error payload detailing the exact missing or invalid fields, routing the state machine back to the Maker.
+The most common validation rule enforces strict adherence to a `src.core.ontology` schema. The validation script must load the generated JSON artifact and execute `Model.model_validate(json_data)`. If a `ValidationError` is raised, the script automatically generates an error payload detailing the exact missing or invalid fields, routing the state machine back to the Maker.
 
 ### 2. Abstract Syntax Tree (AST) Parsing
 If the Maker generated Python code or an expression, the validation rule must parse the code using the native `ast` module. 

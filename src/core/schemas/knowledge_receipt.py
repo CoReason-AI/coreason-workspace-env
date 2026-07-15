@@ -1,6 +1,6 @@
 from typing import List, Optional
 from pydantic import Field
-from coreason_manifest.spec.ontology import CoreasonBaseState
+from src.core.ontology import CoreasonBaseState
 
 class ProvenanceCitation(CoreasonBaseState):
     """A strict traceability receipt pointing to the exact origin of a claim."""

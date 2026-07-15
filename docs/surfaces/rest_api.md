@@ -32,13 +32,13 @@ sequenceDiagram
 
 ## Pydantic Schema Purity
 
-All API payloads, models, and responses are strictly governed by the `coreason-manifest` PyPI package. 
+All API payloads, models, and responses are strictly governed by the centralized `src.core.ontology` module. 
 
-- **No Local Schemas:** The platform natively forbids the creation of local schema files (e.g., `ontology.py` or `state.py`). All Pydantic geometry is imported directly from the immutable `coreason_manifest`.
+- **Centralized Schemas:** The platform natively forbids the creation of duplicated local schema files inside agent directories. All Pydantic geometry is imported directly from the `src.core.ontology` module.
 - **Zero-Trust Validation:** The FastAPI router relies on these strict Pydantic definitions to mathematically reject malformed payloads before they ever reach the execution layer, enforcing the Epistemic Firewall at the network edge.
 
 > [!CAUTION]
-> Bypassing Pydantic validation via raw JSON parsing is strictly prohibited in this repository. All API endpoints must declare their input body using a strict subclass of `CoreasonBaseState` from `coreason_manifest`.
+> Bypassing Pydantic validation via raw JSON parsing is strictly prohibited in this repository. All API endpoints must declare their input body using a strict subclass of `CoreasonBaseState` from `src.core.ontology`.
 
 ## UUIDv7 Primary Keys
 

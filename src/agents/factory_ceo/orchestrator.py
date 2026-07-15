@@ -7,9 +7,10 @@ from langchain_openai import ChatOpenAI
 from langchain_core.messages import HumanMessage, SystemMessage
 from langgraph.graph import StateGraph, END
 
-from coreason_manifest.spec.ontology import (
+from src.core.ontology import (
     EpistemicQuarantineSnapshot,
-    EpistemicProxyState
+    EpistemicProxyState,
+    OrchestratorCeoState
 )
 from src.core.services.worm_storage import persist_quarantine_snapshot
 
@@ -44,13 +45,7 @@ async def epistemic_interceptor_node(state: dict[str, Any]) -> dict[str, Any]:
         
     return {}
 
-class CeoState(TypedDict):
-    messages: list
-    raw_transcript: str
-    epistemic_proxy: Any
-    is_saturated: bool
-
-def evaluate_context(state: CeoState) -> dict:
+def evaluate_context(state: OrchestratorCeoState) -> dict:
     """
     Evaluates if the context is saturated enough to delegate.
     """
@@ -70,7 +65,7 @@ def evaluate_context(state: CeoState) -> dict:
     is_saturated = "YES" in response.content.upper()
     return {"is_saturated": is_saturated}
 
-def delegate_to_pm(state: CeoState) -> dict:
+def delegate_to_pm(state: OrchestratorCeoState) -> dict:
     """
     Delegates saturated context to the agent_pm.
     """
@@ -83,13 +78,13 @@ def delegate_to_pm(state: CeoState) -> dict:
         return {"messages": [SystemMessage(content=f"Delegation result: {result}")]}
     return {"messages": [SystemMessage(content="agent_pm executed successfully.")]}
 
-def interrogate_user(state: CeoState) -> dict:
+def interrogate_user(state: OrchestratorCeoState) -> dict:
     """
     Asks user for more context.
     """
     return {"messages": [SystemMessage(content="Please provide more detailed requirements for your agent.")]}
 
-def route_evaluation(state: CeoState) -> str:
+def route_evaluation(state: OrchestratorCeoState) -> str:
     if state.get("is_saturated"):
         return "delegate"
     return "interrogate"
@@ -106,7 +101,7 @@ class FactoryCeoAgent(DeepAgent):
             with open(yaml_path, "r", encoding="utf-8") as f:
                 self.agent_spec = yaml.safe_load(f)
                 
-        self.graph_builder = StateGraph(CeoState)
+        self.graph_builder = StateGraph(OrchestratorCeoState)
         self.graph_builder.add_node("interceptor", epistemic_interceptor_node)
         self.graph_builder.add_node("evaluator", evaluate_context)
         self.graph_builder.add_node("delegate", delegate_to_pm)

@@ -5,7 +5,7 @@ from src.core.base_agent import DeepAgent
 
 from typing import Optional
 from pydantic import BaseModel
-from coreason_manifest.spec.ontology import EpistemicProxyState
+from src.core.ontology import EpistemicProxyState
 
 class LibrarianRoutingState(BaseModel):
     """LangGraph State passed from factory_ceo to librarian_pm"""
@@ -15,7 +15,7 @@ from src.core.services import mcp_tool_service
 from src.core.schemas.knowledge_receipt import KnowledgeReceipt, ProvenanceCitation
 
 from langchain_openai import ChatOpenAI
-from coreason_manifest.spec.ontology import CognitiveDeliberativeEnvelopeState
+from src.core.ontology import CognitiveDeliberativeEnvelopeState
 
 logger = logging.getLogger(__name__)
 
