@@ -54,7 +54,7 @@ All platform endpoints (except `/health`) are strictly secured using Bearer Toke
 ### Example: Authenticated Request
 ```bash
 curl -X GET "http://localhost:9005/projects" \
-     -H "Authorization: Bearer coreason-dev-token" \
+     -H "Authorization: Bearer $API_SECRET_TOKEN" \
      -H "Content-Type: application/json"
 ```
 
@@ -76,7 +76,7 @@ CRUD operations for agent projects. Includes air-gapped export endpoints (`/expo
 **Exporting a Project (Airgap Ready):**
 ```bash
 curl -X POST "http://localhost:9005/projects/export/01J18H1P9F2M1Q6N9B9Y6W4A2B" \
-     -H "Authorization: Bearer coreason-dev-token" \
+     -H "Authorization: Bearer $API_SECRET_TOKEN" \
      --output project_bundle.zip
 ```
 
