@@ -1,6 +1,6 @@
-# Tutorial: Building a Multi-Agent Platform via CLI
+# Clinical NLP Migration Project
 
-This tutorial guides you through using the headless CLI to spin up a new multi-agent platform using an external cloud LLM API instead of a local GPU model. We will use the Nemotron 70B model via OpenRouter.
+This document outlines the project for using the headless CLI to spin up a new multi-agent platform designed to modernize the legacy Clinical NLP codebase. We will use the Nemotron 70B model via OpenRouter as our upstream reasoning engine.
 
 ## Prerequisites
 
