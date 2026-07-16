@@ -1,0 +1,61 @@
+graph TD
+    %% 0. Ingestion Surfaces
+    subgraph Ingestion ["0. Multi-Surface Ingestion"]
+        API["REST API"]
+        CLI["CLI / dcode"]
+        MCP["MCP Server"]
+        WS["WebSocket/SSE"]
+        SDK["Python SDK"]
+    end
+
+    Ingestion -->|Trigger execution| User([User Prompt / File Path])
+    
+    %% 1 & 2. Firewall and CEO
+    User -->|API / CLI / MCP| Interceptor[1. Epistemic Interceptor / Firewall]
+    WORM[("WORM Database Quarantine")] -.->|Cryptographically Persist| Interceptor
+    
+    Interceptor -->|Cryptographic Proxy| CEO[2. Factory CEO Orchestrator]
+    
+    %% 3. Librarian / Interrogate Loops
+    CEO -->|Needs Codebase Summary| Librarian[Librarian PM]
+    Librarian -->|Deconstruct & Extract| ContextComp[Context Compressor Agent]
+    ContextComp -->|Compressed context| CEO
+    
+    CEO -->|Missing Details| Interrogate[User Interrogation / Multiple Choice]
+    Interrogate -.->|Ask Clarification| Ingestion
+    
+    %% 4. Saturation and PM Delegation
+    CEO -->|Context Saturated| PMs{PM Routing}
+    PMs -->|Agent Specs| AgentPM[3a. Agent PM]
+    PMs -->|Backend| BackendPM[3b. Backend PM]
+    PMs -->|Frontend| FrontendPM[3c. Frontend PM]
+    
+    %% 5. Maker-Checker Loop
+    subgraph Maker-Checker Loop
+        %% Agent PM Workflow
+        AgentPM -->|Run Maker| PromptEng[Prompt Engineer Agent]
+        PromptEng --> YAMLComp[YAML Compiler Agent]
+        YAMLComp -->|Compiled YAML| Validator[Agent Validator Checker]
+        
+        %% Backend PM Workflow
+        BackendPM -->|Run Maker| FastAPICoder[FastAPI Coder Agent]
+        FastAPICoder -->|Compiled Backend Code| Validator
+        
+        %% Frontend PM Workflow
+        FrontendPM -->|Run Maker| UIDesigner[UI Designer Agent]
+        UIDesigner --> ReactCoder[React Coder Agent]
+        ReactCoder -->|React Component Code| Validator
+        
+        %% Validation Decision
+        Validator -->|Check Standards| ValidDecide{Is Valid?}
+        ValidDecide -->|No - Feedback| Remediation{Attempts < 3?}
+        Remediation -->|Yes| PromptEng
+        Remediation -->|Yes| FastAPICoder
+        Remediation -->|Yes| UIDesigner
+        Remediation -->|No - Fail| ExecutionFail[Execution Failure]
+        ValidDecide -->|Yes| Export[4. Platform Exporter]
+    end
+    
+    %% 6. Egress & DB Checkpoints
+    Export -->|ZIP Archive| Out([Installable Agent Package])
+    Checkpointer[("Postgres Checkpointer")] -.->|Persist State Checkpoint| Export
