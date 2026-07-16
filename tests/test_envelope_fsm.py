@@ -13,7 +13,7 @@ def test_envelope_fsm_token_limit():
     )
     assert valid_env.payload.name == "test"
     
-    # In coreason-manifest, CognitiveDeliberativeEnvelopeState uses Annotated[str, StringConstraints(max_length=...)]
+    # In src.core.ontology, CognitiveDeliberativeEnvelopeState uses Annotated[str, StringConstraints(max_length=...)]
     # We should ensure that an extraordinarily long string fails validation
     long_trace = "A" * 150000  # Assume FSM limit is well below 150000
     with pytest.raises(ValidationError):

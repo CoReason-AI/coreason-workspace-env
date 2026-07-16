@@ -76,7 +76,7 @@ The validator returns a structured result:
 
 > **Rule**: If ANY check returns `FAIL`, the overall status is `FAIL`. The artifact MUST NOT be written to disk. Return the full report to the agent_pm for remediation routing.
 
-- [ ] Does the agent import schemas from coreason_manifest instead of declaring them locally?
+- [ ] Does the agent import schemas centrally from `src.core.ontology` instead of declaring them locally?
 - [ ] Does the agent use uuid.uuid7() natively instead of uuid.uuid4() for primary keys?
 - [ ] **FAIL** if local schema duplication or uuid.uuid4() is found.
 

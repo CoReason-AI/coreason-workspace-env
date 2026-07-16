@@ -94,7 +94,7 @@ To support the real-time observability requirement and enable a rich "accordion"
 - **System Prompting**: You must inject instructions into all agent system prompts mandating that they stream these progress updates and phase summaries back to the harness. This powers the collapsible accordion UI elements downstream.
 
 ## 7. Schema Purity & Data Persistence
-1. **God Context Schema Imports**: The coreason-manifest PyPI package is the absolute single source of truth for all schemas. Never duplicate or create local schema files (e.g. ontology.py or state.py). Always import directly from coreason_manifest (e.g., from coreason_manifest.spec.ontology import CoreasonBaseState).
+1. **Centralized Local Ontology**: All schemas, models, and agent state geometries must be imported centrally from `src.core.ontology`. Never create duplicate or local schema files (e.g. ontology.py or state.py) inside individual agent directories. Always import directly from `src.core.ontology` (e.g., `from src.core.ontology import CoreasonBaseState`).
 2. **UUIDv7 Natively**: The environment uses Python 3.14 natively. Always use uuid.uuid7() when generating UUIDs (e.g., for snapshot_id, project_id). Never use uuid.uuid4(). UUIDv7 prevents Postgres B-Tree index fragmentation and provides native chronological sorting.
 
 ## 8. Strict Separation of Empirical Data and Synthesis

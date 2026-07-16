@@ -6,7 +6,7 @@
 # For details, see the LICENSE file
 # Commercial use beyond a 30-day trial requires a separate license
 #
-# Source Code: <https://github.com/CoReason-AI/coreason-manifest>
+# Source Code: src.core.ontology
 import json
 import logging
 from typing import Dict, Any

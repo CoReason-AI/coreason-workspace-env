@@ -60,7 +60,7 @@ class PlatformExporter:
                 logger.error("Failed to retrieve YAMLs from Postgres: %s", e)
                 return None
         
-        # We assume validation against coreason-manifest passed in the Maker-Checker phase
+        # We assume validation against src.core.ontology passed in the Maker-Checker phase
         
         # Synthesize a valid Python environment file so the output is installable
         pyproject_content = f"""[project]
