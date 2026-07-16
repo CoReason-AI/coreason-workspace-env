@@ -60,10 +60,10 @@ class PlatformOrchestrator:
         
         # Initialize Standalone LLM (vLLM local endpoint)
         self.llm = ChatOpenAI(
-            model=project_manifest.get("model", "nvidia/nemotron-3-nano-30b-a3b:free"),
-            base_url=project_manifest.get("base_url"),
-            api_key="standalone-key-placeholder", # Handled by Vault in reality
-            temperature=0.0
+            model=project_manifest.get("model", settings.LLM_MODEL_NAME),
+            base_url=project_manifest.get("base_url", settings.LLM_BASE_URL),
+            api_key=project_manifest.get("api_key", settings.LLM_API_KEY), # Handled by Vault in reality
+            temperature=project_manifest.get("temperature", settings.LLM_TEMPERATURE)
         )
         
         logger.info(f"PlatformOrchestrator initialized with Brain: {self.agent_name} at {agent_def_path}")
@@ -85,7 +85,15 @@ class PlatformOrchestrator:
             await sys_conn.close()
 
             async with self.pool:
-                checkpointer = AsyncPostgresSaver(self.pool)
+                from langgraph.checkpoint.serde.jsonplus import JsonPlusSerializer
+                custom_serde = JsonPlusSerializer(
+                    allowed_msgpack_modules=[
+                        ("src.core.ontology", "EpistemicProxyState"),
+                        ("src.core.ontology", "EpistemicQuarantineSnapshot"),
+                        ("src.core.ontology", "OrchestratorCeoState")
+                    ]
+                )
+                checkpointer = AsyncPostgresSaver(self.pool, serde=custom_serde)
                 await checkpointer.setup()
                 
                 from deepagents import create_deep_agent

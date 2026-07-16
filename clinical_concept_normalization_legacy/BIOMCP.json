@@ -1,0 +1,10 @@
+{
+  "unstructured_text": "string",
+  "target_event": {
+    "verbatim_chunk": "string",
+    "concept_type": "string",
+    "is_negated": "boolean",
+    "is_historical": "boolean",
+    "umls_cui": "string"
+  }
+}

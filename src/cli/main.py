@@ -1,8 +1,12 @@
 import typer
 import asyncio
+import sys
 from typing import Optional
 import uuid
+import logging
 
+# Suppress Langfuse background telemetry warnings from contaminating CLI output
+logging.getLogger("langfuse").setLevel(logging.CRITICAL)
 app = typer.Typer()
 import json
 agents_app = typer.Typer()
@@ -68,7 +72,11 @@ def mcp_list_servers():
 
 
 @app.command()
-def build(intent: str, output_dir: str = "./dist"):
+def build(
+    intent: str, 
+    output_dir: str = typer.Option("./dist", help="Output directory for bundled agent specs"),
+    input_path: Optional[str] = typer.Option(None, "--input-path", help="Path to a file, zip, or directory containing additional context")
+):
     """
     Headless CLI for building a new agent platform via the coreason factory.
     """
@@ -81,13 +89,36 @@ def build(intent: str, output_dir: str = "./dist"):
     user_id = "cli-user"
     
     async def run():
-        typer.echo(f"Session ID: {session_id}")
-        result = await orch.run_persona_graph(user_id, session_id, intent, output_dir=output_dir)
-        if result.get("status") == "success":
-            typer.echo(f"[SUCCESS] Platform bundled at: {result.get('artifact')}")
-        else:
-            typer.echo(f"[ERROR] Build failed: {result.get('details')}")
+        current_intent = intent
+        current_input_path = input_path
+        
+        while True:
+            typer.echo(f"Session ID: {session_id}")
+            result = await orch.run_persona_graph(
+                user_id, 
+                session_id, 
+                current_intent, 
+                output_dir=output_dir,
+                input_path=current_input_path
+            )
+            if result.get("status") == "success":
+                typer.echo(f"[SUCCESS] Platform bundled at: {result.get('artifact')}")
+                break
+            else:
+                if result.get("is_saturated") is False:
+                    # Interactive loop
+                    question = result.get("details", "Please provide more details.")
+                    typer.echo(f"\n[CEO] {question}")
+                    user_reply = typer.prompt("You")
+                    current_intent = user_reply
+                    # Clear input_path to avoid re-extracting context repeatedly
+                    current_input_path = None
+                else:
+                    typer.echo(f"[ERROR] Build failed: {result.get('details')}")
+                    break
             
+    if sys.platform == "win32":
+        asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
     asyncio.run(run())
 
 @app.command()

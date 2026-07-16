@@ -1,0 +1,11 @@
+{
+  "agent_id": "clinical-definition-synthesizer",
+  "model_id": "deepseek-chat",
+  "output_key": "",
+  "prompt_template": "user Input",
+  "success_status": "",
+  "fail_status": "",
+  "mcp_enabled": false,
+  "pre_fetch": [],
+  "regex_parsers": {}
+}

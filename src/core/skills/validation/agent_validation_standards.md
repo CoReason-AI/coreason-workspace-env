@@ -126,3 +126,27 @@ The validator returns a structured result:
 ### V19. Dialectical Synthesis
 - [ ] For ideation, design, or hypothesis generation tasks, does the agent employ Dialectical Reasoning (Thesis -> Antithesis -> Synthesis)?
 - [ ] **WARN** if creative or ambiguous tasks lack a dialectical critique mechanism.
+
+### V20. Epidemiological Causal Inference (Hill's Criteria)
+- [ ] For health/epidemiological risks, does the agent evaluate associations against Bradford Hill criteria and construct DAGs?
+- [ ] **WARN** if the agent infers medical causality from correlation without formal framework application.
+
+### V21. Counterfactual Simulation (Do-Calculus)
+- [ ] When proposing clinical/PHM interventions, does the agent simulate `do-interventions` via a causal engine to rank treatment effects?
+- [ ] **WARN** if interventions are recommended purely on LLM token probabilities without causal simulation.
+
+### V22. Multi-Model Consensus
+- [ ] For GxP or high-risk tasks, does the agent use a Consortium Pattern with a Governance Agent synthesizing multiple models' outputs?
+- [ ] **WARN** if a single LLM is relied upon for high-risk regulatory decisions.
+
+### V23. Abductive Root-Cause Isolation
+- [ ] For diagnostics, does the agent use abductive reasoning over a causal graph to identify the most plausible root cause from symptoms?
+- [ ] **WARN** if the agent attempts root cause analysis without abductive logic or a defined causal graph.
+
+### V24. Glass Box Traceability
+- [ ] For regulated (GxP/FDA) environments, does the agent explicitly document assumptions, constraints, and domain boundaries (e.g., `assumptions_and_constraints` JSON block) before acting?
+- [ ] **FAIL** if the agent operates as a black box without explicit, structured traceability in regulated domains.
+
+### V25. Bayesian Belief Updating (Orchestration)
+- [ ] For orchestrators managing high-uncertainty routing or diagnostics, does the system prompt mandate a Bayes-consistent tracking of prior and posterior beliefs?
+- [ ] **WARN** if the orchestrator resolves complex uncertainty without tracking an explicit probabilistic world model.

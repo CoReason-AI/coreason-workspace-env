@@ -32,7 +32,7 @@ class YamlCompilerAgent(DeepAgent):
             base_url=settings.LLM_BASE_URL
         ).with_structured_output(YamlCompilerOutput)
 
-    def execute(self, context: dict, session_id: str = None) -> dict:
+    def execute(self, context: dict, session_id: str = None, config: dict = None) -> dict:
         """
         Executes deterministically based on saturated context.
         """
@@ -43,5 +43,14 @@ class YamlCompilerAgent(DeepAgent):
         ]
         
         logger.info(f"[{session_id}] YamlCompiler executing deterministic generation.")
-        result = self.llm.invoke(messages)
+        
+        if config is None:
+            from src.core.services.observability_service import ObservabilityService
+            obs = ObservabilityService()
+            langfuse_cb = obs.get_langfuse_callback(session_id)
+            config = {}
+            if langfuse_cb:
+                config["callbacks"] = [langfuse_cb]
+            
+        result = self.llm.invoke(messages, config=config)
         return {"compiled_yaml": result.dict()}

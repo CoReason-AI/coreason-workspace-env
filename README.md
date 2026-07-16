@@ -13,9 +13,14 @@
 
 **Tech Stack:**
 [![LangGraph](https://img.shields.io/badge/LangGraph-Native-black?style=flat)]()
+[![Langfuse](https://img.shields.io/badge/Langfuse-Observability-FF5E00?style=flat)]()
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.100+-009688?style=flat&logo=fastapi&logoColor=white)]()
 [![MCP](https://img.shields.io/badge/MCP-Server-8A2BE2?style=flat)]()
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Checkpointer-4169E1?style=flat&logo=postgresql&logoColor=white)]()
+[![ClickHouse](https://img.shields.io/badge/ClickHouse-OLAP-FFCC01?style=flat&logo=clickhouse&logoColor=black)]()
 [![Redis](https://img.shields.io/badge/Redis-PubSub-DC382D?style=flat&logo=redis&logoColor=white)]()
+[![Vault](https://img.shields.io/badge/HashiCorp_Vault-Secrets-000000?style=flat&logo=hashicorp-vault&logoColor=white)]()
+[![Docker](https://img.shields.io/badge/Docker-Containers-2496ED?style=flat&logo=docker&logoColor=white)]()
 
 **The Headless Agent Development Platform.**
 
