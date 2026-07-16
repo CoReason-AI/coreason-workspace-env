@@ -21,7 +21,7 @@ This pre-dispatch **Schema Saturation** acts as a programmatic choke point. Only
 ## Maker-Checker-Approver Pipeline
 The platform completely rejects stochastic self-correction (Generator-Critic) for structural and syntactical validation. Instead, it enforces a rigid **Maker-Checker-Approver** pipeline:
 1. **The Maker (Generation)**: Generates the required artifact (Python, JSON, SQL).
-2. **The Checker (Deterministic Validation)**: Intercepts the artifact with a purely deterministic LangGraph node containing zero generative LLM calls. It runs AST parsers, strict Pydantic checks, and sandboxed code execution.
+2. **The Checker (Deterministic Validation)**: Intercepts the artifact with a purely deterministic LangGraph node containing zero generative LLM calls. It runs AST parsers (`libcst`), strict Pydantic checks, and sandboxed code execution. *Note: AST manipulation by Maker agents is strictly forbidden, as parsers instantly fail on syntactically invalid files, paralyzing the agent. Maker agents must use language-agnostic string replacement, while the Checker uses AST tools purely for read-only structural validation.*
 3. **Remediation / Approver**: Artifacts failing the Checker are routed back to the Maker. Passing artifacts proceed to an Approver (PM or Human-in-the-Loop) for semantic approval.
 
 ## Anti-Stub Enforcement Policy

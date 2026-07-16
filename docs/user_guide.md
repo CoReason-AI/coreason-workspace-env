@@ -43,7 +43,7 @@ Once the context threshold is met, the `factory_ceo` stops interrogating you. It
 The Maker agents execute deterministically in the background. They do not ask you questions. Using the shared skills library (`src/core/skills/building/`), they construct the necessary artifacts: Python nodes, tool integrations, and agent YAML definitions strictly bound by the DeepAgent pattern.
 
 ### Step 5: The Checker Phase (Agent Validation)
-Before any code is finalized, the artifacts hit the `agent_validator`. This agent acts as the strict "Checker" in the pipeline. It evaluates the generated files against the strict validation standards located in `src/core/skills/validation/` (e.g., verifying namespace mapping and Pydantic compliance).
+Before any code is finalized, the artifacts hit the `agent_validator`. This agent acts as the strict "Checker" in the pipeline. It evaluates the generated files against the strict validation standards located in `src/core/skills/validation/` (e.g., verifying namespace mapping, Pydantic compliance, and mathematically deterministic syntax validation via `libcst`).
 
 ### Step 6: The Remediation Loop
 If the `agent_validator` detects violations (e.g., a Maker agent hallucinated a Pydantic schema or failed to name a YAML file correctly), the `agent_pm` actively routes the artifact back to the Maker with the error trace for automatic remediation. You can observe this loop in real-time via the SSE `state_sync` streams or the Accordion tracker list in the UI.

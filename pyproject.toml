@@ -44,6 +44,7 @@ dependencies = [
     "langfuse-langchain>=2.60.10.1",
     "psycopg-binary>=3.3.4",
     "e2b-code-interpreter>=1.0.0",
+    "libcst>=1.8.6",
 ]
 
 [project.scripts]

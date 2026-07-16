@@ -37,7 +37,7 @@ The platform rejects stochastic self-correction and relies on a deterministic **
 
 ### Types of Validation Rules
 1. **Pydantic Boundary Validation**: Loads the generated artifact and executes `Model.model_validate(json_data)`. Raises `ValidationError` if fields are missing/invalid.
-2. **Abstract Syntax Tree (AST) Parsing**: Parses Python code to ensure malicious blocks (like `eval()`) are not present.
+2. **Abstract Syntax Tree (AST) Parsing (`libcst`)**: Parses Python code to ensure syntax is valid and malicious blocks (like `eval()`) are not present. AST tools are implemented natively as LangChain v1 tools but are restricted strictly to **read-only validation** to prevent agent paralysis when encountering broken source files.
 3. **Isolated Sandbox Execution**: Compiles and executes the generated artifact within an ephemeral WebAssembly (Wasm) sandbox to validate the mathematical result.
 
 ### The Rule Writing Mandate
