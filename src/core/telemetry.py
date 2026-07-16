@@ -45,19 +45,23 @@ def setup_telemetry(log_level: int = logging.INFO):
 
 def set_ambient_session(session_id: str):
     """
-    Binds the session ID globally to structlog ContextVars and OpenTelemetry Context.
+    Binds the session ID globally to structlog ContextVars.
     This guarantees that deeply nested async functions inherit the trace ID 
     without passing it manually, avoiding memory leaks via native async safety.
     """
     # Bind to structlog for all subsequent log messages in this async tree
     structlog.contextvars.bind_contextvars(session_id=session_id)
     
-    # Attach to OpenTelemetry Context for Langfuse consumption
-    token = context.attach(context.set_value("session_id", session_id))
-    return token
+    try:
+        from langfuse.decorators import langfuse_context
+        langfuse_context.update_current_trace(session_id=session_id)
+    except Exception:
+        pass
+        
+    return None
 
 def get_ambient_session() -> str:
     """
-    Retrieves the ambient session_id from the OpenTelemetry context.
+    Retrieves the ambient session_id from structlog contextvars.
     """
-    return context.get_value("session_id")
+    return structlog.contextvars.get_contextvars().get("session_id", "unknown")
