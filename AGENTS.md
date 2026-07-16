@@ -88,3 +88,24 @@ The platform exposes **five first-class interaction surfaces**. Every platform c
 ## Assistant's Role and Scope
 1. **Assistant Identity**: The AI coding assistant (you) is not solving the final domain tasks directly (e.g., designing the agent topology for the user). Your role is strictly to help the user build the `coreason-workspace-env` platform itself. The platform contains the agents (like `factory_ceo`) that will perform those tasks at runtime. You help the user build the platform by walking through and implementing these use cases in the platform codebase.
 2. **Agent Improvement System**: You act as the "agent improvement system". When coding, your job is to configure the environment (e.g., passing secrets to the workspace agents) so they can operate autonomously. Tests consist of observing the agents execute in the dev/test environment, identifying where they fail, and improving their code/prompts. You do not execute the test logic yourself; you watch them work and improve them.
+
+## LangChain-First & DeepAgent-First Architecture
+As a LangChain-first company, we strictly prioritize native **LangChain, LangGraph, and deepagents** ecosystem packages over custom abstractions or external third-party wrappers. Furthermore, **among all LangChain tools, we are DeepAgent-first**. If an official LangChain ecosystem integration exists (e.g. `langchain-e2b`, `langfuse-langchain`, `langchain-community`), it MUST be the default architectural choice, but it should always be routed through the `deepagents` Maker-Checker-Approver paradigm. Do not build custom wrappers, reinvent API SDKs, or introduce non-native frameworks unless absolutely necessary.
+
+### Open-Source First (Telemetry & Observability)
+We are an **Open-Source First** platform. Even within the LangChain ecosystem, we strictly reject closed-source or proprietary SaaS lock-in where an open-source alternative exists.
+- **LangSmith is strictly forbidden** because it is not open-source.
+- **Langfuse is the mandated standard** for all tracing, observability, and evaluation because it provides a self-hostable, open-source alternative while seamlessly integrating with LangChain/LangGraph.
+
+### 🚫 Exceptions & Anti-Patterns (What NOT to use)
+While we prioritize the LangChain ecosystem, we strictly forbid the use of deprecated or "black-box" legacy abstractions that hinder enterprise production readiness. You MUST avoid:
+
+1. **Legacy `AgentExecutor`**: Do not use `AgentExecutor` or `initialize_agent`. All orchestrator and agent routing logic MUST be built using **LangGraph** (`StateGraph`, `create_react_agent`) or native **deepagents** routing for deterministic control flow and observability.
+2. **Legacy Pre-built Chains**: Do not use deprecated chain classes like `LLMMathChain`, `SQLDatabaseChain`, or `LLMChain`. Rely on **LangGraph Tool Calling** or **LCEL (LangChain Expression Language)** for transparent, debuggable execution.
+3. **Legacy Memory Abstractions**: Do not use in-memory buffers like `ConversationBufferMemory`. Agent state must be explicitly managed via LangGraph Checkpointers (e.g., `langgraph-checkpoint-postgres`) as integrated by `deepagents`.
+4. **Opaque Prompt Templates**: Do not use black-box components that hide their internal prompt templates. Prompts must be explicitly versioned, managed, and passed to the LLM to prevent abstraction leakage and prompt injection vulnerabilities.
+
+### Strict Version Boundary (`deepagents >= 0.6.0`)
+This platform strictly targets the modern **`deepagents >= 0.6.0`** ecosystem. We do not support legacy deepagents API contracts (e.g., deprecated `ls_info`, `grep_raw`, or removed properties like `ASYNC_GREP_TIMEOUT`). 
+- Any LangChain integration or third-party plugin that relies on `deepagents < 0.6.0` internals must be aggressively monkey-patched, updated, or forked. 
+- Never downgrade the core `deepagents` runtime to accommodate a legacy plugin.

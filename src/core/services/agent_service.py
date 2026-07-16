@@ -5,14 +5,17 @@ import json
 import logging
 import uuid
 import time
+import asyncio
 from pathlib import Path
 from typing import Dict, Any, List, Optional
 
 import yaml
 
+from src.core.engine.deepagent_runtime import PlatformOrchestrator
+from src.core.services.observability_service import ObservabilityService
+
 logger = logging.getLogger(__name__)
 
-# Resolve agents directory relative to this module
 _AGENTS_DIR = Path(__file__).resolve().parent.parent.parent / "agents"
 
 
@@ -44,7 +47,6 @@ class AgentService:
                         "dependencies": data.get("dependencies", []),
                         "path": str(agent_dir),
                     }
-                    # Support both skill_registry (new) and skills (legacy)
                     if "skill_registry" in data:
                         agent_entry["skill_registry"] = data["skill_registry"]
                     else:
@@ -61,7 +63,6 @@ class AgentService:
         from src.core.security.path_validation import validate_alphanumeric, validate_safe_path
         try:
             validate_alphanumeric(agent_name)
-            # Resolves and validates the path in a way officially recognized by CodeQL as a sanitizer
             agent_dir = validate_safe_path(agent_name, base_dir=_AGENTS_DIR)
         except ValueError:
             return None
@@ -81,13 +82,11 @@ class AgentService:
             "system_prompt": data.get("system_prompt", ""),
             "path": str(agent_dir),
         }
-        # Support both skill_registry (new) and skills (legacy)
         if "skill_registry" in data:
             result["skill_registry"] = data["skill_registry"]
         else:
             result["skills"] = data.get("skills", [])
 
-        # Include orchestrator source if present
         orchestrator = agent_dir / "orchestrator.py"
         if orchestrator.is_file():
             result["orchestrator_source"] = orchestrator.read_text(encoding="utf-8")
@@ -103,28 +102,19 @@ class AgentService:
         session_id: Optional[str] = None,
     ) -> Dict[str, Any]:
         """
-        Enqueue an agent execution via the Redis task queue.
+        Enqueue an agent execution via the native LangGraph Checkpointer.
         Traces the execution via the Langfuse/WORM bridge.
         Returns a job_id for polling.
         """
         from src.core.security.path_validation import validate_alphanumeric, sanitize_log_input
         validate_alphanumeric(agent_name)
 
-        from src.core.queue import task_queue
-
         job_id = session_id or str(uuid.uuid7())
 
-        task_queue.enqueue_workflow(
-            session_id=job_id,
-            agent_name=agent_name,
-            payload={
-                "user_id": user_id,
-                "tenant_id": tenant_id,
-                **payload,
-            },
-        )
+        orchestrator = PlatformOrchestrator(project_manifest={})
+        asyncio.create_task(orchestrator.execute_graph(session_id=job_id, user_input=json.dumps(payload)))
+        logger.info(f"LangGraph execution enqueued for thread_id {job_id}")
 
-        # Trace the execution enqueue via the Langfuse/WORM bridge
         try:
             from src.core.tracing.langfuse_bridge import tracing_bridge
             safe_agent_name = sanitize_log_input(agent_name)
@@ -151,17 +141,23 @@ class AgentService:
             "poll_url": f"/api/v2/jobs/{job_id}",
         }
 
-    def get_execution_status(self, job_id: str) -> Dict[str, Any]:
+    async def get_execution_status(self, job_id: str) -> Dict[str, Any]:
         """
         Check the status of a previously enqueued job.
-        For now, returns a placeholder — real implementation would
-        query Postgres LangGraph checkpointer for thread state.
+        Queries Postgres LangGraph checkpointer for actual thread state.
         """
-        # TODO: Query Postgres checkpointer for actual thread state
+        obs = ObservabilityService()
+        state = await obs.fetch_postgres_state(job_id)
+        if "error" in state:
+            return {
+                "job_id": job_id,
+                "status": "running",
+                "detail": state["error"],
+            }
         return {
             "job_id": job_id,
-            "status": "running",
-            "detail": "LangGraph execution in progress. Query the checkpointer for live state.",
+            "status": "success",
+            "detail": state,
         }
 
     def rewind_checkpoint(self, checkpoint_id: str) -> Dict[str, Any]:
@@ -169,7 +165,6 @@ class AgentService:
         Rewind a session's LangGraph execution state to a specific checkpoint.
         For now, returns a dummy success response.
         """
-        # Validate checkpoint_id as a UUID to prevent log/path injection
         try:
             uuid.UUID(checkpoint_id)
         except ValueError:

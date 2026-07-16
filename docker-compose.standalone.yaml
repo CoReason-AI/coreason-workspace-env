@@ -12,17 +12,6 @@ services:
       - minio
       - ollama
 
-  # Overrides for the worker to build locally and use sovereign endpoints
-  platform_worker:
-    build: .
-    environment:
-      WORM_S3_ENDPOINT: "http://minio:9000"
-      LLM_BASE_URL: "http://ollama:11434/v1"
-      LLM_MODEL_NAME: "llama3"
-    depends_on:
-      - minio
-      - ollama
-
   # Sovereign WORM Storage (S3 API)
   minio:
     image: minio/minio:latest

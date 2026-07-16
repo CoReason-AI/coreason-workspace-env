@@ -126,15 +126,15 @@ class ObservabilityService:
 
     async def resume_agent(self, session_id: str, agent_name: str, payload: Dict[str, Any]) -> Dict[str, Any]:
         """
-        Resumes a paused or failed agent execution by enqueuing a new task to Redis.
+        Resumes a paused or failed agent execution via native LangGraph checkpoint state.
         """
         try:
-            from src.core.queue import task_queue
-            task_queue.enqueue_workflow(
-                session_id=session_id,
-                agent_name=agent_name,
-                payload=payload
-            )
+            from src.core.engine.deepagent_runtime import PlatformOrchestrator
+            import asyncio
+            import json
+            orchestrator = PlatformOrchestrator(project_manifest={})
+            asyncio.create_task(orchestrator.execute_graph(session_id=session_id, user_input=json.dumps(payload)))
+            logger.info(f"LangGraph execution resumed for thread_id {session_id}")
             return {"status": "success", "message": f"Resumed agent {agent_name} for session {session_id}"}
         except Exception as e:
             logger.error(f"Failed to resume agent: {e}")

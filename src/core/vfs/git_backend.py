@@ -2,10 +2,11 @@ import os
 import subprocess
 import logging
 from pathlib import Path
+from deepagents.backends.protocol import BackendProtocol
 
 logger = logging.getLogger(__name__)
 
-class TrueGitBackend:
+class TrueGitBackend(BackendProtocol):
     """
     Virtual Filesystem (VFS) True Git Backend.
     Enforces that all human and agent actions trigger automatic commits to the underlying Git repository.
@@ -44,7 +45,6 @@ class TrueGitBackend:
         """
         self._run_git(["add", "."])
         
-        # Check if there's anything to commit
         status = self._run_git(["status", "--porcelain"])
         if not status:
             logger.debug("No changes to commit in VFS.")
@@ -56,26 +56,48 @@ class TrueGitBackend:
     def resolve_merge_conflict(self, resolution_data: str):
         """
         Placeholder for when the LangGraph interrupts for a human to resolve a conflict.
-        The human uses the Cloud IDE to fix it, then calls this method to finalize the merge.
         """
-        # 1. Write the resolution data to the files
-        # 2. Add and commit
         pass
 
-    def get_file_content(self, relative_path: str) -> str:
+    # --- BackendProtocol Implementation ---
+
+    def read(self, path: str) -> str:
         """Reads a file from the VFS."""
-        file_path = self.workspace_path / relative_path
+        file_path = self.workspace_path / path
         if not file_path.exists():
-            raise FileNotFoundError(f"File {relative_path} not found in VFS.")
+            raise FileNotFoundError(f"File {path} not found in VFS.")
         with open(file_path, "r", encoding="utf-8") as f:
             return f.read()
 
-    def write_file_content(self, relative_path: str, content: str, author: str, commit_msg: str):
+    def write(self, path: str, content: str) -> None:
         """Writes to a file in the VFS and automatically commits."""
-        file_path = self.workspace_path / relative_path
+        file_path = self.workspace_path / path
         file_path.parent.mkdir(parents=True, exist_ok=True)
         
         with open(file_path, "w", encoding="utf-8") as f:
             f.write(content)
             
-        self.commit_changes(author=author, message=commit_msg)
+        self.commit_changes(author="Agent", message=f"VFS Backend write to {path}")
+
+    def edit(self, path: str, content: str) -> None:
+        """Edits a file in the VFS."""
+        self.write(path, content)
+
+    def ls(self, path: str = ".") -> list[str]:
+        """Lists directory contents."""
+        target_path = self.workspace_path / path
+        if not target_path.exists():
+            return []
+        if target_path.is_file():
+            return [path]
+        return [str(p.relative_to(self.workspace_path)) for p in target_path.iterdir()]
+
+    def grep(self, query: str, path: str = ".") -> str:
+        """Searches for a string within the VFS."""
+        # Stub for deepagents protocol compliance
+        return ""
+
+    def glob(self, pattern: str) -> list[str]:
+        """Globs a pattern within the VFS."""
+        # Stub for deepagents protocol compliance
+        return []

@@ -47,6 +47,9 @@ class Settings(BaseSettings):
     LLM_TEMPERATURE: float = 0.0
     LLM_BASE_URL: str = "https://api.openai.com/v1"
     
+    # E2B Sandbox
+    E2B_API_KEY: str = ""
+    
     class Config:
         env_file = ".env"
         env_file_encoding = 'utf-8'

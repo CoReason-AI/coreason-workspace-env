@@ -11,35 +11,11 @@ services:
     environment:
       POSTGRES_HOST: postgres_checkpointer
       POSTGRES_PORT: 5432
-      REDIS_URL: redis://redis_queue:6379
       VAULT_ADDR: http://vault:8200
       LANGFUSE_HOST: http://langfuse:3000
     volumes:
       - ./src:/home/coreason/project/src
     depends_on:
-      redis_queue:
-        condition: service_started
-      postgres_checkpointer:
-        condition: service_healthy
-    restart: always
-
-  # 2. Background Task Worker (Pulls and runs enqueued agent tasks)
-  platform_worker:
-    image: ghcr.io/coreason-ai/coreason-workspace-env:develop
-    env_file:
-      - .env
-    environment:
-      POSTGRES_HOST: postgres_checkpointer
-      POSTGRES_PORT: 5432
-      REDIS_URL: redis://redis_queue:6379
-      VAULT_ADDR: http://vault:8200
-      LANGFUSE_HOST: http://langfuse:3000
-    command: ["/home/coreason/project/.venv/bin/python", "-m", "src.workers.keda_worker"]
-    volumes:
-      - ./src:/home/coreason/project/src
-    depends_on:
-      redis_queue:
-        condition: service_started
       postgres_checkpointer:
         condition: service_healthy
     restart: always
@@ -60,13 +36,6 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
-    restart: always
-
-  # 4. Redis for task queue
-  redis_queue:
-    image: redis:7-alpine
-    ports:
-      - "6379:6379"
     restart: always
 
   # 5. HashiCorp Vault (Dev Server for local secrets federation)
