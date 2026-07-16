@@ -99,6 +99,7 @@ class OrchestrationService:
             from src.core.services.export_service import PlatformExporter
             exporter = PlatformExporter(output_dir=output_dir)
             zip_path = await exporter.bundle_agent_specs(session_id)
-            return {"status": "success", "artifact": zip_path, "details": str(result)}
+            return {"status": "success", "artifact": zip_path, "details": str(result), "is_saturated": is_sat}
             
-        return {"status": "failure", "details": str(result)}
+        last_message = result.get("messages", [])[-1].content if result.get("messages") else "Interrogation requested by agent."
+        return {"status": "failure", "details": last_message, "is_saturated": is_sat}

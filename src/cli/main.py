@@ -86,18 +86,33 @@ def build(
     user_id = "cli-user"
     
     async def run():
-        typer.echo(f"Session ID: {session_id}")
-        result = await orch.run_persona_graph(
-            user_id, 
-            session_id, 
-            intent, 
-            output_dir=output_dir,
-            input_path=input_path
-        )
-        if result.get("status") == "success":
-            typer.echo(f"[SUCCESS] Platform bundled at: {result.get('artifact')}")
-        else:
-            typer.echo(f"[ERROR] Build failed: {result.get('details')}")
+        current_intent = intent
+        current_input_path = input_path
+        
+        while True:
+            typer.echo(f"Session ID: {session_id}")
+            result = await orch.run_persona_graph(
+                user_id, 
+                session_id, 
+                current_intent, 
+                output_dir=output_dir,
+                input_path=current_input_path
+            )
+            if result.get("status") == "success":
+                typer.echo(f"[SUCCESS] Platform bundled at: {result.get('artifact')}")
+                break
+            else:
+                if result.get("is_saturated") is False:
+                    # Interactive loop
+                    question = result.get("details", "Please provide more details.")
+                    typer.echo(f"\n[CEO] {question}")
+                    user_reply = typer.prompt("You")
+                    current_intent = user_reply
+                    # Clear input_path to avoid re-extracting context repeatedly
+                    current_input_path = None
+                else:
+                    typer.echo(f"[ERROR] Build failed: {result.get('details')}")
+                    break
             
     if sys.platform == "win32":
         asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
