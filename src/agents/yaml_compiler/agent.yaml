@@ -24,6 +24,14 @@ skill_registry:
     abstract: "How to deconstruct legacy agentic patterns into normalized IR — spaghetti
       prompts, free-text handoffs, direct egress, linear pipelines"
     path: "core/skills/building/legacy_modernization_standards"
+  - name: "context_compaction_protocol"
+    artifact_types: ["agent_yaml"]
+    abstract: "Preventing reasoning degradation by periodically shrinking memory into dense key-value payloads."
+    path: "core/skills/building/context_compaction_protocol"
+  - name: "context_expansion_mapping"
+    artifact_types: ["agent_yaml"]
+    abstract: "Preventing tunnel vision by forcing lateral ontological lookups for class effects."
+    path: "core/skills/building/context_expansion_mapping"
   - name: "six_thinking_hats_evaluation"
     artifact_types: ["agent_yaml"]
     abstract: "Preventing Groupthink via adversarial, multi-perspective evaluation (De Bono Framework)."
