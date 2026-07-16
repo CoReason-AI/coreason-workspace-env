@@ -77,7 +77,7 @@ def delegate_to_pm(state: OrchestratorCeoState, config: RunnableConfig) -> dict:
     pm = AgentPmAgent()
     if hasattr(pm, 'execute'):
         session_id = config.get("configurable", {}).get("thread_id")
-        result = pm.execute(state, session_id=session_id)
+        result = pm.execute(state, session_id=session_id, config=config)
         return {"messages": [SystemMessage(content=f"Delegation result: {result}")]}
     return {"messages": [SystemMessage(content="agent_pm executed successfully.")]}
 

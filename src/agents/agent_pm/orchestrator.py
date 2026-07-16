@@ -82,14 +82,11 @@ class AgentPmAgent(DeepAgent):
         else:
             return "retry"
 
-    def execute(self, state: dict, session_id: str = None) -> str:
+    def execute(self, state: dict, session_id: str = None, config: dict = None) -> str:
         """
         Executes Maker-Checker loop using a declarative LangGraph StateGraph.
         """
         import uuid
-        from src.core.services.observability_service import ObservabilityService
-        obs = ObservabilityService()
-        langfuse_cb = obs.get_langfuse_callback(session_id)
         
         logger.info(f"[{session_id}] AgentPM initiating LangGraph StateGraph pipeline.")
         initial_state = {
@@ -102,16 +99,21 @@ class AgentPmAgent(DeepAgent):
         
         from langgraph.checkpoint.postgres import PostgresSaver
         import psycopg
+        from src.core.services.observability_service import ObservabilityService
+        obs = ObservabilityService()
+        
         with psycopg.connect(obs.pg_dsn) as conn:
             checkpointer = PostgresSaver(conn)
             checkpointer.setup()
             graph_with_checkpointer = self.graph_builder.compile(checkpointer=checkpointer)
             
-            config = {
-                "configurable": {"thread_id": session_id or str(uuid.uuid7())}
-            }
-            if langfuse_cb:
-                config["callbacks"] = [langfuse_cb]
+            if config is None:
+                langfuse_cb = obs.get_langfuse_callback(session_id)
+                config = {
+                    "configurable": {"thread_id": session_id or str(uuid.uuid7())}
+                }
+                if langfuse_cb:
+                    config["callbacks"] = [langfuse_cb]
                 
             result = graph_with_checkpointer.invoke(initial_state, config=config)
         
