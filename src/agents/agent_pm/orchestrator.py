@@ -108,12 +108,9 @@ class AgentPmAgent(DeepAgent):
             graph_with_checkpointer = self.graph_builder.compile(checkpointer=checkpointer)
             
             if config is None:
-                langfuse_cb = obs.get_langfuse_callback(session_id)
                 config = {
                     "configurable": {"thread_id": session_id or str(uuid.uuid7())}
                 }
-                if langfuse_cb:
-                    config["callbacks"] = [langfuse_cb]
             else:
                 # We inherited config from factory_ceo (including Langfuse callbacks)
                 # But we MUST use a distinct thread_id for our internal checkpointer to avoid state collision

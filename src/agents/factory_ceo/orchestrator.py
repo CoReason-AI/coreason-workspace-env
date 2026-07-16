@@ -187,8 +187,7 @@ class FactoryCeoAgent(DeepAgent):
     async def execute(self, context: dict, session_id: str = None) -> Any:
         from src.core.services.observability_service import ObservabilityService
         obs = ObservabilityService()
-        langfuse_cb = obs.get_langfuse_callback(session_id)
-        
+
         from langgraph.checkpoint.postgres.aio import AsyncPostgresSaver
         from langgraph.checkpoint.serde.jsonplus import JsonPlusSerializer
         
@@ -208,7 +207,5 @@ class FactoryCeoAgent(DeepAgent):
             config = {
                 "configurable": {"thread_id": session_id or str(uuid.uuid7())}
             }
-            if langfuse_cb:
-                config["callbacks"] = [langfuse_cb]
-                
+
             return await graph_with_checkpointer.ainvoke(context, config=config)

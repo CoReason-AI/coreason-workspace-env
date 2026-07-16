@@ -51,12 +51,6 @@ def set_ambient_session(session_id: str):
     """
     # Bind to structlog for all subsequent log messages in this async tree
     structlog.contextvars.bind_contextvars(session_id=session_id)
-    
-    try:
-        from langfuse.decorators import langfuse_context
-        langfuse_context.update_current_trace(session_id=session_id)
-    except Exception:
-        pass
         
     return None
 

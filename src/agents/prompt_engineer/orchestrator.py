@@ -45,12 +45,7 @@ class PromptEngineerAgent(DeepAgent):
         logger.info(f"[{session_id}] PromptEngineer executing deterministic generation.")
         
         if config is None:
-            from src.core.services.observability_service import ObservabilityService
-            obs = ObservabilityService()
-            langfuse_cb = obs.get_langfuse_callback(session_id)
             config = {}
-            if langfuse_cb:
-                config["callbacks"] = [langfuse_cb]
             
         result = self.llm.invoke(messages, config=config)
         return {"prompt_output": result.dict()}

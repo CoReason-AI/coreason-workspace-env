@@ -1,24 +1,23 @@
 """
-Langfuse configuration — reads from environment variables.
+LangSmith configuration — reads from environment variables.
 """
 import os
-from typing import Optional
 
 
-class LangfuseConfig:
-    """Configuration for the Langfuse tracing integration."""
+class LangSmithConfig:
+    """Configuration for the LangSmith tracing integration."""
 
     def __init__(self):
-        self.host: str = os.getenv("LANGFUSE_HOST", "http://localhost:3002")
-        self.public_key: str = os.getenv("LANGFUSE_PUBLIC_KEY", "pk-lf-coreason-dev")
-        self.secret_key: str = os.getenv("LANGFUSE_SECRET_KEY", "sk-lf-coreason-dev")
-        self.enabled: bool = os.getenv("LANGFUSE_ENABLED", "true").lower() == "true"
+        self.endpoint: str = os.getenv("LANGCHAIN_ENDPOINT", "http://localhost:1984")
+        self.api_key: str = os.getenv("LANGCHAIN_API_KEY", "local")
+        self.tracing_v2: str = os.getenv("LANGCHAIN_TRACING_V2", "true")
+        self.project: str = os.getenv("LANGCHAIN_PROJECT", "coreason-dev")
 
     @property
     def is_configured(self) -> bool:
-        """Check if Langfuse is properly configured."""
-        return bool(self.host and self.public_key and self.secret_key)
+        """Check if LangSmith is properly configured."""
+        return bool(self.endpoint and self.api_key)
 
 
 # Singleton
-langfuse_config = LangfuseConfig()
+langsmith_config = LangSmithConfig()

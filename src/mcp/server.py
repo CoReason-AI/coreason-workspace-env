@@ -209,12 +209,7 @@ async def get_langgraph_trace(session_id: str) -> Dict[str, Any]:
     obs = ObservabilityService()
     return await obs.fetch_postgres_state(session_id)
 
-@mcp.tool()
-async def get_langfuse_trace(session_id: str) -> Dict[str, Any]:
-    """Retrieves LLM traces from the local Langfuse API."""
-    from src.core.services.observability_service import ObservabilityService
-    obs = ObservabilityService()
-    return await obs.fetch_langfuse_traces(session_id)
+
 
 @mcp.tool()
 async def inject_vault_secret(secret_path: str, data: Dict[str, Any]) -> Dict[str, Any]:

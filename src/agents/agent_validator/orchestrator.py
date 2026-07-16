@@ -84,16 +84,7 @@ class AgentValidatorAgent(DeepAgent):
         logger.info(f"[{session_id}] AgentValidator checking artifacts.")
         
         if config is None:
-            # Note: We fallback to empty config if ObservabilityService doesn't exist yet to prevent crash during test
-            try:
-                from src.core.services.observability_service import ObservabilityService
-                obs = ObservabilityService()
-                langfuse_cb = obs.get_langfuse_callback(session_id)
-                config = {}
-                if langfuse_cb:
-                    config["callbacks"] = [langfuse_cb]
-            except ImportError:
-                config = {}
+            config = {}
                 
         # Setup tools
         tools = []

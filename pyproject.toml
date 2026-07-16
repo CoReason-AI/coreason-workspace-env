@@ -40,8 +40,6 @@ dependencies = [
     "python-dotenv>=1.0.1",
     "langgraph-checkpoint-postgres>=3.1.0",
     "httpx>=0.28.1",
-    "langfuse>=4.14.0",
-    "langfuse-langchain>=2.60.10.1",
     "psycopg-binary>=3.3.4",
     "e2b-code-interpreter>=1.0.0",
     "libcst>=1.8.6",
@@ -59,6 +57,7 @@ packages = ["src"]
 
 [dependency-groups]
 dev = [
+    "langsmith>=0.10.5",
     "pytest>=9.1.1",
     "pytest-asyncio>=1.4.0",
     "pytest-cov>=7.1.0",
