@@ -1,3 +1,4 @@
+import pytest
 import asyncio
 import json
 import os
@@ -7,6 +8,8 @@ import sys
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from src.mcp.causal_server.server import _build_server
+
+@pytest.mark.asyncio
 
 async def test_causal_estimation():
     server = _build_server()

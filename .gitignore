@@ -46,3 +46,4 @@ Thumbs.db
 
 # Local Env Overrides
 .env.*
+generated_agents/

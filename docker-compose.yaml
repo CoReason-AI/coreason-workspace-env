@@ -34,13 +34,13 @@ services:
 
   # 3. LangGraph PostgreSQL Checkpointer Database
   postgres_checkpointer:
-    image: postgres:15-alpine
+    image: pgvector/pgvector:pg15
     environment:
       POSTGRES_USER: coreason_admin
       POSTGRES_PASSWORD: secure_dev_password
       POSTGRES_DB: langgraph_state
     ports:
-      - "5432:5432"
+      - "5434:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
@@ -97,7 +97,5 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
     command: --cleanup --interval 600
     restart: always
-
-
 volumes:
   pgdata:

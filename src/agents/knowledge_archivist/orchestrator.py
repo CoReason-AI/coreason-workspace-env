@@ -5,11 +5,18 @@ from langgraph.graph import StateGraph, START, END
 from src.core.base_agent import DeepAgent
 
 from src.core.db import get_db_pool
-from src.core.schemas.epistemic_firewall import LibrarianRoutingState
+from typing import Optional
+from pydantic import BaseModel
+from src.core.ontology import EpistemicProxyState
+
+class LibrarianRoutingState(BaseModel):
+    """LangGraph State passed from factory_ceo to librarian_pm"""
+    proxy: EpistemicProxyState
+    directives: Optional[str] = None
 from src.core.services import mcp_tool_service
 
 from langchain_openai import ChatOpenAI
-from coreason_manifest.spec.ontology import (
+from src.core.ontology import (
     SemanticNodeState,
     CausalDirectedEdgeState,
     DocumentKnowledgeGraphManifest,

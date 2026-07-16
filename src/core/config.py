@@ -14,6 +14,7 @@ class Settings(BaseSettings):
     # Secrets & Vault (OIDC Federation)
     VAULT_ADDR: str
     VAULT_NAMESPACE: str
+    JWT_SECRET_KEY: str = "fallback_secret_for_local_dev"
     
     # Checkpointer Database (Postgres)
     POSTGRES_USER: str
@@ -37,7 +38,7 @@ class Settings(BaseSettings):
     
     # LLM Configuration
     LLM_MODEL_NAME: str = "nvidia/nemotron-3-nano-30b-a3b:free"
-    LLM_API_KEY: str = "sovereign-key-placeholder"
+    LLM_API_KEY: str = "standalone-key-placeholder"
     LLM_TEMPERATURE: float = 0.0
     LLM_BASE_URL: str = "https://api.openai.com/v1"
     

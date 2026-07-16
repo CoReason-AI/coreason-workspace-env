@@ -19,6 +19,20 @@ class CreateProjectRequest(BaseModel):
     description: str = Field("", description="Project description")
     config: Optional[dict] = Field(None, description="Project configuration")
 
+class ImportProjectRequest(BaseModel):
+    name: str = Field(..., description="Unique project name")
+    import_path: str = Field(..., description="Path to the imported bundle")
+    description: str = Field("", description="Project description")
+    config: Optional[dict] = Field(None, description="Project configuration")
+
+class PushProjectRequest(BaseModel):
+    registry_url: str = Field(..., description="Target OCI registry URL")
+
+class PullProjectRequest(BaseModel):
+    oci_uri: str = Field(..., description="Source OCI registry URL")
+    name: str = Field(..., description="Unique project name")
+    description: str = Field("", description="Project description")
+
 
 @router.get("/")
 async def list_projects(user: UserIdentity = Depends(get_current_user)):
@@ -62,11 +76,68 @@ async def delete_project(project_id: str, user: UserIdentity = Depends(get_curre
 
 
 @router.post("/{project_id}/export")
-async def export_project(project_id: str, output_path: str, user: UserIdentity = Depends(get_current_user)):
+async def export_project(project_id: str, output_path: str, skip_state: bool = False, skip_docker: bool = False, user: UserIdentity = Depends(get_current_user)):
     """Export a project for air-gapped transfer."""
-    project = await project_service.get_project(project_id)
-    if not project:
-        raise HTTPException(status_code=404, detail=f"Project '{project_id}' not found")
-    result = await project_service.export_project(project_id, output_path)
-    return result
+    try:
+        from src.core.services import project_service
+        result = await project_service.export_project(
+            project_id, 
+            output_path, 
+            skip_state=skip_state, 
+            skip_docker=skip_docker
+        )
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
+@router.post("/import")
+async def import_project(req: ImportProjectRequest, skip_state: bool = False, skip_docker: bool = False, user: UserIdentity = Depends(get_current_user)):
+    """Import an air-gapped project."""
+    project_id = str(uuid.uuid7())
+    try:
+        from src.core.services import project_service
+        result = await project_service.import_project(
+            project_id=project_id,
+            import_path=req.import_path,
+            name=req.name,
+            description=req.description,
+            config=req.config,
+            skip_state=skip_state,
+            skip_docker=skip_docker
+        )
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/{project_id}/push")
+async def push_project(project_id: str, req: PushProjectRequest, skip_state: bool = False, skip_docker: bool = False, user: UserIdentity = Depends(get_current_user)):
+    """Push project to OCI registry."""
+    try:
+        from src.sdk.client import CoReasonClient
+        client = CoReasonClient()
+        result = await client.projects.push_bundle(
+            project_id, 
+            req.registry_url, 
+            skip_state=skip_state, 
+            skip_docker=skip_docker
+        )
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/pull")
+async def pull_project(req: PullProjectRequest, skip_state: bool = False, skip_docker: bool = False, user: UserIdentity = Depends(get_current_user)):
+    """Pull project from OCI registry."""
+    try:
+        from src.sdk.client import CoReasonClient
+        client = CoReasonClient()
+        result = await client.projects.pull_bundle(
+            req.oci_uri, 
+            req.name, 
+            req.description, 
+            skip_state=skip_state, 
+            skip_docker=skip_docker
+        )
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

@@ -3,16 +3,7 @@ import json
 import logging
 from tests.test_framework import ZeroMockTestCase, LLMJudge
 
-# Since we don't have coreason_manifest locally installed in this env, we mock the Pydantic import for the test runner.
-# In a real CI environment, this imports perfectly from coreason_manifest.spec.ontology.
-try:
-    from coreason_manifest.spec.ontology import CognitiveDeliberativeEnvelopeState
-except ImportError:
-    from pydantic import BaseModel
-    from typing import Dict, Any, List
-    class CognitiveDeliberativeEnvelopeState(BaseModel):
-        deliberation_trace: str
-        payload: Dict[str, Any]
+from src.core.ontology import CognitiveDeliberativeEnvelopeState
 
 logger = logging.getLogger(__name__)
 

@@ -25,7 +25,6 @@ dependencies = [
     "langgraph>=0.2.20",
     "alembic>=1.13.0",
     "psycopg2-binary>=2.9.12",
-    "coreason-manifest>=0.98.0",
     "dowhy>=0.11",
     "networkx>=3.0",
     "pandas>=2.0",
@@ -35,8 +34,16 @@ dependencies = [
     "jsonpatch>=1.33",
     "deepagents-code>=0.1.0",
     "fastmcp>=1.0.0",
+    "typer>=0.9.0",
+    "oras>=0.2.0",
+    "rocrate>=0.9.0",
+    "cryptography>=44.0.0",
+    "python-dotenv>=1.0.1",
+    "langgraph-checkpoint-postgres>=3.1.0",
 ]
 
+[project.scripts]
+coreason = "src.cli.main:app"
 
 [tool.hatch.version]
 source = "vcs"
@@ -45,6 +52,12 @@ source = "vcs"
 packages = ["src"]
 
 [dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+    "pytest-asyncio>=1.4.0",
+    "pytest-mock>=3.15.1",
+    "testcontainers>=4.14.2",
+]
 docs = [
     "mkdocs-material>=9.7.6",
     "pymdown-extensions>=11.0.1",

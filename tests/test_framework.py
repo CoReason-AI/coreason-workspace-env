@@ -23,6 +23,16 @@ class ZeroMockTestCase(unittest.IsolatedAsyncioTestCase):
             cls.postgres = PostgresContainer("postgres:15-alpine")
             cls.postgres.start()
             os.environ["POSTGRES_URL"] = cls.postgres.get_connection_url()
+            
+            # Mutate settings to point to the ephemeral test container
+            import urllib.parse
+            url = urllib.parse.urlparse(os.environ["POSTGRES_URL"])
+            from src.core.config import settings
+            settings.POSTGRES_HOST = url.hostname
+            settings.POSTGRES_PORT = url.port
+            settings.POSTGRES_USER = url.username
+            settings.POSTGRES_PASSWORD = url.password
+            settings.POSTGRES_DB = url.path.lstrip('/')
         except Exception as e:
             logger.warning(f"Docker not available: {e}. Skipping Zero Mock Postgres provisioning.")
             # Provide dummy pool for CI environments without Docker

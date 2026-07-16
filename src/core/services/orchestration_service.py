@@ -21,25 +21,38 @@ class OrchestrationService:
             return wrapper
         return decorator
 
-    @observe(name="run_factory_graph")
-    async def run_factory_graph(self, user_id: str, session_id: str, input_data: str) -> dict:
+    @observe(name="run_persona_graph")
+    async def run_persona_graph(self, user_id: str, session_id: str, input_data: str, output_dir: str = "./generated_agents") -> dict:
         """
-        Abstracts the LangGraph execution for the factory CEO.
+        Abstracts the LangGraph execution for the active persona (dynamic entrypoint).
         """
         logger.info(f"Starting orchestration for session {session_id} by user {user_id}")
         
-        from src.agents.factory_ceo.orchestrator import FactoryCeoAgent
+        import os
+        import importlib
         
-        ceo = FactoryCeoAgent()
+        # Dynamically load the root agent defined by the active Brain
+        module_path = os.environ.get("AGENT_ENTRYPOINT_MODULE", "src.agents.factory_ceo.orchestrator")
+        class_name = os.environ.get("AGENT_ENTRYPOINT_CLASS", "FactoryCeoAgent")
+        
+        try:
+            module = importlib.import_module(module_path)
+            AgentClass = getattr(module, class_name)
+            ceo = AgentClass()
+        except (ImportError, AttributeError) as e:
+            logger.error(f"Failed to dynamically load Brain entrypoint {module_path}.{class_name}: {e}")
+            raise
+        from langchain_core.messages import HumanMessage
         context = {
-            "messages": [],
+            "messages": [HumanMessage(content=input_data)],
             "raw_transcript": input_data
         }
         
         result = await ceo.execute(context, session_id)
         
-        # Bundle the result if it was a success
-        if result and "FAILURE" not in str(result):
+        # Bundle the result if it was a success and context was saturated
+        is_sat = result.get("is_saturated")
+        if result and "FAILURE" not in str(result) and is_sat is not False:
             # Checkpoint to Postgres to simulate AsyncPostgresSaver behavior for the exporter
             import json
             from src.core.db import get_db_pool
@@ -68,7 +81,7 @@ class OrchestrationService:
                 logger.error(f"Failed to persist state: {e}")
                 
             from src.core.services.export_service import PlatformExporter
-            exporter = PlatformExporter()
+            exporter = PlatformExporter(output_dir=output_dir)
             zip_path = await exporter.bundle_agent_specs(session_id)
             return {"status": "success", "artifact": zip_path, "details": str(result)}
             

@@ -90,3 +90,39 @@ The validator returns a structured result:
 - [ ] Does the agent explicitly declare `async: true` and `cancellable: true`?
 - [ ] If the agent references local filesystem or shell tools (e.g. `local_fs_writer`, `terminal`), does it define an `os_env` block?
 - [ ] **FAIL** if `executor.harness` is missing or malformed, or if `os_env` is missing when required.
+
+### V11. Causal Inference
+- [ ] If the agent performs analysis, estimation, or structural modeling — does it utilize causal inference (e.g., the `dowhy` library) rather than relying strictly on correlational heuristics?
+- [ ] **WARN** if the agent relies on correlation without evaluating causal methodologies.
+
+### V12. Neuro-Symbolic Validation
+- [ ] For high-stakes domains — does the agent rely on formal, executable models (e.g., SMT solvers, SHACL graphs) for final deduction instead of pure LLM text output?
+- [ ] **WARN** if high-stakes deduction relies purely on unverified LLM generation.
+
+### V13. Scientific Frameworks (Self-Reflection)
+- [ ] For hypothesis generation or research pipelines — does the agent implement closed-loop Self-Reflection and Critique Loops?
+- [ ] **WARN** if the research pipeline lacks automated feedback and critique loops.
+
+### V14. Persistent Structured Workspaces
+- [ ] For complex, multi-hop reasoning tasks — does the agent externalize reasoning state into Structured CoT Artifacts (e.g., dynamically updated tables or Knowledge Graphs)?
+- [ ] **WARN** if the agent relies on long, unstructured Chain-of-Thought text blocks.
+
+### V15. Native Reasoning Models
+- [ ] Does the agent leverage frontier reasoning models (e.g., DeepSeek-R1, OpenAI o3) with high test-time compute allocations for complex Tree-of-Thoughts exploration?
+- [ ] **WARN** if a standard model is used for tasks requiring deep, multi-step decomposition without explicit justification.
+
+### V16. Analogical Prompting
+- [ ] For zero-shot reasoning tasks, does the agent's prompt utilize Analogical Prompting (self-generating 3-5 exemplars) when static few-shot examples are unavailable?
+- [ ] **WARN** if the agent attempts zero-shot reasoning without analogical scaffolding.
+
+### V17. Explicit Structural Mapping
+- [ ] When performing analogical transfer, does the agent explicitly externalize the relational structure into a mapping artifact (e.g., JSON/YAML graph) before synthesizing the answer?
+- [ ] **FAIL** if the agent relies on unstructured text for analogy without formal structural mapping.
+
+### V18. Archetypal Anchoring
+- [ ] For complex orchestrators, does the system prompt invoke a specific, coherent behavioral persona (an "archetype") early in the context window to stabilize the latent space?
+- [ ] **WARN** if the orchestrator lacks a behavioral anchor before deep reasoning loops.
+
+### V19. Dialectical Synthesis
+- [ ] For ideation, design, or hypothesis generation tasks, does the agent employ Dialectical Reasoning (Thesis -> Antithesis -> Synthesis)?
+- [ ] **WARN** if creative or ambiguous tasks lack a dialectical critique mechanism.

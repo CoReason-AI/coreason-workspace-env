@@ -13,30 +13,21 @@ for k in [
             os.environ[k] = '5432'
         elif k == "LLM_TEMPERATURE":
             os.environ[k] = '0.0'
+        elif k == "REDIS_URL":
+            os.environ[k] = 'redis://localhost:6379/0'
         else:
             os.environ[k] = 'test'
 
 import sys
-from pydantic import BaseModel
-from typing import Any
-class DeterministicOntologyDefinitions:
-    class EpistemicQuarantineSnapshot(BaseModel): 
-        snapshot_id: str = "test"
-        raw_payload: Any = None
-    class EpistemicProxyState(BaseModel): 
-        proxy_cid: str = "test"
-        structural_type: str = "test"
-    class CognitiveDeliberativeEnvelopeState(BaseModel): pass
-    class CoreasonBaseState(BaseModel): pass
+from pydantic import BaseModel, Field
+from typing import Any, Generic, TypeVar, Optional, TypedDict
 
-class DeterministicSpec: pass
 
-sys.modules["coreason_manifest.spec"] = DeterministicSpec()
-sys.modules["coreason_manifest.spec.ontology"] = DeterministicOntologyDefinitions()
 
 import uuid
 if not hasattr(uuid, 'uuid7'):
-    uuid.uuid7 = uuid.uuid4
+    import uuid6
+    uuid.uuid7 = uuid6.uuid7
 
 import json
 import pytest
@@ -69,10 +60,10 @@ class TestFactoryE2E(ZeroMockTestCase):
         setattr(val_orch, "ChatOpenAI", inject_deterministic_llm)
 
         import uuid
-        test_session_id = f"test_session_e2e_{uuid.uuid4().hex}"
+        test_session_id = f"test_session_e2e_{uuid.uuid7().hex}"
         try:
             service = orch_svc.OrchestrationService()
-            result = await service.run_factory_graph(
+            result = await service.run_persona_graph(
                 user_id="test_user_e2e",
                 session_id=test_session_id,
                 input_data="Build me an inventory management agent."

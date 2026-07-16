@@ -44,6 +44,15 @@ async def generate_mkdocs(request: GenerateDocsRequest):
         nav=request.config.nav,
     )
     if result["status"] == "error":
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.error("Docs generation failed (details scrubbed for security).")
         from fastapi import HTTPException
-        raise HTTPException(status_code=400, detail=result["detail"])
-    return result
+        raise HTTPException(status_code=400, detail="Documentation generation failed due to a workspace or configuration error.")
+        
+    return {
+        "status": result.get("status"),
+        "message": result.get("message"),
+        "workspace": result.get("workspace"),
+        "files_written": result.get("files_written", [])
+    }
