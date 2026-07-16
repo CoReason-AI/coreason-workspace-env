@@ -48,8 +48,10 @@ class Settings(BaseSettings):
     
     # LLM Configuration
     LLM_MODEL_NAME: str = "nvidia/nemotron-3-nano-30b-a3b:free"
-    LLM_API_KEY: str = "standalone-key-placeholder"
+    LLM_API_KEY: str = "local_dev_key"
     LLM_TEMPERATURE: float = 0.0
+    EMBEDDING_MODEL_NAME: str = "local-embedding-v1"
+    
     LLM_BASE_URL: str = "https://api.openai.com/v1"
     
     # E2B Sandbox

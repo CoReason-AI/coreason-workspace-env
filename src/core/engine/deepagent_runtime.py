@@ -99,13 +99,31 @@ class PlatformOrchestrator:
                 checkpointer = AsyncPostgresSaver(self.pool, serde=custom_serde)
                 await checkpointer.setup()
                 
+                from langgraph.store.postgres import AsyncPostgresStore
+                from langchain_openai import OpenAIEmbeddings
+                
+                store = AsyncPostgresStore(
+                    self.pool,
+                    index={
+                        "dims": 1536,
+                        "embed": OpenAIEmbeddings(
+                            model=settings.EMBEDDING_MODEL_NAME,
+                            base_url=settings.LLM_BASE_URL,
+                            api_key=settings.LLM_API_KEY
+                        ),
+                        "fields": ["content"]
+                    }
+                )
+                await store.setup()
+                
                 from deepagents import create_deep_agent
                 
                 # In a true distributed system, this node execution is published to Redis/Celery.
                 graph = create_deep_agent(
                     model=self.llm,
                     tools=self.get_dynamic_tools(),
-                    # checkpointer=checkpointer # Pseudo-code depending on deepagents implementation
+                    checkpointer=checkpointer,
+                    store=store
                 )
                 
                 config = {"configurable": {"thread_id": session_id}}
