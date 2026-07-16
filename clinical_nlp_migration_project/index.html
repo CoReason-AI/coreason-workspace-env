@@ -21,7 +21,7 @@
     
     
       
-        <title>Core Architecture Principles - CoReason Workspace Environment</title>
+        <title>Clinical NLP Migration Project - CoReason Workspace Environment</title>
       
     
     
@@ -72,7 +72,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#core-architecture-principles" class="md-skip">
+        <a href="#clinical-nlp-migration-project" class="md-skip">
           Skip to content
         </a>
       
@@ -106,7 +106,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Core Architecture Principles
+              Clinical NLP Migration Project
             
           </span>
         </div>
@@ -1045,46 +1045,133 @@
 
 
 
-<h1 id="core-architecture-principles">Core Architecture Principles</h1>
-<p>The CoReason Workspace Environment implements an opinionated variant of the DeepAgent pattern. While the industry frequently treats multi-agent systems as experimental scripts, this platform enforces a strict Infrastructure as Code (IaC) approach, leveraging deterministic mathematical boundaries rather than heuristic prompting.</p>
-<h2 id="deepagent-pattern-declarative-manifests">DeepAgent Pattern &amp; Declarative Manifests</h2>
-<p>Agents within the platform are not instantiated via complex, hardcoded Python boilerplate. Instead, they are defined via strictly typed, <code>pyagentspec</code>-compatible <strong>YAML manifests</strong>. 
-This shift to declarative infrastructure treats agent definitions as portable, version-controlled configurations.</p>
-<p>At runtime, a specialized YAML compiler reads the agent manifest and dynamically synthesizes an executable <strong>LangGraph StateGraph</strong> node, enforcing deterministic routing and eliminating deliberation cascades.</p>
-<h2 id="the-brain-body-dichotomy">The Brain / Body Dichotomy</h2>
-<p>The platform physically enforces a strict architectural boundary between <strong>Intent</strong> and <strong>Execution</strong> by separating the repository into two primary domains:
-- <strong>The Brain (<code>src/agents/</code>)</strong>: Represents pure cognitive intent (personas, YAML, StateGraphs) with zero infrastructure code.
-- <strong>The Body (<code>src/core/</code>)</strong>: The universal runtime harness (PlatformOrchestrator, DB pools, HTTP routers) that mounts the Brain and wires it into the physical world.</p>
-<h2 id="context-engineering-schema-saturation">Context Engineering &amp; Schema Saturation</h2>
-<p>Context Engineering is the practice of treating context assembly as a disciplined, mathematical control plane <em>prior</em> to kinetic execution. Before any deterministic worker node is activated, a supervisory routing node actively interrogates the user's input or the incoming API payload against a predefined <code>Pydantic</code> schema. </p>
-<p>This pre-dispatch <strong>Schema Saturation</strong> acts as a programmatic choke point. Only when the target schema achieves 100% saturation is the payload released to specialized sub-agents.</p>
-<h2 id="maker-checker-approver-pipeline">Maker-Checker-Approver Pipeline</h2>
-<p>The platform completely rejects stochastic self-correction (Generator-Critic) for structural and syntactical validation. Instead, it enforces a rigid <strong>Maker-Checker-Approver</strong> pipeline:
-1. <strong>The Maker (Generation)</strong>: Generates the required artifact (Python, JSON, SQL).
-2. <strong>The Checker (Deterministic Validation)</strong>: Intercepts the artifact with a purely deterministic LangGraph node containing zero generative LLM calls. It runs AST parsers, strict Pydantic checks, and sandboxed code execution.
-3. <strong>Remediation / Approver</strong>: Artifacts failing the Checker are routed back to the Maker. Passing artifacts proceed to an Approver (PM or Human-in-the-Loop) for semantic approval.</p>
-<h2 id="anti-stub-enforcement-policy">Anti-Stub Enforcement Policy</h2>
-<p>The platform operates under a strict <strong>No-Mock, Anti-Stub Policy</strong>. The words <code>mock</code>, <code>stub</code>, <code>fake</code>, and <code>simulate</code> are completely banned from all execution and orchestration paths. Every agent must fulfill a genuine structural role using real LLM invocations, real DB checkpointers, and authentic integrations.</p>
-<h2 id="the-epistemic-firewall-zero-trust-rag">The Epistemic Firewall (Zero-Trust RAG)</h2>
-<p>Generative language models are mathematically forbidden from executing direct queries against high-entropy raw data lakes or unverified external APIs. 
-The platform introduces a multi-stage cryptographic pipeline:
-- Data chunks are extracted and cryptographically signed (e.g., Ed25519).
-- Sub-routines retrieve data and verify the cryptographic signature.
-- Valid data is wrapped in a strongly typed <code>KnowledgeReceipt</code> and securely injected into the agent's context.</p>
-<h2 id="enterprise-runtime">Enterprise Runtime</h2>
-<p>To operate in production, the environment implements:
-- <strong>High-Performance Asynchronous Execution</strong>: Non-blocking async IO (<code>psycopg_pool.AsyncConnectionPool</code>) preventing thread bottlenecks during agent DAG execution.
-- <strong>True Multi-Tenant Data Isolation</strong>: LangGraph checkpoint threads do not use the <code>public</code> schema. Each project is dynamically mapped to a dedicated schema (e.g., <code>project_{uuid}</code>).
-- <strong>Physical Sandboxing</strong>: Filesystem paths are strictly validated and pinned to prevent traversal attacks.</p>
-<h2 id="multi-surface-parity">Multi-Surface Parity</h2>
-<p>The platform strictly enforces a <strong>Multi-Surface Parity</strong> mandate. This constraint ensures that every platform capability is uniformly accessible, behaves identically, and returns the same data structure regardless of which interaction surface initiates the workflow (REST API, CLI, MCP Server, WebSocket/SSE, Python SDK). None of these surfaces implement business logic; they operate exclusively as thin transport adapters delegating to <code>src.core.services</code>.</p>
-<h2 id="agent-observability-traceability">Agent Observability &amp; Traceability</h2>
-<p>To empower upstream AI coding assistants (the "Agent Improvement System") to natively debug and improve the platform's agents, the environment integrates deep, programmable observability exposed directly via the <strong>MCP Server</strong>:
-- <strong>State Inspection (Postgres)</strong>: Directly queries the <code>postgres_checkpointer</code> to read the exact LangGraph thread checkpoints, enabling deterministic analysis of stuck or failed agent states.
-- <strong>LLM Tracing (Langfuse)</strong>: Programmatically fetches execution traces from the local Langfuse API, providing full visibility into the prompts and completions that led to hallucination or validation errors.
-- <strong>Dynamic Identity Federation (Vault)</strong>: Supports injecting external API keys securely into the dev HashiCorp Vault at runtime, allowing agents to impersonate dynamic roles without hardcoded secrets.
-- <strong>Agent Resumption</strong>: Integrates with the Redis task queue to resume paused or failed agents seamlessly after remediation.</p>
-<p>All observability logic is encapsulated within <code>src/core/services/observability_service.py</code> and strictly obeys the platform's SSOT (Single Source of Truth) configuration, allowing it to transition seamlessly from local development into enterprise Kubernetes clusters without hardcoded topology strings.</p>
+<h1 id="clinical-nlp-migration-project">Clinical NLP Migration Project</h1>
+<p>This document serves as our shared running pad to track the migration of the legacy Clinical NLP codebase into an enterprise-grade, MCP-deployable agentic solution using the CoReason Workspace environment. </p>
+<p>By documenting our setup, configuration, and execution logs here, we ensure our work is fully reproducible.</p>
+<hr />
+<h2 id="1-goal-intent">1. Goal &amp; Intent</h2>
+<p>Our objective is to trigger the <code>factory_ceo</code> orchestrator with the following intent:</p>
+<blockquote>
+<p>"we want you to transform this legacy NLP pipeline that involve sentence restructuring, NER, NEN with UMLS tagging CUI into an enterprise grade encapsulated mcp deployable agentic solution. give me a multi agent topology to work it. we want an escalcalating cascade that starts with smaller models (non transformer or transformer) and goes up the chain as the confidence goes down. let us try to do true to original implementation for now."</p>
+</blockquote>
+<p><strong>Input Context</strong>: <code>./clinical_concept_normalization_legacy</code>
+<strong>Target Output</strong>: <code>./projects/clinical_nlp_mcp</code></p>
+<hr />
+<h2 id="2-setup-configuration">2. Setup &amp; Configuration</h2>
+<p>To ensure reproducibility across different environments, the platform relies on strict <code>.env</code> configuration for its Single Source of Truth (SSOT). </p>
+<h3 id="configuring-the-env-file">Configuring the <code>.env</code> file</h3>
+<ol>
+<li>Copy the default <code>.env.example</code> to <code>.env</code> at the root of the repository:
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>cp<span class="w"> </span>.env.example<span class="w"> </span>.env
+</code></pre></div></li>
+<li>Open <code>.env</code> and ensure the following critical blocks are present.</li>
+</ol>
+<p><strong>Observability &amp; Vault</strong>:
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a># Vault
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>VAULT_ADDR=http://vault:8200
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>VAULT_NAMESPACE=admin
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>VAULT_DEV_ROOT_TOKEN_ID=root
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a># Langfuse Observability
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>LANGFUSE_PUBLIC_KEY=pk-lf-1234567890
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>LANGFUSE_SECRET_KEY=sk-lf-1234567890
+<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>LANGFUSE_HOST=http://localhost:3001
+</code></pre></div></p>
+<p><strong>LLM Routing</strong>:
+Configure the platform to connect to your preferred Model-as-a-Service (MaaS) provider for the primary reasoning engine.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a># MaaS API Key
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>MAAS_API_KEY=sk-...
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a># LLM Configuration
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>LLM_MODEL_NAME=openai/gpt-4o-mini
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>LLM_API_KEY=${MAAS_API_KEY}
+<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>LLM_TEMPERATURE=0.0
+<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>LLM_BASE_URL=https://api.openai.com/v1
+</code></pre></div>
+<h3 id="launching-infrastructure">Launching Infrastructure</h3>
+<p>Once <code>.env</code> is configured, start the background infrastructure (Postgres checkpointer, Langfuse, Vault, Redis, and workers):
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>docker<span class="w"> </span>compose<span class="w"> </span>up<span class="w"> </span>-d
+</code></pre></div></p>
+<h3 id="learnings-on-docker-infrastructure-standalone-mode">Learnings on Docker Infrastructure &amp; Standalone Mode</h3>
+<p><strong>Langfuse v3 Database Migration Issue</strong>
+Langfuse recently introduced a v3 architecture that strictly requires Clickhouse. The default <code>docker-compose.yaml</code> in this repository pulled <code>langfuse/langfuse:latest</code>, which automatically fetched v3. Without a Clickhouse instance, this resulted in an infinite crash loop.</p>
+<p>Additionally, Langfuse uses Prisma ORM, which throws fatal <code>P3005</code> errors if it attempts to migrate into a non-empty database schema (e.g. sharing <code>langgraph_state</code> with the agents).
+<strong>Remediation:</strong> 
+1. We carved out a dedicated, empty <code>langfuse</code> database inside the Postgres container so Prisma could initialize without colliding with LangGraph's state tables.
+2. We added <code>clickhouse/clickhouse-server:23.12-alpine</code> natively into the <code>docker-compose.yaml</code> as the <code>clickhouse</code> service, complete with data persistence.
+3. We configured <code>langfuse/langfuse:latest</code> with the appropriate <code>CLICKHOUSE_URL</code>, <code>CLICKHOUSE_MIGRATION_URL</code>, <code>CLICKHOUSE_USER</code>, and <code>CLICKHOUSE_PASSWORD</code> connection strings to fully adopt the v3 architecture and its performant OLAP backend.</p>
+<p><strong>ClickHouse Configuration Learnings:</strong>
+- <strong>Port Conflict:</strong> ClickHouse uses TCP port <code>9000</code> by default. Since the <code>docker-compose.standalone.yaml</code> overrides use MinIO (which also binds to <code>9000</code>), we successfully avoided host collision by mapping ClickHouse to <code>9002:9000</code> on the host, while retaining <code>9000</code> for the internal <code>CLICKHOUSE_MIGRATION_URL</code>.
+- <strong>Clustering:</strong> Langfuse v3 expects ClickHouse to run in a Zookeeper cluster by default. Since we run a single-node standalone ClickHouse container, we had to explicitly set <code>CLICKHOUSE_CLUSTER_ENABLED: "false"</code> in Langfuse to prevent <code>code: 139</code> table creation crashes.
+- <strong>Strict Schema Validation:</strong> Langfuse v3 utilizes strict Zod schema validation during startup. It threw fatal errors for missing S3 credentials (e.g., <code>LANGFUSE_S3_EVENT_UPLOAD_BUCKET</code>) even when telemetry was disabled. We injected dummy values into the <code>.yaml</code> to satisfy the validator and allow the container to start.</p>
+<p><strong>Sovereign / Air-gapped Mode (<code>docker-compose.standalone.yaml</code>)</strong>
+We determined that running the <code>docker compose -f docker-compose.yaml -f docker-compose.standalone.yaml up -d --build</code> command should <strong>only</strong> be executed in two specific scenarios:
+1. <strong>Developing Platform Core</strong>: Modifying the FastAPI backend or worker code and needing to rebuild the images from source.
+2. <strong>Sovereign Execution</strong>: Overriding the <code>.env</code> settings to force the platform to use local, air-gapped models via <strong>Ollama</strong> (e.g., <code>llama3</code>) and local S3 storage via <strong>MinIO</strong>.</p>
+<p><strong>Warning:</strong> Using the standalone override while doing complex agent building (like our current task) will swap out flagship models like <code>gpt-4o</code> for smaller local models that lack the instruction-following capacity to adhere to strict validation rules, leading to immediate validation loop failures.</p>
+<hr />
+<h3 id="learnings-on-observability-langfuse">Learnings on Observability (Langfuse)</h3>
+<p>As an Agent Improvement System, full "Glass Box" traceability is required to debug and refine agent execution. We leverage <strong>Langfuse</strong> for tracing.</p>
+<p><strong>Why we need it:</strong>
+- <strong>Execution Graph Transparency:</strong> The <code>factory_ceo</code> and <code>agent_pm</code> orchestrate complex Maker-Checker loops using LangGraph. If a sub-agent (like <code>agent_validator</code>) fails repeatedly, Langfuse provides exact insight into the LLM prompts, tool invocations, and responses that led to the failure.
+- <strong>Context Propagation:</strong> When dynamically injecting Langfuse callbacks into a running graph, it is critical to pass the <code>RunnableConfig</code> object down from the orchestrator to the sub-agents. Creating new, orphaned <code>CallbackHandler</code> instances inside nested LLM calls breaks the trace hierarchy and causes <code>KeyError</code> crashes, as the parent graph state is lost.
+- <strong>Harmless SDK Warnings:</strong> Due to the massive telemetry payloads our orchestrators send to the local Langfuse container, the Python SDK may occasionally throw background warnings in the terminal (e.g. <code>Unexpected error occurred. Please check your request and contact support</code>). These are non-fatal asynchronous synchronization warnings and can be safely ignored.</p>
+<h3 id="learnings-on-context-engineering-epistemic-isolation">Learnings on Context Engineering &amp; Epistemic Isolation</h3>
+<ul>
+<li><strong>Epistemic Firewall (CEO Strict Isolation):</strong> We learned that giving the <code>factory_ceo</code> orchestrator direct tools to read files bloated its context window. To enforce the Epistemic Firewall, we removed the <code>extract_and_read_context</code> tool from the CEO entirely. Instead, the CEO routes raw input paths to the <code>librarian_pm</code>, which extracts the codebase, generates an architectural summary using a specialized <code>ContextCompressorAgent</code>, and returns only the summarized string back to the CEO. The CEO now strictly evaluates the "typed text" of the user's intent.</li>
+<li><strong>DeepAgent State Machine &amp; Interrogation Loops:</strong> The CEO now operates as a true State Machine using LangGraph's checkpointer. If the user's intent lacks strict constraints (not SATURATED), the CEO pauses the LangGraph execution at an <code>interrogate_user</code> node.</li>
+<li><strong>CLI Conversational Interaction:</strong> We updated the <code>coreason build</code> CLI script into a <code>while True:</code> loop that captures the CEO's clarifying questions via <code>typer.prompt()</code>. Because LangGraph automatically persists thread state using Postgres, appending the user's typed response to the CLI seamlessly resumes the CEO's evaluation exactly where it left off, creating a native multi-turn loop!</li>
+</ul>
+<h3 id="learnings-on-deepagent-runtime-configuration">Learnings on DeepAgent Runtime Configuration</h3>
+<ul>
+<li><strong>Hardcoded Standalone Placeholders vs Vault:</strong> While auditing <code>deepagent_runtime.py</code> (the blueprint runtime deployed alongside generated agent projects), we discovered that the LLM instantiation was hardcoding the API key to <code>"standalone-key-placeholder"</code> and the model to <code>"nvidia/nemotron-3-nano-30b-a3b:free"</code>. </li>
+<li><strong>The Reason:</strong> The runtime is designed for an enterprise, air-gapped target cluster where secrets are injected dynamically via HashiCorp Vault at runtime, entirely bypassing <code>.env</code> files for security compliance.</li>
+<li><strong>The Fix:</strong> For local, standalone testing and development, hardcoding these values prevented the runtime from utilizing the <code>.env</code> MaaS keys (e.g., GPT-4o keys). We refactored <code>deepagent_runtime.py</code> to seamlessly fallback to the SSOT <code>settings</code> (e.g. <code>settings.LLM_API_KEY</code>) if the <code>project_manifest</code> doesn't provide them, allowing both secure production Vault usage and smooth local LLM testing.</li>
+</ul>
+<h3 id="learnings-on-ai-agent-interactions-workflow-optimizations">Learnings on AI Agent Interactions &amp; Workflow Optimizations</h3>
+<ul>
+<li><strong>Multiple Choice Interrogation Skill:</strong> We discovered that human users prefer constrained, curated options rather than open-ended questions when an orchestrator asks for clarification. We created a custom skill (<code>multiple_choice_interrogation.md</code>) and registered it in the CEO's <code>agent.yaml</code>.</li>
+<li><em>The Story:</em> To implement this, we searched the <code>src/core/skills/building/</code> directory and discovered <code>ambiguity_resolution.md</code>. However, since we specifically wanted multiple-choice formats, we created a net-new skill markdown file instructing the LLM to deduce the 3 best options and always provide a fallback "Other" option.</li>
+<li><em>Prompt Injection Bug:</em> Initially, injecting this skill into the <code>interrogate_user</code> LangGraph node confused the LLM. We had accidentally injected the <em>entire</em> CEO system prompt (which told the CEO to wait for the librarian), causing the LLM to output a meta-statement about waiting instead of actually asking the question. We fixed this by isolating the prompt in <code>orchestrator.py</code> to strictly focus on generating the multiple-choice question using the skill.</li>
+<li><em>Skill Registration:</em> We successfully registered the skill by appending it to the <code>skill_registry</code> array in <code>factory_ceo/agent.yaml</code> so the agent framework knows how to resolve and load it.</li>
+<li><strong>Leveraging Antigravity IDE Automations (<code>/goal</code> and <code>/grill-me</code>):</strong></li>
+<li>We utilized the <code>/goal</code> slash command in the IDE to drive this migration. This command marks the task as a long-running, autonomous process, instructing the AI coding assistant to be exceptionally thorough, handle errors automatically, and run deeply in the background without needing constant human hand-holding.</li>
+<li>Using these IDE-native slash commands allows us to achieve deep-running workflow automations, enabling us to confidently walk away while the AI assistant researches, plans, edits, and tests complex state-machine updates.</li>
+</ul>
+<h3 id="learnings-on-formal-output-validation-maker-checker">Learnings on Formal Output Validation (Maker-Checker)</h3>
+<p>During our migration, the <code>AgentValidator</code> successfully caught several subtle generative errors produced by the <code>YamlCompiler</code> during its compilation of the legacy code:
+1. <strong>YAML String Syntax Errors:</strong> The compiler injected a stray closing brace (<code>'}'}</code>) at the end of a stringified JSON schema, invalidating the YAML structure.
+2. <strong>Dependency Naming:</strong> The compiler used arbitrary naming (<code>NER Agent</code>) in the <code>dependencies</code> array instead of the strict <code>snake_case</code> matching the agent's ID (<code>ner_agent</code>).
+3. <strong>JSON Schema Keyword Collisions:</strong> The compiler generated an object schema containing a property literally named <code>type</code>. This conflicts with the JSON Schema <code>type</code> reserved keyword.
+4. <strong>Cross-Platform Paths:</strong> The compiler generated Windows-style backslashes (<code>\</code>) for file paths.
+<strong>Remediation:</strong> We immediately fed these learnings back into the platform by explicitly updating the <code>yaml_compiler</code>'s system prompt to forbid these anti-patterns, improving the reliability of the entire platform.</p>
+<h3 id="learnings-on-model-reasoning-capacity">Learnings on Model Reasoning Capacity</h3>
+<p>We initially used <code>gpt-4o-mini</code> for the factory agents. However, it repeatedly failed the Maker-Checker validation loop because it lacked the instruction-following capacity to adhere to strict YAML formatting rules (e.g. not indenting top-level keys). We attempted to switch to <code>nvidia/llama-3.1-nemotron-70b-instruct</code> on OpenRouter, but encountered a <code>404 No endpoints found</code> availability error. </p>
+<p>To resolve this, we updated our <code>.env</code> configuration to use the flagship <code>openai/gpt-4o</code> model. Using a significantly more capable reasoning model improved the platform's ability to output correctly formatted schemas without hallucinating structure.</p>
+<h3 id="learnings-on-checker-loop-termination">Learnings on Checker Loop Termination</h3>
+<p>Even with GPT-4o successfully formatting the output, we discovered a logical bug in the <code>AgentValidator</code>'s prompt. The validator flagged the missing <code>security</code> field as a <code>WARN</code>, correctly noting it does not block disk writes. However, it incorrectly evaluated the "Overall Status" as <code>FAIL</code>. This triggered an infinite retry loop in <code>agent_pm</code> because the PM graphs interprets any <code>FAIL</code> overall status as a mandate to remediate.
+<strong>Remediation:</strong> We updated the <code>agent_validator</code>'s system prompt to explicitly enforce: <code>CRITICAL: If an artifact only has PASS and WARN results, you MUST set the overall status to PASS.</code></p>
+<hr />
+<h2 id="3-execution-trigger">3. Execution Trigger</h2>
+<p>With the infrastructure healthy, we trigger the orchestrator via the CLI:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>uv<span class="w"> </span>run<span class="w"> </span>coreason<span class="w"> </span>build<span class="w"> </span><span class="s2">&quot;we want you to transform this legacy NLP pipeline that involve sentence restructuring, NER, NEN with UMLS tagging CUI into an enterprise grade encapsulated mcp deployable agentic solution. give me a multi agent topology to work it. we want an escalcalating cascade that starts with smaller models (non transformer or transformer) and goes up the chain as the confidence goes down. let us try to do true to original implementation for now.&quot;</span><span class="w"> </span>--input-path<span class="w"> </span><span class="s2">&quot;./clinical_concept_normalization_legacy/clinical-definition-synthesizer&quot;</span><span class="w"> </span>--output-dir<span class="w"> </span><span class="s2">&quot;./projects/clinical_nlp_mcp&quot;</span>
+</code></pre></div>
+<hr />
+<h2 id="4-scratchpad-execution-log">4. Scratchpad &amp; Execution Log</h2>
+<p><em>(This space is reserved for pasting CLI outputs, agent traces, and our running notes as the factory agents build the solution)</em></p>
+<h3 id="agent-observations">Agent Observations:</h3>
+<ul>
+<li><strong>[2026-07-15]</strong>: Triggered the CLI command. The <code>factory_ceo</code> successfully invoked its context ingestion tool, extracted the zips, and delegated to the <code>agent_pm</code>. </li>
+<li><strong>[2026-07-15]</strong>: The Maker-Checker loop executed. <code>YamlCompiler</code> generated the pipelines but failed validation due to JSON schema <code>type</code> property conflicts and strict dependency naming requirements.</li>
+<li><strong>[2026-07-15]</strong>: Updated the <code>yaml_compiler</code> system prompt with strict rules for generating valid schemas and dependency references. Build restarted.</li>
+</ul>
+<hr />
+<h2 id="5-outstanding-tasks">5. Outstanding Tasks</h2>
+<ul class="task-list">
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> Run the <code>build</code> command.</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Review the generated multi-agent topology in <code>./projects/clinical_nlp_mcp</code>.</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Remediate any <code>agent_validator</code> failures via our Agent Improvement tools (Langfuse trace retrieval, Postgres state inspection).</li>
+</ul>
 
 
 
