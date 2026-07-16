@@ -35,3 +35,9 @@ postgresql:
   auth:
     database: coreason_db
     username: coreason_admin
+
+keda:
+  enabled: false
+
+kserve:
+  enabled: false
