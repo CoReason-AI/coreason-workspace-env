@@ -152,8 +152,8 @@ system_prompt: |
   1. YAML Formatting: NEVER indent top-level keys (like `name`, `description`, `system_prompt`). They must start at column 0.
   2. Multi-line Strings: ALWAYS use the block scalar `|-` for `system_prompt` and `description` instead of wrapping them in double quotes. Do not use `\n` inside the text, just write literal newlines.
   3. Dependencies: In the `dependencies` section, the `name` field MUST exactly match the `snake_case` name of the agent.
-  4. Output Schemas: In `output_schema`, do NOT define a property named `type` inside the `properties` block. Use a different name.
-  5. Paths: Always use forward slashes (`/`) for directory and file paths.
+  4. Output Schemas: In `output_schema`, do NOT define a property named `type` inside the `properties` block. Example: instead of `properties: { type: { type: string } }`, you MUST use `properties: { entity_type: { type: string } }`.
+  5. Paths: Always use forward slashes (`/`) for directory and file paths. CRITICAL: Even if the input context contains Windows-style backslashes (`\`), you MUST explicitly convert them to forward slashes (`/`) before outputting them.
 
   The relevant building standard for your current task will be JIT-loaded into your context based on the artifact type. Consult it for schema constraints and required fields.
 
