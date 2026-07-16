@@ -45,8 +45,10 @@ The Maker agents execute deterministically in the background. They do not ask yo
 ### Step 5: The Checker Phase (Agent Validation)
 Before any code is finalized, the artifacts hit the `agent_validator`. This agent acts as the strict "Checker" in the pipeline. It evaluates the generated files against the strict validation standards located in `src/core/skills/validation/` (e.g., verifying namespace mapping, Pydantic compliance, and mathematically deterministic syntax validation via `libcst`).
 
-### Step 6: The Remediation Loop
-If the `agent_validator` detects violations (e.g., a Maker agent hallucinated a Pydantic schema or failed to name a YAML file correctly), the `agent_pm` actively routes the artifact back to the Maker with the error trace for automatic remediation. You can observe this loop in real-time via the SSE `state_sync` streams or the Accordion tracker list in the UI.
+### Step 6: The Remediation & Approval Loop
+If the `agent_validator` detects structural violations (e.g., a Maker agent hallucinated a Pydantic schema or failed to name a YAML file correctly), the `agent_pm` actively routes the artifact back to the Maker with the error trace.
+
+Once an artifact passes the Validator, it proceeds to the **Governance Agent (Approver)** for semantic evaluation. The Approver uses **Multi-Model Consensus** to score the artifact across multiple test-time compute threads. If the consensus score is too low, the Approver enforces **Dialectical Synthesis**—generating an explicit Thesis, Antithesis, and Synthesis—to construct mathematically rigorous feedback before routing it back to the Maker for remediation. You can observe this loop in real-time via the SSE `state_sync` streams or the Accordion tracker list in the UI.
 
 ### Step 7: Packaging & Artifact Synthesis
 Once all artifacts pass the Checker phase, the platform generates a dynamically synthesized `pyproject.toml` containing exactly the dependencies your new agents need. It packages the raw Python code and `.yaml` manifests into an immutable ZIP bundle.

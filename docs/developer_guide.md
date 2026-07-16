@@ -28,7 +28,7 @@ The `SKILL.md` file is the absolute source of truth. It contains YAML frontmatte
 ### Core Mandates
 1. **Atomic Scope**: The skill must adhere to the Single Responsibility Principle.
 2. **Transactional Safety**: If the skill manipulates data, it must be idempotent or utilize Write-Ahead Logging (WAL).
-3. **Pydantic I/O**: All input/output contracts must use strict Pydantic models with max depth of 3.
+3. **Centralized Pydantic Ontology**: All schemas, models, and agent state geometries must be imported centrally from `src.core.ontology`. Never create local schema definitions inside individual agent directories.
 4. **Deterministic Governance**: The skill executes deterministically in Python, acting as a bumper for the stochastic LLM.
 
 ## 2. Writing Validation Rules
@@ -51,7 +51,8 @@ To ensure stability across complex LangGraph architectures, the platform impleme
 ### Mock-Free Philosophy
 1. **No Database Mocking**: Tests utilize a stateful `DummyConnection` and `DummyPool` that actually parse and store SQL statements in an in-memory dictionary.
 2. **Native LangChain v1 Agents**: We test against authentic `create_agent` graphs instead of deprecated `AgentExecutor` constructs, verifying modern state routing natively.
-3. **Deterministic LLM Harness**: We use a `DeterministicTestChatModel` that deterministically yields structurally perfect Pydantic output, eliminating brittle prompt-engineering logic during CI/CD.
+3. **Open-Source First Decoupling**: Models are dynamically loaded via Langchain's `init_chat_model` rather than hardcoding proprietary SDKs (like `ChatOpenAI`), ensuring enterprise fallback to local VLLM/Ollama deployments without altering source code.
+4. **Deterministic LLM Harness**: We use a `DeterministicTestChatModel` that deterministically yields structurally perfect Pydantic output, eliminating brittle prompt-engineering logic during CI/CD.
 
 ### Running Tests
 To run the full E2E map-reduce testing suite:
