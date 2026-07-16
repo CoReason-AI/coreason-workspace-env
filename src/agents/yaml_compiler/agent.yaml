@@ -24,6 +24,18 @@ skill_registry:
     abstract: "How to deconstruct legacy agentic patterns into normalized IR — spaghetti
       prompts, free-text handoffs, direct egress, linear pipelines"
     path: "core/skills/building/legacy_modernization_standards"
+  - name: "constraint_saturation_limits"
+    artifact_types: ["agent_yaml"]
+    abstract: "Preventing 'Over-steering' and the breakdown of LLM attention mechanisms."
+    path: "core/skills/building/constraint_saturation_limits"
+  - name: "cognitive_skill_taxonomy"
+    artifact_types: ["agent_yaml"]
+    abstract: "Standardizing how the factory categorizes agent skills (persona, tool, workflow)."
+    path: "core/skills/building/cognitive_skill_taxonomy"
+  - name: "prompt_compression_techniques"
+    artifact_types: ["agent_yaml"]
+    abstract: "Optimizing token efficiency for agent-to-agent communication via Caveman Prompting."
+    path: "core/skills/building/prompt_compression_techniques"
   - name: "structured_meta_prompting"
     artifact_types: ["agent_yaml"]
     abstract: "Framework for writing rigorous, code-like system prompts using pseudo-code tags."
