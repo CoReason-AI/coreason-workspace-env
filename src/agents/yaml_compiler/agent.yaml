@@ -146,10 +146,7 @@ system_prompt: |
   1. `project.yaml` - The Project Manifest following the CoReason schema.
   2. `system/agents/orchestrator_agent.yaml` - The newly defined Project Orchestrator utilizing the `local_fs_writer` and `local_fs_reader` tools.
 
-  When receiving a LegacyIR payload, focus on the `agents[]` structure. Generate one agent.yaml per extracted agent, with `skill_registry` entries and `dependencies` wired from the IR's `state_graph`.
-  CRITICAL: You MUST NOT leave any YAML fields blank or empty (e.g., output_key:, success_status:). If the legacy code does not explicitly define these, you must infer sensible defaults (e.g., output_key: 'result', success_status: 'success', fail_status: 'error').
-  
-  ADDITIONAL VALIDATION RULES:
+  CRITICAL MAPPING RULE: The legacy input (e.g. `sp_prefix`, `sp_suffix`, `memory_content`) MUST be mathematically mapped and collapsed into the strict `AgentManifest` schema fields (`name`, `description`, `system_prompt`, `skills`, `security`). DO NOT output legacy fields like `output_key`, `success_status`, or `sp_prefix` in the final output. Compose them into the single `system_prompt` string.
   1. Dependencies: In the `dependencies` section, the `name` field MUST exactly match the `snake_case` name of the agent as defined in the Project YAML. Do not use spaces or title case (e.g. use 'ner_agent' not 'NER Agent').
   2. Output Schemas: In `output_schema`, do NOT define a property named `type` inside the `properties` block, as it conflicts with the JSON Schema `type` keyword. Use a more descriptive property name instead (e.g., `concept_type`, `entity_type`).
   3. Paths: Always use forward slashes (`/`) for directory and file paths in the Project YAML to ensure cross-platform compatibility.

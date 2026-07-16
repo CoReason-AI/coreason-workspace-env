@@ -68,6 +68,19 @@ As an Agent Improvement System, full "Glass Box" traceability is required to deb
 **Why we need it:**
 - **Execution Graph Transparency:** The `factory_ceo` and `agent_pm` orchestrate complex Maker-Checker loops using LangGraph. If a sub-agent (like `agent_validator`) fails repeatedly, Langfuse provides exact insight into the LLM prompts, tool invocations, and responses that led to the failure.
 - **Context Propagation:** When dynamically injecting Langfuse callbacks into a running graph, it is critical to pass the `RunnableConfig` object down from the orchestrator to the sub-agents. Creating new, orphaned `CallbackHandler` instances inside nested LLM calls breaks the trace hierarchy and causes `KeyError` crashes, as the parent graph state is lost.
+- **Harmless SDK Warnings:** Due to the massive telemetry payloads our orchestrators send to the local Langfuse container, the Python SDK may occasionally throw background warnings in the terminal (e.g. `Unexpected error occurred. Please check your request and contact support`). These are non-fatal asynchronous synchronization warnings and can be safely ignored.
+
+### Learnings on Context Engineering & Tool Calling
+- **Autonomous vs Static Context Injection:** We originally relied on a Python wrapper (`orchestration_service.py`) to blindly unzip and read the legacy codebase, statically injecting it into the orchestrator's prompt. 
+- **DeepAgent ReAct Loop:** We realized this violates the DeepAgent philosophy. We refactored `factory_ceo` to act as a true State Machine. It now utilizes a LangChain `@tool` (`extract_and_read_context`) inside a LangGraph `ToolNode`. The LLM actively decides to invoke the tool when given a path, reads the codebase, and explicitly determines when its context is saturated.
+
+### Learnings on Formal Output Validation (Maker-Checker)
+During our migration, the `AgentValidator` successfully caught several subtle generative errors produced by the `YamlCompiler` during its compilation of the legacy code:
+1. **YAML String Syntax Errors:** The compiler injected a stray closing brace (`'}'}`) at the end of a stringified JSON schema, invalidating the YAML structure.
+2. **Dependency Naming:** The compiler used arbitrary naming (`NER Agent`) in the `dependencies` array instead of the strict `snake_case` matching the agent's ID (`ner_agent`).
+3. **JSON Schema Keyword Collisions:** The compiler generated an object schema containing a property literally named `type`. This conflicts with the JSON Schema `type` reserved keyword.
+4. **Cross-Platform Paths:** The compiler generated Windows-style backslashes (`\`) for file paths.
+**Remediation:** We immediately fed these learnings back into the platform by explicitly updating the `yaml_compiler`'s system prompt to forbid these anti-patterns, improving the reliability of the entire platform.
 
 ---
 
@@ -86,8 +99,9 @@ uv run coreason build "we want you to transform this legacy NLP pipeline that in
 *(This space is reserved for pasting CLI outputs, agent traces, and our running notes as the factory agents build the solution)*
 
 ### Agent Observations:
-- **[TBD]**: Run the CLI command to populate this log.
-- **[TBD]**: Await the `factory_ceo` context interrogation (if any).
+- **[2026-07-15]**: Triggered the CLI command. The `factory_ceo` successfully invoked its context ingestion tool, extracted the zips, and delegated to the `agent_pm`. 
+- **[2026-07-15]**: The Maker-Checker loop executed. `YamlCompiler` generated the pipelines but failed validation due to JSON schema `type` property conflicts and strict dependency naming requirements.
+- **[2026-07-15]**: Updated the `yaml_compiler` system prompt with strict rules for generating valid schemas and dependency references. Build restarted.
 
 ---
 
