@@ -22,7 +22,7 @@ class OrchestrationService:
         return decorator
 
     @observe(name="run_persona_graph")
-    async def run_persona_graph(self, user_id: str, session_id: str, input_data: str, output_dir: str = "./generated_agents") -> dict:
+    async def run_persona_graph(self, user_id: str, session_id: str, input_data: str, output_dir: str = "./generated_agents", input_path: str = None) -> dict:
         """
         Abstracts the LangGraph execution for the active persona (dynamic entrypoint).
         """
@@ -30,6 +30,22 @@ class OrchestrationService:
         
         import os
         import importlib
+        import zipfile
+        
+        extracted_path = None
+        if input_path and os.path.exists(input_path):
+            if os.path.isfile(input_path) and input_path.endswith('.zip'):
+                extracted_path = os.path.abspath(f"./scratch/context_{session_id}")
+                os.makedirs(extracted_path, exist_ok=True)
+                with zipfile.ZipFile(input_path, 'r') as zip_ref:
+                    zip_ref.extractall(extracted_path)
+                logger.info(f"Extracted input zip to {extracted_path}")
+            else:
+                extracted_path = os.path.abspath(input_path)
+                logger.info(f"Using input path at {extracted_path}")
+            
+        if extracted_path:
+            input_data += f"\n\nThe user has provided additional input context located at: '{extracted_path}'. If instructed by the user, treat this as legacy code to be modernized. Otherwise, incorporate this context as directed by the user."
         
         # Dynamically load the root agent defined by the active Brain
         module_path = os.environ.get("AGENT_ENTRYPOINT_MODULE", "src.agents.factory_ceo.orchestrator")

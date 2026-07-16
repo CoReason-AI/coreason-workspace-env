@@ -68,7 +68,11 @@ def mcp_list_servers():
 
 
 @app.command()
-def build(intent: str, output_dir: str = "./dist"):
+def build(
+    intent: str, 
+    output_dir: str = typer.Option("./dist", help="Output directory for bundled agent specs"),
+    input_path: Optional[str] = typer.Option(None, "--input-path", help="Path to a file, zip, or directory containing additional context")
+):
     """
     Headless CLI for building a new agent platform via the coreason factory.
     """
@@ -82,7 +86,13 @@ def build(intent: str, output_dir: str = "./dist"):
     
     async def run():
         typer.echo(f"Session ID: {session_id}")
-        result = await orch.run_persona_graph(user_id, session_id, intent, output_dir=output_dir)
+        result = await orch.run_persona_graph(
+            user_id, 
+            session_id, 
+            intent, 
+            output_dir=output_dir,
+            input_path=input_path
+        )
         if result.get("status") == "success":
             typer.echo(f"[SUCCESS] Platform bundled at: {result.get('artifact')}")
         else:
