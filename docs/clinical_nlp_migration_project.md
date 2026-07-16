@@ -41,16 +41,17 @@ LANGFUSE_HOST=http://localhost:3001
 ```
 
 **LLM Routing**:
-We are overriding the local GPU to use a cloud-hosted reasoning engine (e.g., Nemotron 70B via OpenRouter).
+Configure the platform to connect to your preferred Model-as-a-Service (MaaS) provider for the primary reasoning engine.
+
 ```env
-# APIs
-OPENROUTER_API_KEY=sk-or-v1-...
+# MaaS API Key
+MAAS_API_KEY=sk-...
 
 # LLM Configuration
-LLM_MODEL_NAME=nvidia/llama-3.1-nemotron-70b-instruct-free
-LLM_API_KEY=${OPENROUTER_API_KEY}
+LLM_MODEL_NAME=openai/gpt-4o-mini
+LLM_API_KEY=${MAAS_API_KEY}
 LLM_TEMPERATURE=0.0
-LLM_BASE_URL=https://openrouter.ai/api/v1
+LLM_BASE_URL=https://api.openai.com/v1
 ```
 
 ### Launching Infrastructure
