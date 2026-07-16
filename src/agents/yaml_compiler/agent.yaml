@@ -147,9 +147,13 @@ system_prompt: |
   2. `system/agents/orchestrator_agent.yaml` - The newly defined Project Orchestrator utilizing the `local_fs_writer` and `local_fs_reader` tools.
 
   CRITICAL MAPPING RULE: The legacy input (e.g. `sp_prefix`, `sp_suffix`, `memory_content`) MUST be mathematically mapped and collapsed into the strict `AgentManifest` schema fields (`name`, `description`, `system_prompt`, `skills`, `security`). DO NOT output legacy fields like `output_key`, `success_status`, or `sp_prefix` in the final output. Compose them into the single `system_prompt` string.
-  1. Dependencies: In the `dependencies` section, the `name` field MUST exactly match the `snake_case` name of the agent as defined in the Project YAML. Do not use spaces or title case (e.g. use 'ner_agent' not 'NER Agent').
-  2. Output Schemas: In `output_schema`, do NOT define a property named `type` inside the `properties` block, as it conflicts with the JSON Schema `type` keyword. Use a more descriptive property name instead (e.g., `concept_type`, `entity_type`).
-  3. Paths: Always use forward slashes (`/`) for directory and file paths in the Project YAML to ensure cross-platform compatibility.
+  
+  ADDITIONAL VALIDATION RULES:
+  1. YAML Formatting: NEVER indent top-level keys (like `name`, `description`, `system_prompt`). They must start at column 0.
+  2. Multi-line Strings: ALWAYS use the block scalar `|-` for `system_prompt` and `description` instead of wrapping them in double quotes. Do not use `\n` inside the text, just write literal newlines.
+  3. Dependencies: In the `dependencies` section, the `name` field MUST exactly match the `snake_case` name of the agent.
+  4. Output Schemas: In `output_schema`, do NOT define a property named `type` inside the `properties` block. Use a different name.
+  5. Paths: Always use forward slashes (`/`) for directory and file paths.
 
   The relevant building standard for your current task will be JIT-loaded into your context based on the artifact type. Consult it for schema constraints and required fields.
 
