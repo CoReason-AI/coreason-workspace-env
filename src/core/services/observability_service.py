@@ -20,13 +20,29 @@ class ObservabilityService:
         default_dsn = f"postgresql://{settings.POSTGRES_USER}:{settings.POSTGRES_PASSWORD}@{settings.POSTGRES_HOST}:{settings.POSTGRES_PORT}/{settings.POSTGRES_DB}"
         self.pg_dsn = os.environ.get("DATABASE_URL", default_dsn)
         
-        self.langfuse_host = os.environ.get("LANGFUSE_HOST", "http://localhost:3001")
-        self.langfuse_public = os.environ.get("LANGFUSE_PUBLIC_KEY", "")
-        self.langfuse_secret = os.environ.get("LANGFUSE_SECRET_KEY", "")
+        self.langfuse_host = settings.LANGFUSE_HOST
+        self.langfuse_public = settings.LANGFUSE_PUBLIC_KEY
+        self.langfuse_secret = settings.LANGFUSE_SECRET_KEY
         
         # Use settings for Vault Address
         self.vault_addr = settings.VAULT_ADDR
         self.vault_token = os.environ.get("VAULT_DEV_ROOT_TOKEN_ID", "root")
+
+    def get_langfuse_callback(self, session_id: str):
+        """
+        Returns a configured Langchain CallbackHandler for Langfuse.
+        """
+        from langfuse.callback import CallbackHandler
+        if not self.langfuse_public or not self.langfuse_secret:
+            logger.warning("Langfuse credentials missing; returning None for callback.")
+            return None
+            
+        return CallbackHandler(
+            public_key=self.langfuse_public,
+            secret_key=self.langfuse_secret,
+            host=self.langfuse_host,
+            session_id=session_id
+        )
 
     async def fetch_postgres_state(self, session_id: str) -> Dict[str, Any]:
         """
@@ -35,20 +51,19 @@ class ObservabilityService:
         try:
             conn = await asyncpg.connect(self.pg_dsn)
             query = """
-            SELECT thread_id, checkpoint_id, checkpoint, metadata 
-            FROM checkpoints 
+            SELECT thread_id, state 
+            FROM langgraph_state 
             WHERE thread_id = $1 
-            ORDER BY checkpoint_id DESC LIMIT 1
+            ORDER BY id DESC LIMIT 1
             """
             row = await conn.fetchrow(query, session_id)
             await conn.close()
             
             if row:
+                state_data = json.loads(row["state"]) if isinstance(row["state"], str) else row["state"]
                 return {
                     "thread_id": row["thread_id"],
-                    "checkpoint_id": row["checkpoint_id"],
-                    "metadata": json.loads(row["metadata"].decode("utf-8")) if isinstance(row["metadata"], bytes) else row["metadata"],
-                    "checkpoint_size": len(row["checkpoint"]) if row["checkpoint"] else 0
+                    "state": state_data
                 }
             return {"error": f"No state found for session {session_id}"}
         except Exception as e:

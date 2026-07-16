@@ -65,7 +65,9 @@ def evaluate_context(state: OrchestratorCeoState) -> dict:
     is_saturated = "YES" in response.content.upper()
     return {"is_saturated": is_saturated}
 
-def delegate_to_pm(state: OrchestratorCeoState) -> dict:
+from langchain_core.runnables import RunnableConfig
+
+def delegate_to_pm(state: OrchestratorCeoState, config: RunnableConfig) -> dict:
     """
     Delegates saturated context to the agent_pm.
     """
@@ -74,7 +76,8 @@ def delegate_to_pm(state: OrchestratorCeoState) -> dict:
     # Passing control to sub-agent
     pm = AgentPmAgent()
     if hasattr(pm, 'execute'):
-        result = pm.execute(state)
+        session_id = config.get("configurable", {}).get("thread_id")
+        result = pm.execute(state, session_id=session_id)
         return {"messages": [SystemMessage(content=f"Delegation result: {result}")]}
     return {"messages": [SystemMessage(content="agent_pm executed successfully.")]}
 
@@ -120,4 +123,21 @@ class FactoryCeoAgent(DeepAgent):
         self.graph = self.graph_builder.compile()
 
     async def execute(self, context: dict, session_id: str = None) -> Any:
-        return await self.graph.ainvoke(context, config={"configurable": {"thread_id": session_id or str(uuid.uuid7())}})
+        from src.core.services.observability_service import ObservabilityService
+        obs = ObservabilityService()
+        langfuse_cb = obs.get_langfuse_callback(session_id)
+        
+        from langgraph.checkpoint.postgres.aio import AsyncPostgresSaver
+        async with AsyncPostgresSaver.from_conn_string(obs.pg_dsn) as checkpointer:
+            await checkpointer.setup()
+            
+            # Recompile with checkpointer to enable state saving
+            graph_with_checkpointer = self.graph_builder.compile(checkpointer=checkpointer)
+            
+            config = {
+                "configurable": {"thread_id": session_id or str(uuid.uuid7())}
+            }
+            if langfuse_cb:
+                config["callbacks"] = [langfuse_cb]
+                
+            return await graph_with_checkpointer.ainvoke(context, config=config)

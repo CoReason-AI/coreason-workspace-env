@@ -62,6 +62,15 @@ docker compose up -d
 
 ---
 
+### Learnings on Observability (Langfuse)
+As an Agent Improvement System, full "Glass Box" traceability is required to debug and refine agent execution. We leverage **Langfuse** for tracing.
+
+**Why we need it:**
+- **Execution Graph Transparency:** The `factory_ceo` and `agent_pm` orchestrate complex Maker-Checker loops using LangGraph. If a sub-agent (like `agent_validator`) fails repeatedly, Langfuse provides exact insight into the LLM prompts, tool invocations, and responses that led to the failure.
+- **Context Propagation:** When dynamically injecting Langfuse callbacks into a running graph, it is critical to pass the `RunnableConfig` object down from the orchestrator to the sub-agents. Creating new, orphaned `CallbackHandler` instances inside nested LLM calls breaks the trace hierarchy and causes `KeyError` crashes, as the parent graph state is lost.
+
+---
+
 ## 3. Execution Trigger
 
 With the infrastructure healthy, we trigger the orchestrator via the CLI:

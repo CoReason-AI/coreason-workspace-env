@@ -1,5 +1,6 @@
 import typer
 import asyncio
+import sys
 from typing import Optional
 import uuid
 
@@ -98,6 +99,8 @@ def build(
         else:
             typer.echo(f"[ERROR] Build failed: {result.get('details')}")
             
+    if sys.platform == "win32":
+        asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
     asyncio.run(run())
 
 @app.command()
