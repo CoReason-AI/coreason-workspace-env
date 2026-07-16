@@ -24,6 +24,18 @@ skill_registry:
     abstract: "How to deconstruct legacy agentic patterns into normalized IR — spaghetti
       prompts, free-text handoffs, direct egress, linear pipelines"
     path: "core/skills/building/legacy_modernization_standards"
+  - name: "tree_of_thoughts_exploration"
+    artifact_types: ["agent_yaml"]
+    abstract: "Forcing System 2 deliberation via branching, pruning, and backtracking (ToT)."
+    path: "core/skills/building/tree_of_thoughts_exploration"
+  - name: "react_reasoning_loop"
+    artifact_types: ["agent_yaml"]
+    abstract: "Grounding agent logic in physical or external reality via the ReAct framework."
+    path: "core/skills/building/react_reasoning_loop"
+  - name: "reflexion_self_critique"
+    artifact_types: ["agent_yaml"]
+    abstract: "Enabling autonomous self-improvement and failure recovery via Reflexion."
+    path: "core/skills/building/reflexion_self_critique"
   - name: "role_based_crew_collaboration"
     artifact_types: ["agent_yaml"]
     abstract: "Building flat, peer-to-peer agent networks based on the CrewAI topology."
