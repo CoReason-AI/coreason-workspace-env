@@ -150,3 +150,22 @@ The validator returns a structured result:
 ### V25. Bayesian Belief Updating (Orchestration)
 - [ ] For orchestrators managing high-uncertainty routing or diagnostics, does the system prompt mandate a Bayes-consistent tracking of prior and posterior beliefs?
 - [ ] **WARN** if the orchestrator resolves complex uncertainty without tracking an explicit probabilistic world model.
+
+### V26. LangChain v1 Migration Adherence
+- [ ] Does the payload import from `langchain-community`?
+- [ ] Does the payload use `AgentExecutor`, `ConversationBufferMemory`, or legacy Chains (`LLMChain`)?
+- [ ] Does the payload use `langgraph.prebuilt.create_react_agent` instead of `langchain.agents.create_agent`?
+- [ ] **FAIL** if any deprecated LangChain abstractions or community packages are present.
+
+### V27. Open-Source Observability
+- [ ] Does the payload contain telemetry endpoints or SDK imports pointing to `LangSmith`?
+- [ ] **FAIL** if `LangSmith` is referenced. `Langfuse` is the strictly mandated standard.
+
+### V28. Native Semantic Memory
+- [ ] Does the payload attempt to manually instantiate external vector databases (e.g., `langchain-qdrant`, `pinecone`)?
+- [ ] **FAIL** if the agent manually wires vector stores. Long-term memory MUST use LangGraph's native `Annotated[BaseStore, InjectedStore()]` pattern exclusively.
+
+### V29. DeepAgents API Contract
+- [ ] Does the payload rely on deprecated `deepagents < 0.6.0` abstractions like `ls_info` or `ASYNC_GREP_TIMEOUT`?
+- [ ] Does the payload use legacy pre-model/post-model hooks instead of Middleware (`before_model`, `after_model`)?
+- [ ] **FAIL** if legacy deepagents contracts are referenced.
