@@ -31,7 +31,8 @@ async def run_worker_loop():
             
             # Dynamically load the agent
             module_path = os.environ.get("AGENT_ENTRYPOINT_MODULE", f"src.agents.{agent_name}.orchestrator")
-            class_name = os.environ.get("AGENT_ENTRYPOINT_CLASS", "FactoryCeoAgent")
+            default_class_name = "".join(word.capitalize() for word in agent_name.split("_")) + "Agent"
+            class_name = os.environ.get("AGENT_ENTRYPOINT_CLASS", default_class_name)
             
             try:
                 module = importlib.import_module(module_path)
@@ -42,7 +43,7 @@ async def run_worker_loop():
                 continue
             
             # Extract user input payload
-            user_input = task["payload"].get("input", "")
+            user_input = task["payload"].get("crude_context", "") or task["payload"].get("input", "")
             
             from langchain_core.messages import HumanMessage
             context = {
@@ -51,7 +52,11 @@ async def run_worker_loop():
             }
             
             # Execute the deterministic graph using the Postgres Checkpointer
-            result = await agent.execute(context, session_id)
+            import inspect
+            result = agent.execute(context, session_id)
+            if inspect.iscoroutine(result):
+                result = await result
+            task_queue.set_job_result(session_id, result)
             
             logger.info(f"Task complete for session {session_id}. Result length: {len(str(result))}")
             

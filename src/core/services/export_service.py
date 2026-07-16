@@ -39,25 +39,32 @@ class PlatformExporter:
             logger.warning("No generated files found on disk for session %s. Querying Postgres state.", safe_session_id)
             session_dir.mkdir(parents=True, exist_ok=True)
             try:
-                pool = await get_db_pool()
-                async with pool.acquire() as conn:
-                    # Query the checkpointer table for finalized YAMLs
-                    records = await conn.fetch("SELECT state FROM langgraph_state WHERE thread_id = $1 AND tenant_id = $2 ORDER BY id DESC LIMIT 1", safe_session_id, tenant_id)
-                    if records:
-                        state_val = records[0]['state']
-                        import json
-                        state = json.loads(state_val) if isinstance(state_val, str) else state_val
-                        # Assuming state contains the generated agents dict
-                        for agent_name, yaml_content in state.get("generated_agents", {}).items():
-                            if not re.match(r"^[a-zA-Z0-9_-]+$", agent_name):
-                                continue
-                            safe_agent_name = agent_name
-                            with open(session_dir / f"{safe_agent_name}.yaml", "w", encoding="utf-8") as f:
-                                f.write(yaml_content)
-                    else:
-                        raise ValueError("No finalized state found for session %s" % safe_session_id)
+                from src.core.queue import task_queue
+                import re
+                
+                job_result = task_queue.get_job_result(safe_session_id)
+                if not job_result:
+                    raise ValueError("No result found in Redis")
+                
+                content = str(job_result.get("messages", [""])[-1])
+                if "SUCCESS:" not in content:
+                    raise ValueError("Job did not complete successfully.")
+                
+                agent_match = re.search(r"'agent_yaml':\s*['\"](.*?)['\"], 'project_yaml'", content, re.DOTALL)
+                project_match = re.search(r"'project_yaml':\s*['\"](.*?)['\"]}}", content, re.DOTALL)
+                
+                if agent_match and project_match:
+                    agent_yaml = agent_match.group(1).replace("\\n", "\n").replace("\\'", "'")
+                    project_yaml = project_match.group(1).replace("\\n", "\n").replace("\\'", "'")
+                    
+                    with open(session_dir / "agent.yaml", "w", encoding="utf-8") as f:
+                        f.write(agent_yaml)
+                    with open(session_dir / "project.yaml", "w", encoding="utf-8") as f:
+                        f.write(project_yaml)
+                else:
+                    raise ValueError("Could not parse YAMLs from Redis result string")
             except Exception as e:
-                logger.error("Failed to retrieve YAMLs from Postgres: %s", e)
+                logger.error("Failed to retrieve YAMLs from Redis: %s", e)
                 return None
         
         # We assume validation against coreason-manifest passed in the Maker-Checker phase
