@@ -48,3 +48,10 @@ Thumbs.db
 .env.*
 generated_agents/
 projects/
+
+# Generated Artifacts & Helm
+mcp_export/
+helm/coreason-platform/charts/
+helm/coreason-platform/Chart.lock
+patch.json
+workspace-secrets.yaml
