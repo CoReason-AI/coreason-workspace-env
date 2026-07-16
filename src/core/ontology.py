@@ -123,3 +123,5 @@ class ApproverState(CoreasonBaseState, total=False):
     status: str
     approver_feedback: str
     evaluation_result: str
+    signature: str
+    certificate: str

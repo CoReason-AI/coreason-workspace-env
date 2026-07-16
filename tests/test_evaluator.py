@@ -55,5 +55,19 @@ class TestEvaluatorAndApprover(unittest.IsolatedAsyncioTestCase):
         self.assertIn("THESIS:", result["approver_feedback"])
         self.assertIn("SYNTHESIS:", result["approver_feedback"])
 
+    async def test_approver_node_pass(self):
+        state = {
+            "user_prompt": "Do X",
+            "generated_code": "def good(): pass",
+            "thread_id": "session-123"
+        }
+        
+        with patch.object(evaluate_artifact, '_arun', new=AsyncMock(return_value="EVALUATION PASSED. Score: 1.0")):
+            result = await approver_node(state)
+            
+        self.assertEqual(result["status"], "APPROVED")
+        self.assertEqual(result["signature"], "mock_sigstore_signature_bundle_v1")
+        self.assertEqual(result["certificate"], "mock_sigstore_certificate_v1")
+
 if __name__ == '__main__':
     unittest.main()

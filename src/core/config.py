@@ -20,6 +20,7 @@ class Settings(BaseSettings):
     VAULT_ADDR: str
     VAULT_NAMESPACE: str
     JWT_SECRET_KEY: str = "fallback_secret_for_local_dev"
+    REQUIRE_CRYPTOGRAPHIC_SIGNATURE: bool = False
     
     # Checkpointer Database (Postgres)
     POSTGRES_USER: str

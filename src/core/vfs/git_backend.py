@@ -56,7 +56,7 @@ class TrueGitBackend:
         """
         Placeholder for when the LangGraph interrupts for a human to resolve a conflict.
         """
-        pass
+        raise NotImplementedError("Merge conflict resolution must be handled via LangGraph human-in-the-loop interrupts.")
 
     # --- BackendProtocol Implementation ---
 
@@ -93,10 +93,21 @@ class TrueGitBackend:
 
     def grep(self, query: str, path: str = ".") -> str:
         """Searches for a string within the VFS."""
-        # Stub for deepagents protocol compliance
-        return ""
+        target_path = self.workspace_path / path
+        try:
+            # Leverage git grep for performance since this is a git backend
+            res = subprocess.run(
+                ["git", "grep", "-n", query, "--", str(target_path)], 
+                cwd=str(self.workspace_path), 
+                capture_output=True, 
+                text=True, 
+                check=False
+            )
+            return res.stdout
+        except Exception as e:
+            logger.error(f"Grep failed: {e}")
+            return ""
 
     def glob(self, pattern: str) -> list[str]:
         """Globs a pattern within the VFS."""
-        # Stub for deepagents protocol compliance
-        return []
+        return [str(p.relative_to(self.workspace_path)) for p in self.workspace_path.rglob(pattern) if p.is_file()]

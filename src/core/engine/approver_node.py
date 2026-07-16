@@ -14,6 +14,7 @@ from langchain.chat_models import init_chat_model
 from langchain_core.messages import SystemMessage, HumanMessage
 
 from src.core.tools.evaluator import evaluate_artifact
+from src.core.tools.signer import sign_artifact
 from src.core.config import settings
 from src.core.ontology import ApproverState
 
@@ -38,11 +39,25 @@ async def approver_node(state: ApproverState) -> ApproverState:
     })
     
     if "EVALUATION PASSED" in evaluation_result:
-        logger.info("Approver Node passed artifact.")
+        signature, certificate = "", ""
+        
+        if settings.REQUIRE_CRYPTOGRAPHIC_SIGNATURE:
+            logger.info("Approver Node passed artifact. Proceeding to cryptographic signing...")
+            # Epic 10: Cryptographically sign the artifact (PVV)
+            pvv = await sign_artifact(generated_code)
+            signature = pvv.get("signature", "")
+            certificate = pvv.get("certificate", "")
+            feedback_msg = "Consensus reached. Artifact approved and signed."
+        else:
+            logger.info("Approver Node passed artifact. Cryptographic signing is disabled.")
+            feedback_msg = "Consensus reached. Artifact approved."
+            
         return {
             "status": "APPROVED",
-            "approver_feedback": "Consensus reached. Artifact approved.",
-            "evaluation_result": evaluation_result
+            "approver_feedback": feedback_msg,
+            "evaluation_result": evaluation_result,
+            "signature": signature,
+            "certificate": certificate
         }
         
     # If failed, perform Dialectical Synthesis
