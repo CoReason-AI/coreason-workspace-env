@@ -114,6 +114,15 @@ class AgentPmAgent(DeepAgent):
                 }
                 if langfuse_cb:
                     config["callbacks"] = [langfuse_cb]
+            else:
+                # We inherited config from factory_ceo (including Langfuse callbacks)
+                # But we MUST use a distinct thread_id for our internal checkpointer to avoid state collision
+                config = config.copy()
+                old_thread_id = config.get("configurable", {}).get("thread_id", str(uuid.uuid7()))
+                config["configurable"] = {
+                    **config.get("configurable", {}),
+                    "thread_id": f"{old_thread_id}-pm"
+                }
                 
             result = graph_with_checkpointer.invoke(initial_state, config=config)
         
