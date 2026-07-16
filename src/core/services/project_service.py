@@ -120,12 +120,16 @@ class ProjectService:
             schema_name = f"project_{safe_project_id.replace('-', '_')}"
             if not re.match(r"^[a-zA-Z0-9_]+$", schema_name):
                 raise ValueError("Invalid schema name.")
+            if schema_name.startswith("-"):
+                raise ValueError("schema_name cannot start with -")
+            import re
+            safe_schema_name = re.sub(r'[^a-zA-Z0-9_]', '', schema_name)
             pg_dump_cmd = [
                 pg_dump_exe,
                 "-U", settings.POSTGRES_USER,
                 "-h", settings.POSTGRES_HOST,
                 "-p", str(settings.POSTGRES_PORT),
-                "-n", schema_name,
+                "-n", safe_schema_name,
                 "-F", "c",
                 "--",
                 settings.POSTGRES_DB,
@@ -165,6 +169,8 @@ class ProjectService:
                 raise ValueError("Command injection check failed: docker_tar is unsafe.")
             if ".." in docker_tar:
                 raise ValueError("Path traversal check failed: docker_tar contains traversal segments.")
+            if docker_tar.startswith("-"):
+                raise ValueError("docker_tar cannot start with -")
             if not re.match(r"^coreason/[a-zA-Z0-9_-]+:latest$", image_name):
                 raise ValueError("Command injection check failed: image_name is unsafe.")
 
@@ -236,10 +242,16 @@ class ProjectService:
 
             if ".." in pg_dump_path:
                 raise ValueError("Path traversal check failed: pg_dump_path contains traversal segments.")
+            if pg_dump_path.startswith("-"):
+                raise ValueError("pg_dump_path cannot start with -")
 
             import shutil
             if os.path.exists(pg_dump_path):
                 pg_restore_exe = shutil.which("pg_restore") or "/usr/bin/pg_restore"
+                
+                import re
+                safe_pg_dump_path = re.sub(r'[^\w\-\.\/\\: ]', '', pg_dump_path)
+                
                 pg_restore_cmd = [
                     pg_restore_exe,
                     "-U", settings.POSTGRES_USER,
@@ -248,7 +260,8 @@ class ProjectService:
                     "-d", settings.POSTGRES_DB,
                     "--clean",
                     "--if-exists",
-                    pg_dump_path,
+                    "--",
+                    safe_pg_dump_path,
                 ]
                 env = os.environ.copy()
                 env["PGPASSWORD"] = settings.POSTGRES_PASSWORD
@@ -298,6 +311,8 @@ class ProjectService:
                     raise ValueError("Command injection check failed: docker_tar is unsafe.")
                 if ".." in docker_tar:
                     raise ValueError("Path traversal check failed: docker_tar contains traversal segments.")
+                if docker_tar.startswith("-"):
+                    raise ValueError("docker_tar cannot start with -")
 
                 docker_exe = shutil.which("docker") or "/usr/bin/docker"
                 try:
