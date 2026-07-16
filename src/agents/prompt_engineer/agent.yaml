@@ -18,6 +18,18 @@ skill_registry:
     abstract: "How to deconstruct legacy agentic patterns into normalized IR — spaghetti
       prompts, free-text handoffs, direct egress, linear pipelines"
     path: "core/skills/building/legacy_modernization_standards"
+  - name: "prompt_complexity_bounds"
+    artifact_types: ["agent_yaml"]
+    abstract: "Identifying when a prompt is too complex and must be transitioned to an agentic workflow."
+    path: "core/skills/building/prompt_complexity_bounds"
+  - name: "task_decomposition_patterns"
+    artifact_types: ["agent_yaml"]
+    abstract: "Safely decomposing complex workflows without falling into the overengineering trap."
+    path: "core/skills/building/task_decomposition_patterns"
+  - name: "ambiguity_resolution"
+    artifact_types: ["agent_yaml"]
+    abstract: "How orchestrators handle underspecified intent via state machine interrogation."
+    path: "core/skills/building/ambiguity_resolution"
   - name: "analogical_mapping"
     artifact_types: ["agent_yaml"]
     abstract: "Structural templates and schemas for Analogical Prompting and Transfer."
