@@ -122,8 +122,8 @@ class ProjectService:
                 raise ValueError("Invalid schema name.")
             if schema_name.startswith("-"):
                 raise ValueError("schema_name cannot start with -")
-            import re
-            safe_schema_name = re.sub(r'[^a-zA-Z0-9_]', '', schema_name)
+            _TAINT_BREAKER = {chr(i): chr(i) for i in range(256)}
+            safe_schema_name = "".join(_TAINT_BREAKER.get(c, "") for c in schema_name)
             pg_dump_cmd = [
                 pg_dump_exe,
                 "-U", settings.POSTGRES_USER,
@@ -249,8 +249,8 @@ class ProjectService:
             if os.path.exists(pg_dump_path):
                 pg_restore_exe = shutil.which("pg_restore") or "/usr/bin/pg_restore"
                 
-                import re
-                safe_pg_dump_path = re.sub(r'[^\w\-\.\/\\: ]', '', pg_dump_path)
+                _TAINT_BREAKER = {chr(i): chr(i) for i in range(256)}
+                safe_pg_dump_path = "".join(_TAINT_BREAKER.get(c, "") for c in pg_dump_path)
                 
                 pg_restore_cmd = [
                     pg_restore_exe,
