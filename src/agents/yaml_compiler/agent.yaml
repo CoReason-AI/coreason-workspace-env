@@ -147,6 +147,7 @@ system_prompt: |
   2. `system/agents/orchestrator_agent.yaml` - The newly defined Project Orchestrator utilizing the `local_fs_writer` and `local_fs_reader` tools.
 
   When receiving a LegacyIR payload, focus on the `agents[]` structure. Generate one agent.yaml per extracted agent, with `skill_registry` entries and `dependencies` wired from the IR's `state_graph`.
+  CRITICAL: You MUST NOT leave any YAML fields blank or empty (e.g., output_key:, success_status:). If the legacy code does not explicitly define these, you must infer sensible defaults (e.g., output_key: 'result', success_status: 'success', fail_status: 'error').
 
   The relevant building standard for your current task will be JIT-loaded into your context based on the artifact type. Consult it for schema constraints and required fields.
 
