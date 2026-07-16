@@ -9,7 +9,7 @@ class LangfuseConfig:
     """Configuration for the Langfuse tracing integration."""
 
     def __init__(self):
-        self.host: str = os.getenv("LANGFUSE_HOST", "http://localhost:3000")
+        self.host: str = os.getenv("LANGFUSE_HOST", "http://localhost:3002")
         self.public_key: str = os.getenv("LANGFUSE_PUBLIC_KEY", "pk-lf-coreason-dev")
         self.secret_key: str = os.getenv("LANGFUSE_SECRET_KEY", "sk-lf-coreason-dev")
         self.enabled: bool = os.getenv("LANGFUSE_ENABLED", "true").lower() == "true"

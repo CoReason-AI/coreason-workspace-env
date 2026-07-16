@@ -14,7 +14,7 @@ class Settings(BaseSettings):
     # Observability (Langfuse)
     LANGFUSE_PUBLIC_KEY: str = ""
     LANGFUSE_SECRET_KEY: str = ""
-    LANGFUSE_HOST: str = "http://localhost:3001"
+    LANGFUSE_HOST: str = "http://localhost:3002"
     
     # Secrets & Vault (OIDC Federation)
     VAULT_ADDR: str

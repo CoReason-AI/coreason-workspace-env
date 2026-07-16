@@ -37,7 +37,7 @@ VAULT_DEV_ROOT_TOKEN_ID=root
 # Langfuse Observability
 LANGFUSE_PUBLIC_KEY=pk-lf-1234567890
 LANGFUSE_SECRET_KEY=sk-lf-1234567890
-LANGFUSE_HOST=http://localhost:3001
+LANGFUSE_HOST=http://localhost:3002
 ```
 
 **LLM Routing**:
