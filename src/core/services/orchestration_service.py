@@ -69,7 +69,7 @@ class OrchestrationService:
                             pass
 
             if context_text:
-                input_data += f"\n\nThe user has provided legacy codebase context:\n{context_text[:50000]}\n\nTreat this as legacy code to be modernized."
+                input_data += f"\n\nThe user has provided additional codebase context:\n{context_text[:50000]}\n\nIncorporate this context as directed by the user's intent."
             else:
                 input_data += f"\n\nThe user has provided additional input context located at: '{extracted_path}'."
         
