@@ -11,6 +11,11 @@ class Settings(BaseSettings):
     ENVIRONMENT: str
     ALLOWED_ORIGINS: str
     
+    # Observability (Langfuse)
+    LANGFUSE_PUBLIC_KEY: str = ""
+    LANGFUSE_SECRET_KEY: str = ""
+    LANGFUSE_HOST: str = "http://localhost:3001"
+    
     # Secrets & Vault (OIDC Federation)
     VAULT_ADDR: str
     VAULT_NAMESPACE: str

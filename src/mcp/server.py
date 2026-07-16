@@ -202,6 +202,40 @@ async def trigger_factory_build(user_id: str, session_id: str, intent: str) -> D
     orch = OrchestrationService()
     return await orch.run_persona_graph(user_id, session_id, intent)
 
+@mcp.tool()
+async def get_langgraph_trace(session_id: str) -> Dict[str, Any]:
+    """Retrieves the latest LangGraph state from the Postgres checkpointer."""
+    from src.core.services.observability_service import ObservabilityService
+    obs = ObservabilityService()
+    return await obs.fetch_postgres_state(session_id)
+
+@mcp.tool()
+async def get_langfuse_trace(session_id: str) -> Dict[str, Any]:
+    """Retrieves LLM traces from the local Langfuse API."""
+    from src.core.services.observability_service import ObservabilityService
+    obs = ObservabilityService()
+    return await obs.fetch_langfuse_traces(session_id)
+
+@mcp.tool()
+async def inject_vault_secret(secret_path: str, data: Dict[str, Any]) -> Dict[str, Any]:
+    """Injects a secret into the local dev Vault for agent impersonation."""
+    from src.core.services.observability_service import ObservabilityService
+    obs = ObservabilityService()
+    return await obs.write_dev_vault_secret(secret_path, data)
+
+@mcp.tool()
+async def tail_worker_logs(lines: int = 100) -> str:
+    """Tails the last N lines of the platform_worker logs."""
+    from src.core.services.observability_service import ObservabilityService
+    obs = ObservabilityService()
+    return await obs.fetch_docker_logs(lines)
+
+@mcp.tool()
+async def resume_agent(session_id: str, agent_name: str, payload: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    """Resumes a paused or failed agent execution by enqueuing a new task."""
+    from src.core.services.observability_service import ObservabilityService
+    obs = ObservabilityService()
+    return await obs.resume_agent(session_id, agent_name, payload or {})
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)

@@ -32,7 +32,7 @@ class AgentValidatorAgent(DeepAgent):
             base_url=settings.LLM_BASE_URL
         ).with_structured_output(ValidatorOutput)
 
-    def execute(self, payload: dict, session_id: str = None) -> ValidatorOutput:
+    def execute(self, payload: dict, session_id: str = None, config: dict = None) -> ValidatorOutput:
         """
         Executes validation checking against standards.
         """
@@ -47,5 +47,14 @@ class AgentValidatorAgent(DeepAgent):
         ]
         
         logger.info(f"[{session_id}] AgentValidator checking artifacts.")
-        result = self.llm.invoke(messages)
+        
+        if config is None:
+            from src.core.services.observability_service import ObservabilityService
+            obs = ObservabilityService()
+            langfuse_cb = obs.get_langfuse_callback(session_id)
+            config = {}
+            if langfuse_cb:
+                config["callbacks"] = [langfuse_cb]
+            
+        result = self.llm.invoke(messages, config=config)
         return result

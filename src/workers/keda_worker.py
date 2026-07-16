@@ -1,13 +1,15 @@
 import logging
 import time
+import os
+import importlib
+import asyncio
 
 from src.core.queue import task_queue
-from src.agents.orchestrator import PlatformOrchestrator
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("keda_worker")
 
-def run_worker_loop():
+async def run_worker_loop():
     """
     Stateless KEDA worker loop.
     These Python pods are horizontally autoscaled by Kubernetes based on the Redis queue depth.
@@ -18,35 +20,44 @@ def run_worker_loop():
     while True:
         try:
             task = task_queue.dequeue_workflow()
-            logger.info(f"Processing task for session: {task['session_id']}")
+            if not task:
+                await asyncio.sleep(1)
+                continue
+                
+            session_id = task.get("session_id")
+            logger.info(f"Processing task for session: {session_id}")
             
-            # Dynamically loads the project plugin manifest from disk
-            import os
-            import yaml
             agent_name = task.get("agent_name", "factory_ceo")
-            manifest_path = os.path.join(os.getcwd(), "src", "agents", agent_name, "agent.yaml")
-            if os.path.exists(manifest_path):
-                with open(manifest_path, "r", encoding="utf-8") as f:
-                    project_manifest = yaml.safe_load(f)
-            else:
-                project_manifest = {
-                    "agent_name": agent_name,
-                    "system_prompt": "Fallback system prompt due to missing manifest."
-                }
             
-            orchestrator = PlatformOrchestrator(project_manifest)
+            # Dynamically load the agent
+            module_path = os.environ.get("AGENT_ENTRYPOINT_MODULE", f"src.agents.{agent_name}.orchestrator")
+            class_name = os.environ.get("AGENT_ENTRYPOINT_CLASS", "FactoryCeoAgent")
+            
+            try:
+                module = importlib.import_module(module_path)
+                AgentClass = getattr(module, class_name)
+                agent = AgentClass()
+            except (ImportError, AttributeError) as e:
+                logger.error(f"Failed to dynamically load agent {module_path}.{class_name}: {e}")
+                continue
             
             # Extract user input payload
             user_input = task["payload"].get("input", "")
             
-            # Execute the deterministic graph using the Postgres Checkpointer
-            result = orchestrator.execute_graph(task["session_id"], user_input)
+            from langchain_core.messages import HumanMessage
+            context = {
+                "messages": [HumanMessage(content=user_input)],
+                "raw_transcript": user_input
+            }
             
-            logger.info(f"Task complete for session {task['session_id']}. Result length: {len(result)}")
+            # Execute the deterministic graph using the Postgres Checkpointer
+            result = await agent.execute(context, session_id)
+            
+            logger.info(f"Task complete for session {session_id}. Result length: {len(str(result))}")
             
         except Exception as e:
             logger.error(f"Worker encountered an error: {e}")
-            time.sleep(1) # Prevent tight crash loops
+            await asyncio.sleep(1) # Prevent tight crash loops
 
 if __name__ == "__main__":
-    run_worker_loop()
+    asyncio.run(run_worker_loop())
