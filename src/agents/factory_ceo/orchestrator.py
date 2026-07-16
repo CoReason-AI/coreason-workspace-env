@@ -111,18 +111,41 @@ def delegate_to_pm(state: OrchestratorCeoState, config: RunnableConfig) -> dict:
 
 def interrogate_user(state: OrchestratorCeoState) -> dict:
     """
-    Asks user for more context based on missing architectural details.
+    Asks user for more context based on missing architectural details,
+    enforcing the multiple_choice_interrogation skill.
     """
     from src.core.config import settings
+    import os
+    import yaml
+    
     llm = ChatOpenAI(
         model=settings.LLM_MODEL_NAME,
         api_key=settings.LLM_API_KEY,
         temperature=settings.LLM_TEMPERATURE,
         base_url=settings.LLM_BASE_URL
     )
+    
+    # Load Multiple Choice Interrogation Skill
+    skill_path = os.path.join(os.path.dirname(__file__), "..", "..", "core", "skills", "building", "multiple_choice_interrogation.md")
+    skill_content = ""
+    if os.path.exists(skill_path):
+        with open(skill_path, "r", encoding="utf-8") as f:
+            skill_content = f.read()
+
+    full_prompt = f"""Based on the current context, what specific architectural question should we ask the user to clarify the agent topology? Return only the question.
+    
+CRITICAL OBJECTIVE: You must identify the most pressing architectural ambiguity in the user's request. 
+Instead of asking an open-ended question, you MUST format your clarifying question using the following skill:
+
+<SKILL: multiple_choice_interrogation>
+{skill_content}
+</SKILL>
+"""
+    
     messages = state.get("messages", [])
-    prompt = SystemMessage(content="Based on the current context, what specific architectural question should we ask the user to clarify the agent topology? Return only the question.")
+    prompt = SystemMessage(content=full_prompt)
     response = llm.invoke([prompt] + messages)
+    
     # The returned message acts as a 'break' out of the graph to ask the user
     return {"messages": [SystemMessage(content=response.content)]}
 
@@ -167,7 +190,17 @@ class FactoryCeoAgent(DeepAgent):
         langfuse_cb = obs.get_langfuse_callback(session_id)
         
         from langgraph.checkpoint.postgres.aio import AsyncPostgresSaver
-        async with AsyncPostgresSaver.from_conn_string(obs.pg_dsn) as checkpointer:
+        from langgraph.checkpoint.serde.jsonplus import JsonPlusSerializer
+        
+        custom_serde = JsonPlusSerializer(
+            allowed_msgpack_modules=[
+                ("src.core.ontology", "EpistemicProxyState"),
+                ("src.core.ontology", "EpistemicQuarantineSnapshot"),
+                ("src.core.ontology", "OrchestratorCeoState")
+            ]
+        )
+        
+        async with AsyncPostgresSaver.from_conn_string(obs.pg_dsn, serde=custom_serde) as checkpointer:
             await checkpointer.setup()
             
             graph_with_checkpointer = self.graph_builder.compile(checkpointer=checkpointer)

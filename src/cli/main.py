@@ -3,7 +3,10 @@ import asyncio
 import sys
 from typing import Optional
 import uuid
+import logging
 
+# Suppress Langfuse background telemetry warnings from contaminating CLI output
+logging.getLogger("langfuse").setLevel(logging.CRITICAL)
 app = typer.Typer()
 import json
 agents_app = typer.Typer()

@@ -103,6 +103,15 @@ As an Agent Improvement System, full "Glass Box" traceability is required to deb
   - **The Reason:** The runtime is designed for an enterprise, air-gapped target cluster where secrets are injected dynamically via HashiCorp Vault at runtime, entirely bypassing `.env` files for security compliance.
   - **The Fix:** For local, standalone testing and development, hardcoding these values prevented the runtime from utilizing the `.env` MaaS keys (e.g., GPT-4o keys). We refactored `deepagent_runtime.py` to seamlessly fallback to the SSOT `settings` (e.g. `settings.LLM_API_KEY`) if the `project_manifest` doesn't provide them, allowing both secure production Vault usage and smooth local LLM testing.
 
+### Learnings on AI Agent Interactions & Workflow Optimizations
+- **Multiple Choice Interrogation Skill:** We discovered that human users prefer constrained, curated options rather than open-ended questions when an orchestrator asks for clarification. We created a custom skill (`multiple_choice_interrogation.md`) and registered it in the CEO's `agent.yaml`.
+  - *The Story:* To implement this, we searched the `src/core/skills/building/` directory and discovered `ambiguity_resolution.md`. However, since we specifically wanted multiple-choice formats, we created a net-new skill markdown file instructing the LLM to deduce the 3 best options and always provide a fallback "Other" option.
+  - *Prompt Injection Bug:* Initially, injecting this skill into the `interrogate_user` LangGraph node confused the LLM. We had accidentally injected the *entire* CEO system prompt (which told the CEO to wait for the librarian), causing the LLM to output a meta-statement about waiting instead of actually asking the question. We fixed this by isolating the prompt in `orchestrator.py` to strictly focus on generating the multiple-choice question using the skill.
+  - *Skill Registration:* We successfully registered the skill by appending it to the `skill_registry` array in `factory_ceo/agent.yaml` so the agent framework knows how to resolve and load it.
+- **Leveraging Antigravity IDE Automations (`/goal` and `/grill-me`):**
+  - We utilized the `/goal` slash command in the IDE to drive this migration. This command marks the task as a long-running, autonomous process, instructing the AI coding assistant to be exceptionally thorough, handle errors automatically, and run deeply in the background without needing constant human hand-holding.
+  - Using these IDE-native slash commands allows us to achieve deep-running workflow automations, enabling us to confidently walk away while the AI assistant researches, plans, edits, and tests complex state-machine updates.
+
 ### Learnings on Formal Output Validation (Maker-Checker)
 During our migration, the `AgentValidator` successfully caught several subtle generative errors produced by the `YamlCompiler` during its compilation of the legacy code:
 1. **YAML String Syntax Errors:** The compiler injected a stray closing brace (`'}'}`) at the end of a stringified JSON schema, invalidating the YAML structure.

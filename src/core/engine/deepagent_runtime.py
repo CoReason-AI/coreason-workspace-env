@@ -85,7 +85,15 @@ class PlatformOrchestrator:
             await sys_conn.close()
 
             async with self.pool:
-                checkpointer = AsyncPostgresSaver(self.pool)
+                from langgraph.checkpoint.serde.jsonplus import JsonPlusSerializer
+                custom_serde = JsonPlusSerializer(
+                    allowed_msgpack_modules=[
+                        ("src.core.ontology", "EpistemicProxyState"),
+                        ("src.core.ontology", "EpistemicQuarantineSnapshot"),
+                        ("src.core.ontology", "OrchestratorCeoState")
+                    ]
+                )
+                checkpointer = AsyncPostgresSaver(self.pool, serde=custom_serde)
                 await checkpointer.setup()
                 
                 from deepagents import create_deep_agent
