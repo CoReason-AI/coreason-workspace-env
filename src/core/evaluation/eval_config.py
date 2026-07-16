@@ -1,27 +1,48 @@
+"""
+Evaluation Configuration.
+Sets up the LangSmith client to intercept telemetry and test results locally,
+avoiding any cloud transmission.
+"""
 import os
-from pydantic_settings import BaseSettings
+from langsmith import Client
 
-class EvaluationConfig(BaseSettings):
+# Force the LangSmith endpoint to our local interceptor (e.g. Harbor)
+os.environ["LANGCHAIN_ENDPOINT"] = "http://localhost:1984"
+os.environ["LANGCHAIN_TRACING_V2"] = "true"
+os.environ["LANGCHAIN_API_KEY"] = "local"
+os.environ["LANGCHAIN_PROJECT"] = "coreason-evals"
+
+# Global eval client
+eval_client = Client(
+    api_url="http://localhost:1984",
+    api_key="local"
+)
+
+def get_eval_client() -> Client:
+    """Returns a LangSmith Client explicitly configured for local data sovereignty."""
+    return eval_client
+
+# Define standard evaluator wrappers here
+def correct_answer_evaluator(run, example):
     """
-    Configuration for the evaluation framework.
-    Strictly forces LangSmith to use a local endpoint to satisfy Data Sovereignty.
+    LLM-as-a-judge for answer correctness.
+    To be wired into deepagents-evals or native langchain evals.
     """
-    # Force LangSmith to use local instance (e.g. via Harbor or docker-compose)
-    # Defaulting to 1984 as per Harbor's default local LangSmith port, or 80 if standard docker.
-    LANGCHAIN_ENDPOINT: str = os.getenv("LANGCHAIN_ENDPOINT", "http://localhost:1984")
-    LANGCHAIN_API_KEY: str = os.getenv("LANGCHAIN_API_KEY", "local")
-    LANGCHAIN_TRACING_V2: str = "true"
+    from langchain_openai import ChatOpenAI
+    # In a real scenario, this would use a complex prompt to judge correctness.
+    # For now, we return a mock score or simple check.
+    score = 1.0 if run.outputs.get("output") == example.outputs.get("expected") else 0.0
+    return {"key": "correctness", "score": score}
+
+def dialectical_synthesis_evaluator(run, example):
+    """
+    Evaluates whether the agent trajectory contains Thesis/Antithesis/Synthesis.
+    """
+    output = run.outputs.get("output", "")
     
-    # LLM Settings for the 'Judge' models
-    EVALUATOR_MODEL: str = os.getenv("EVALUATOR_MODEL", "openai/gpt-4o")
-
-eval_settings = EvaluationConfig()
-
-def enforce_local_langsmith():
-    """
-    Called before any evaluation to ensure environment variables
-    are strictly overriding any global leaks to smith.langchain.com
-    """
-    os.environ["LANGCHAIN_ENDPOINT"] = eval_settings.LANGCHAIN_ENDPOINT
-    os.environ["LANGCHAIN_API_KEY"] = eval_settings.LANGCHAIN_API_KEY
-    os.environ["LANGCHAIN_TRACING_V2"] = eval_settings.LANGCHAIN_TRACING_V2
+    has_thesis = "thesis" in output.lower()
+    has_antithesis = "antithesis" in output.lower() or "counter" in output.lower()
+    has_synthesis = "synthesis" in output.lower() or "reconcil" in output.lower()
+    
+    score = 1.0 if (has_thesis and has_antithesis and has_synthesis) else 0.0
+    return {"key": "dialectical_synthesis", "score": score}

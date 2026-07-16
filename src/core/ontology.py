@@ -1,5 +1,6 @@
 from typing import Any, Generic, TypeVar, Optional, TypedDict
 from langchain.agents import AgentState
+from deepagents.graph import DeepAgentState
 from pydantic import BaseModel, Field
 from enum import StrEnum
 
@@ -30,8 +31,7 @@ class MakerCheckerState(CoreasonBaseState, total=False):
 from langgraph.graph import add_messages
 from typing import Annotated
 
-class OrchestratorCeoState(CoreasonBaseState, total=False):
-    messages: Annotated[list, add_messages]
+class OrchestratorCeoState(DeepAgentState, total=False):
     raw_transcript: Optional[str]
     epistemic_proxy: Optional[EpistemicProxyState]
     is_saturated: bool
