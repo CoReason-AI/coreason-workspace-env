@@ -34,6 +34,7 @@ class OrchestratorCeoState(CoreasonBaseState, total=False):
     raw_transcript: Optional[str]
     epistemic_proxy: Optional[EpistemicProxyState]
     is_saturated: bool
+    routing: Optional[str]
 
 class SemanticNodeState(BaseModel):
     node_id: str

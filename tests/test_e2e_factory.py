@@ -1,4 +1,6 @@
 import os
+import dotenv
+dotenv.load_dotenv()
 
 # Set dummy environment variables to satisfy pydantic_settings during tests
 for k in [

@@ -14,7 +14,24 @@ class WORMStorageAuditor:
     def __init__(self):
         # In a real environment, this initializes the AWS S3/MinIO client configured for Object Lock (WORM).
         self.worm_bucket = "coreason-audit-worm"
-        
+        self._s3_client = None
+
+    @property
+    def s3_client(self):
+        if self._s3_client is None:
+            import boto3
+            import botocore
+            from src.core.config import settings
+            self._s3_client = boto3.client(
+                "s3",
+                region_name=settings.WORM_S3_REGION,
+                endpoint_url=settings.WORM_S3_ENDPOINT,
+                aws_access_key_id=settings.WORM_S3_ACCESS_KEY,
+                aws_secret_access_key=settings.WORM_S3_SECRET_KEY,
+                config=botocore.client.Config(signature_version="s3")
+            )
+        return self._s3_client
+
     def _hash_event(self, event_data: dict) -> str:
         """Generates a cryptographic hash of the audit event to guarantee immutability."""
         event_str = json.dumps(event_data, sort_keys=True)
@@ -68,10 +85,18 @@ class WORMStorageAuditor:
 
     def _write_to_worm_s3(self, object_key: str, data: dict):
         """
-        Placeholder for the actual boto3 S3 put_object call with Object Lock retention parameters.
+        Writes the audit log to S3/MinIO.
         """
-        # s3_client.put_object(Bucket=self.worm_bucket, Key=object_key, Body=json.dumps(data), ...)
-        pass
+        try:
+            from src.core.config import settings
+            self.s3_client.put_object(
+                Bucket=settings.WORM_S3_BUCKET,
+                Key=object_key,
+                Body=json.dumps(data)
+            )
+            logger.info(f"Successfully wrote {object_key} to WORM S3")
+        except Exception as e:
+            logger.error(f"Failed to write {object_key} to WORM S3: {e}")
 
 # Singleton instance
 auditor = WORMStorageAuditor()

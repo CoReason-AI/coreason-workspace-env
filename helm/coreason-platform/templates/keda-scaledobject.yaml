@@ -1,3 +1,4 @@
+{{- if .Values.keda.enabled -}}
 apiVersion: keda.sh/v1alpha1
 kind: ScaledObject
 metadata:
@@ -15,3 +16,4 @@ spec:
         address: {{ .Release.Name }}-redis-master:6379
         listName: langgraph_execution_queue
         listLength: "5"
+{{- end -}}

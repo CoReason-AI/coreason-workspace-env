@@ -157,11 +157,19 @@ class AgentService:
         For now, returns a placeholder — real implementation would
         query Postgres LangGraph checkpointer for thread state.
         """
-        # TODO: Query Postgres checkpointer for actual thread state
+        from src.core.queue import task_queue
+        result = task_queue.get_job_result(job_id)
+        if result is not None:
+            return {
+                "job_id": job_id,
+                "status": "completed",
+                "result": result
+            }
+        
         return {
             "job_id": job_id,
             "status": "running",
-            "detail": "LangGraph execution in progress. Query the checkpointer for live state.",
+            "detail": "LangGraph execution in progress or waiting in queue.",
         }
 
     def rewind_checkpoint(self, checkpoint_id: str) -> Dict[str, Any]:
