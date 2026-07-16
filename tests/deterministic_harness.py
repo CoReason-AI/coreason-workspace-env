@@ -24,8 +24,8 @@ class DeterministicTestChatModel(BaseChatModel):
         response_text = "default response"
         
         # 1. factory_ceo evaluation
-        if "Evaluate this intent:" in content:
-            response_text = "YES"
+        if "expert orchestrator" in content or "Evaluate if the user's intent" in content:
+            response_text = "SATURATED"
             
         # 2. agent_validator checks
         elif "You are the CoReason Agent Validator" in content or "validation checklist" in content.lower():

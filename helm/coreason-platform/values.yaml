@@ -21,17 +21,16 @@ resources:
 securityContext:
   runAsNonRoot: true
   runAsUser: 1000
-  readOnlyRootFilesystem: true
 
 # Sub-charts for Infinite Scalability
 redis:
-  enabled: true
+  enabled: false
   architecture: replication
   auth:
     enabled: true
 
 postgresql:
-  enabled: true
+  enabled: false
   auth:
     database: coreason_db
     username: coreason_admin

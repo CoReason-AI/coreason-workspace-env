@@ -38,6 +38,32 @@ class TestSecurityIdentity(unittest.IsolatedAsyncioTestCase):
         event3 = {"action": "destructive_write", "agent_id": "agent-456"}
         self.assertNotEqual(self.auditor._hash_event(event), self.auditor._hash_event(event3))
 
+    def test_worm_storage_auditor_s3(self):
+        """Test writing agent thought to WORM S3."""
+        from src.core.config import settings
+        
+        test_thought = "Test reasoning step for unit validation."
+        agent_id = "test-agent-123"
+        run_id = "test-run-456"
+        
+        # Call log_agent_thought which should write to S3/MinIO
+        log_hash = self.auditor.log_agent_thought(
+            agent_id=agent_id,
+            run_id=run_id,
+            thought_content=test_thought
+        )
+        self.assertEqual(len(log_hash), 64)
+        
+        # Verify it was written by reading it back from S3
+        object_key = f"audit/agents/{agent_id}/{run_id}/{log_hash}.json"
+        response = self.auditor.s3_client.get_object(
+            Bucket=settings.WORM_S3_BUCKET,
+            Key=object_key
+        )
+        data = json.loads(response["Body"].read().decode("utf-8"))
+        self.assertEqual(data["content"], test_thought)
+        self.assertEqual(data["hash"], log_hash)
+
     async def test_proxy_delegation_loop(self):
         """Test JIT approval request queuing and resolution logic."""
         request_id = await self.proxy_loop.request_jit_execution(
