@@ -130,12 +130,72 @@ class PlatformOrchestrator:
                 config = {"configurable": {"thread_id": session_id}}
                 logger.info(f"Executing graph for session {session_id}")
                 
-                result = await graph.ainvoke(
+                # First run until it completes or hits an interrupt
+                async for event in graph.astream_events(
                     {"messages": [("user", user_input)]},
-                    config=config
-                )
+                    config=config,
+                    version="v2"
+                ):
+                    event_data = {
+                        "event": event["event"],
+                        "name": event["name"],
+                        "data": event.get("data", {})
+                    }
+                    if event["event"] == "on_chat_model_stream":
+                        chunk = event["data"]["chunk"]
+                        event_data["chunk"] = chunk.content if hasattr(chunk, "content") else str(chunk)
+                    
+                    await conn.execute(
+                        f"SELECT pg_notify($1, $2)",
+                        f"langgraph_events_{session_id}",
+                        json.dumps(event_data)
+                    )
                 
-                return result['messages'][-1].content
+                state = await graph.aget_state(config)
+                while state.next:
+                    # The graph was interrupted
+                    await conn.execute(
+                        f"SELECT pg_notify($1, $2)",
+                        f"langgraph_events_{session_id}",
+                        json.dumps({"event": "interrupt", "prompt": "Please provide more context to proceed:"})
+                    )
+                    
+                    response_queue = asyncio.Queue()
+                    def resp_handler(c, pid, chan, payload):
+                        response_queue.put_nowait(payload)
+                        
+                    await conn.add_listener(f"human_response_{session_id}", resp_handler)
+                    try:
+                        human_msg = await response_queue.get()
+                        data = json.loads(human_msg)
+                        answer = data.get("data", "")
+                    finally:
+                        await conn.remove_listener(f"human_response_{session_id}", resp_handler)
+                        
+                    from langgraph.types import Command
+                    
+                    async for event in graph.astream_events(
+                        Command(resume=answer),
+                        config=config,
+                        version="v2"
+                    ):
+                        event_data = {
+                            "event": event["event"],
+                            "name": event["name"],
+                            "data": event.get("data", {})
+                        }
+                        if event["event"] == "on_chat_model_stream":
+                            chunk = event["data"]["chunk"]
+                            event_data["chunk"] = chunk.content if hasattr(chunk, "content") else str(chunk)
+                        
+                        await conn.execute(
+                            f"SELECT pg_notify($1, $2)",
+                            f"langgraph_events_{session_id}",
+                            json.dumps(event_data)
+                        )
+                    state = await graph.aget_state(config)
+                
+                return "Graph Execution Completed"
         except Exception as e:
             logger.error(f"Failed to execute graph: {e}")
             raise

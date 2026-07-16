@@ -98,59 +98,52 @@ def interact(agent_name: str, session_id: str = typer.Option(..., '--session-id'
     """
     typer.secho(f"🔌 Connecting to stream for agent '{agent_name}' (Session: {session_id})...", fg=typer.colors.BRIGHT_BLUE)
     
-    url = f"http://localhost:8000/api/v1/ws/api/v2/agents/{agent_name}/stream?session_id={session_id}"
+    url = f"ws://localhost:8000/api/v2/agents/{agent_name}/ws?session_id={session_id}"
     
     tree = Tree(f"🏭 Factory Pipeline: {agent_name}")
     
     async def consume_stream():
+        import websockets
         try:
-            async with httpx.AsyncClient(timeout=None) as client:
-                async with client.stream("GET", url) as response:
-                    if response.status_code != 200:
-                        typer.secho(f"Failed to connect. Status: {response.status_code}", fg=typer.colors.RED)
-                        return
-                    
-                    with Live(tree, refresh_per_second=4) as live:
-                        async for line in response.aiter_lines():
-                            if not line.startswith("data: "):
-                                continue
+            async with websockets.connect(url) as websocket:
+                with Live(tree, refresh_per_second=4) as live:
+                    while True:
+                        payload = await websocket.recv()
+                        
+                        try:
+                            data = json.loads(payload)
+                        except json.JSONDecodeError:
+                            continue
                             
-                            payload = line[6:].strip()
-                            if not payload:
-                                continue
-                                
-                            try:
-                                data = json.loads(payload)
-                            except json.JSONDecodeError:
-                                continue
-                                
-                            event_type = data.get("event")
-                            if event_type == "stream_connected":
-                                tree.add("[green]Connected to factory_ceo SSE stream[/green]")
-                            elif event_type == "interrupt":
-                                # State Machine Interrogation
-                                live.stop()
-                                question = data.get("prompt", "The CEO needs more context:")
-                                typer.secho(f"\n⏸️ STREAM PAUSED (Interrupt)", fg=typer.colors.YELLOW, bold=True)
-                                answer = Prompt.ask(f"[bold magenta]{question}[/bold magenta]")
-                                typer.secho(f"Pushing response back to CEO... (Simulation)", fg=typer.colors.CYAN)
-                                # Simulation of resuming the graph
-                                tree.add(f"[magenta]Human Input:[/magenta] {answer}")
-                                live.start()
-                            elif event_type == "on_tool_start":
-                                tool_name = data.get("name", "tool")
-                                tree.add(f"[yellow]⚙️  Delegating to worker:[/yellow] {tool_name}")
-                            elif event_type == "on_chat_model_stream":
-                                chunk = data.get("chunk", "")
-                                # In a real implementation we'd append to a specific tree branch
-                                pass
-                            else:
-                                tree.add(f"[dim]Event: {event_type}[/dim]")
+                        event_type = data.get("event")
+                        if event_type == "stream_connected":
+                            tree.add("[green]Connected to factory_ceo WebSocket stream[/green]")
+                        elif event_type == "interrupt":
+                            # State Machine Interrogation
+                            live.stop()
+                            question = data.get("prompt", "The CEO needs more context:")
+                            typer.secho(f"\n⏸️ STREAM PAUSED (Interrupt)", fg=typer.colors.YELLOW, bold=True)
+                            answer = Prompt.ask(f"[bold magenta]{question}[/bold magenta]")
+                            typer.secho(f"Pushing response back to CEO...", fg=typer.colors.CYAN)
+                            # Actually send the response back over the WebSocket
+                            await websocket.send(json.dumps({"type": "human_response", "data": answer}))
+                            
+                            tree.add(f"[magenta]Human Input:[/magenta] {answer}")
+                            live.start()
+                        elif event_type == "on_tool_start":
+                            tool_name = data.get("name", "tool")
+                            tree.add(f"[yellow]⚙️  Delegating to worker:[/yellow] {tool_name}")
+                        elif event_type == "on_chat_model_stream":
+                            chunk = data.get("chunk", "")
+                            # In a real implementation we'd append to a specific tree branch
+                            pass
+                        else:
+                            tree.add(f"[dim]Event: {event_type}[/dim]")
+        except websockets.exceptions.ConnectionClosed:
+            typer.secho(f"\nWebSocket connection closed.", fg=typer.colors.YELLOW)
         except Exception as e:
             typer.secho(f"\nStream processing error: {e}", fg=typer.colors.RED)
             return
-        except httpx.RequestError as e:
-            typer.secho(f"Network error connecting to stream: {e}", fg=typer.colors.RED)
             
     asyncio.run(consume_stream())
 
