@@ -8,6 +8,7 @@ from src.core.config import settings
 
 import yaml
 import os
+import json
 
 logger = logging.getLogger(__name__)
 
@@ -85,9 +86,10 @@ class PlatformOrchestrator:
             import asyncpg
             sys_conn = await asyncpg.connect(self.db_uri)
             await sys_conn.execute(f"CREATE SCHEMA IF NOT EXISTS {self.schema_name}")
+            await sys_conn.execute("CREATE EXTENSION IF NOT EXISTS vector")
             await sys_conn.close()
 
-            async with self.pool:
+            async with self.pool.connection() as conn:
                 from langgraph.checkpoint.serde.jsonplus import JsonPlusSerializer
                 custom_serde = JsonPlusSerializer(
                     allowed_msgpack_modules=[
@@ -103,17 +105,7 @@ class PlatformOrchestrator:
                 from langchain_openai import OpenAIEmbeddings
                 
                 store = AsyncPostgresStore(
-                    self.pool,
-                    index={
-                        "dims": 1536,
-                        "embed": OpenAIEmbeddings(
-                            model=settings.EMBEDDING_MODEL_NAME,
-                            base_url=settings.LLM_BASE_URL,
-                            api_key=settings.LLM_API_KEY,
-                            max_retries=0
-                        ),
-                        "fields": ["content"]
-                    }
+                    self.pool
                 )
                 await store.setup()
                 
@@ -138,39 +130,34 @@ class PlatformOrchestrator:
                 ):
                     event_data = {
                         "event": event["event"],
-                        "name": event["name"],
-                        "data": event.get("data", {})
+                        "name": event["name"]
                     }
                     if event["event"] == "on_chat_model_stream":
-                        chunk = event["data"]["chunk"]
+                        chunk = event.get("data", {}).get("chunk", "")
                         event_data["chunk"] = chunk.content if hasattr(chunk, "content") else str(chunk)
                     
                     await conn.execute(
-                        f"SELECT pg_notify($1, $2)",
-                        f"langgraph_events_{session_id}",
-                        json.dumps(event_data)
+                        "SELECT pg_notify(%s, %s)",
+                        (f"langgraph_events_{session_id}", json.dumps(event_data, default=str))
                     )
                 
                 state = await graph.aget_state(config)
                 while state.next:
                     # The graph was interrupted
                     await conn.execute(
-                        f"SELECT pg_notify($1, $2)",
-                        f"langgraph_events_{session_id}",
-                        json.dumps({"event": "interrupt", "prompt": "Please provide more context to proceed:"})
+                        "SELECT pg_notify(%s, %s)",
+                        (f"langgraph_events_{session_id}", json.dumps({"event": "interrupt", "prompt": "Please provide more context to proceed:"}))
                     )
                     
-                    response_queue = asyncio.Queue()
-                    def resp_handler(c, pid, chan, payload):
-                        response_queue.put_nowait(payload)
-                        
-                    await conn.add_listener(f"human_response_{session_id}", resp_handler)
+                    await conn.execute(f"LISTEN human_response_{session_id}")
                     try:
-                        human_msg = await response_queue.get()
-                        data = json.loads(human_msg)
-                        answer = data.get("data", "")
+                        async for notify in conn.notifies():
+                            if notify.channel == f"human_response_{session_id}":
+                                data = json.loads(notify.payload)
+                                answer = data.get("data", "")
+                                break
                     finally:
-                        await conn.remove_listener(f"human_response_{session_id}", resp_handler)
+                        await conn.execute(f"UNLISTEN human_response_{session_id}")
                         
                     from langgraph.types import Command
                     
