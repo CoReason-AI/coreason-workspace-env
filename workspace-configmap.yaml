@@ -1,0 +1,32 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: workspace-config
+  namespace: coreason-workspace
+data:
+  ENVIRONMENT: "development"
+  ALLOWED_ORIGINS: '["http://localhost:3000"]'
+
+  # Public PostgreSQL Database (demo.coreason.ai)
+  POSTGRES_USER: "coreason"
+  POSTGRES_DB: "fractal"
+  POSTGRES_HOST: "demo.coreason.ai"
+  POSTGRES_PORT: "5432"
+
+  # Host Redis Queue (routing to host container via Docker bridge)
+  REDIS_URL: "redis://host.docker.internal:6379/0"
+
+  # Public S3 Object Storage (demo.coreason.ai)
+  WORM_S3_BUCKET: "fractal-study-outputs"
+  WORM_S3_REGION: "us-east-1"
+  WORM_S3_ENDPOINT: "https://demo.coreason.ai/fractal-s3"
+
+  # Host Langfuse Server (routing to host container via port 3001)
+  LANGFUSE_HOST: "http://host.docker.internal:3001"
+  LANGFUSE_PUBLIC_KEY: "pk-lf-ea28e918-bf56-42fa-a920-e28600f1410c"
+  LANGFUSE_ENABLED: "true"
+
+  # Core LLM configurations
+  LLM_MODEL_NAME: "openai/gpt-4o"
+  LLM_TEMPERATURE: "0.0"
+  LLM_BASE_URL: "https://openrouter.ai/api/v1"

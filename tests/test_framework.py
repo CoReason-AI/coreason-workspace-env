@@ -33,6 +33,15 @@ class ZeroMockTestCase(unittest.IsolatedAsyncioTestCase):
             settings.POSTGRES_USER = url.username
             settings.POSTGRES_PASSWORD = url.password
             settings.POSTGRES_DB = url.path.lstrip('/')
+            
+            # Run migrations on the ephemeral database
+            from alembic.config import Config
+            from alembic import command
+            alembic_cfg = Config("alembic.ini")
+            db_url = cls.postgres.get_connection_url().replace("postgresql+psycopg2://", "postgresql://").replace("postgresql+psycopg://", "postgresql://")
+            os.environ["DATABASE_URL"] = db_url
+            alembic_cfg.set_main_option("sqlalchemy.url", db_url)
+            command.upgrade(alembic_cfg, "head")
         except Exception as e:
             logger.warning(f"Docker not available: {e}. Skipping Zero Mock Postgres provisioning.")
             # Provide dummy pool for CI environments without Docker

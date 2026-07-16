@@ -14,6 +14,10 @@ spec:
       labels:
         app.kubernetes.io/name: {{ include "coreason-platform.name" . }}
     spec:
+      hostAliases:
+        - ip: "172.17.0.1"
+          hostnames:
+            - "host.docker.internal"
       securityContext:
         {{- toYaml .Values.securityContext | nindent 8 }}
       containers:
@@ -26,13 +30,8 @@ spec:
               protocol: TCP
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
-          env:
-            # Vault Federation & Config Maps go here
-            - name: ENVIRONMENT
-              value: "production"
-            - name: POSTGRES_HOST
-              value: "{{ .Release.Name }}-postgresql"
-            - name: POSTGRES_PORT
-              value: "5432"
-            - name: REDIS_URL
-              value: "redis://{{ .Release.Name }}-redis-master:6379/0"
+          envFrom:
+            - configMapRef:
+                name: workspace-config
+            - secretRef:
+                name: workspace-secrets

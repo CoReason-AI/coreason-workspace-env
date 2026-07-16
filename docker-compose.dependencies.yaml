@@ -1,51 +1,7 @@
 version: '3.8'
 
 services:
-  # 1. Main FastAPI Platform Server
-  platform_server:
-    image: ghcr.io/coreason-ai/coreason-workspace-env:develop
-    ports:
-      - "9005:8000"
-    env_file:
-      - .env
-    environment:
-      POSTGRES_HOST: postgres_checkpointer
-      POSTGRES_PORT: 5432
-      REDIS_URL: redis://redis_queue:6379
-      VAULT_ADDR: http://vault:8200
-      LANGFUSE_HOST: http://langfuse:3000
-    volumes:
-      - ./src:/home/coreason/project/src
-    command: ["python", "-m", "uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8000"]
-    depends_on:
-      redis_queue:
-        condition: service_started
-      postgres_checkpointer:
-        condition: service_healthy
-    restart: always
-
-  # 2. Background Task Worker (Pulls and runs enqueued agent tasks)
-  platform_worker:
-    image: ghcr.io/coreason-ai/coreason-workspace-env:develop
-    env_file:
-      - .env
-    environment:
-      POSTGRES_HOST: postgres_checkpointer
-      POSTGRES_PORT: 5432
-      REDIS_URL: redis://redis_queue:6379
-      VAULT_ADDR: http://vault:8200
-      LANGFUSE_HOST: http://langfuse:3000
-    command: ["/home/coreason/project/.venv/bin/python", "-m", "src.workers.keda_worker"]
-    volumes:
-      - ./src:/home/coreason/project/src
-    depends_on:
-      redis_queue:
-        condition: service_started
-      postgres_checkpointer:
-        condition: service_healthy
-    restart: always
-
-  # 3. LangGraph PostgreSQL Checkpointer Database
+  # 1. PostgreSQL Database (Hosts both LangGraph checkpoints and Langfuse metrics)
   postgres_checkpointer:
     image: pgvector/pgvector:pg15
     environment:
@@ -63,14 +19,14 @@ services:
       retries: 5
     restart: always
 
-  # 4. Redis for task queue
+  # 2. Redis for task queue
   redis_queue:
     image: redis:7-alpine
     ports:
       - "6379:6379"
     restart: always
 
-  # 5. HashiCorp Vault (Dev Server for local secrets federation)
+  # 3. HashiCorp Vault (Dev Server for local secrets federation)
   vault:
     image: hashicorp/vault:latest
     ports:
@@ -82,7 +38,7 @@ services:
       - IPC_LOCK
     restart: always
 
-  # 6. ClickHouse — Highly performant OLAP DB for Langfuse v3
+  # 4. ClickHouse — Highly performant OLAP DB for Langfuse v3
   clickhouse:
     image: clickhouse/clickhouse-server:23.12-alpine
     environment:
@@ -97,7 +53,7 @@ services:
       - clickhouse_data:/var/lib/clickhouse
     restart: always
 
-  # 7. Langfuse — Self-Hosted LLM Observability & Tracing
+  # 5. Langfuse — Self-Hosted LLM Observability & Tracing
   langfuse:
     image: langfuse/langfuse:latest
     ports:
@@ -124,6 +80,9 @@ services:
       REDIS_CONNECTION_STRING: "redis://redis_queue:6379"
       HOSTNAME: "0.0.0.0"
       PORT: "3000"
+      # Performance scaling settings for large Kubernetes worker connection loads
+      LANGFUSE_INIT_POSTGRES_CONNECTIONS: 20
+      LANGFUSE_MAX_POSTGRES_CONNECTIONS: 150
     depends_on:
       postgres_checkpointer:
         condition: service_healthy
@@ -140,7 +99,7 @@ services:
       retries: 10
     restart: always
 
-  # 8. MinIO — S3-compatible local storage for Langfuse events
+  # 6. MinIO — S3-compatible local storage for Langfuse events
   minio:
     image: minio/minio:latest
     ports:
@@ -152,7 +111,7 @@ services:
     command: server /data --console-address ":9001"
     restart: always
 
-  # 9. Helper to auto-create Langfuse bucket in MinIO
+  # 7. Helper to auto-create Langfuse bucket in MinIO
   create_buckets:
     image: minio/mc:latest
     depends_on:
@@ -164,15 +123,6 @@ services:
       exit 0;
       "
 
-  # 10. Watchtower — Auto-update containers on new registry releases
-  watchtower:
-    image: containrrr/watchtower
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-    environment:
-      - DOCKER_API_VERSION=1.44
-    command: --cleanup --interval 600
-    restart: always
 volumes:
   pgdata:
   clickhouse_data:
