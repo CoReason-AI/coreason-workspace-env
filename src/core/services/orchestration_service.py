@@ -44,34 +44,8 @@ class OrchestrationService:
                 extracted_path = os.path.abspath(input_path)
                 logger.info(f"Using input path at {extracted_path}")
             
-        if extracted_path and os.path.exists(extracted_path):
-            import glob
-            # Recursively extract any nested zip files
-            nested_zips = glob.glob(os.path.join(extracted_path, '**', '*.zip'), recursive=True)
-            for zpath in nested_zips:
-                try:
-                    with zipfile.ZipFile(zpath, 'r') as zref:
-                        zref.extractall(os.path.dirname(zpath))
-                except Exception as e:
-                    logger.error(f"Failed to extract nested zip {zpath}: {e}")
-
-            # Read all relevant text files
-            context_text = ""
-            for root_dir, _, files in os.walk(extracted_path):
-                for f in files:
-                    if f.endswith(('.py', '.yaml', '.yml', '.md', '.txt', '.json')):
-                        fpath = os.path.join(root_dir, f)
-                        try:
-                            with open(fpath, 'r', encoding='utf-8') as file_obj:
-                                content = file_obj.read()
-                                context_text += f"\n--- File: {os.path.relpath(fpath, extracted_path)} ---\n{content}\n"
-                        except Exception:
-                            pass
-
-            if context_text:
-                input_data += f"\n\nThe user has provided additional codebase context:\n{context_text[:50000]}\n\nIncorporate this context as directed by the user's intent."
-            else:
-                input_data += f"\n\nThe user has provided additional input context located at: '{extracted_path}'."
+        if extracted_path:
+            input_data += f"\n\nThe user has provided an additional context path located at: '{extracted_path}'. Use your tools to read and extract this context if needed."
         
         # Dynamically load the root agent defined by the active Brain
         module_path = os.environ.get("AGENT_ENTRYPOINT_MODULE", "src.agents.factory_ceo.orchestrator")

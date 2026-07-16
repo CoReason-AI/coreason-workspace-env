@@ -26,8 +26,11 @@ class MakerCheckerState(CoreasonBaseState, total=False):
     attempts: int
     final_output: str
 
+from langgraph.graph import add_messages
+from typing import Annotated
+
 class OrchestratorCeoState(CoreasonBaseState, total=False):
-    messages: list
+    messages: Annotated[list, add_messages]
     raw_transcript: Optional[str]
     epistemic_proxy: Optional[EpistemicProxyState]
     is_saturated: bool
