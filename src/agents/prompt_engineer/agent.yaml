@@ -18,6 +18,22 @@ skill_registry:
     abstract: "How to deconstruct legacy agentic patterns into normalized IR — spaghetti
       prompts, free-text handoffs, direct egress, linear pipelines"
     path: "core/skills/building/legacy_modernization_standards"
+  - name: "structured_meta_prompting"
+    artifact_types: ["agent_yaml"]
+    abstract: "Framework for writing rigorous, code-like system prompts using pseudo-code tags."
+    path: "core/skills/building/structured_meta_prompting"
+  - name: "file_editing_strategies"
+    artifact_types: ["agent_yaml"]
+    abstract: "Instructing code-generating agents on how to modify files based on scale (diffs vs overwrites)."
+    path: "core/skills/building/file_editing_strategies"
+  - name: "twelve_factor_agents"
+    artifact_types: ["agent_yaml"]
+    abstract: "Building production-grade, scalable agents using 12-Factor methodologies."
+    path: "core/skills/building/twelve_factor_agents"
+  - name: "modular_agent_identity"
+    artifact_types: ["agent_yaml"]
+    abstract: "Preventing system prompt bloat by modularizing personality and rules (e.g. SOUL.md)."
+    path: "core/skills/building/modular_agent_identity"
   - name: "prompt_complexity_bounds"
     artifact_types: ["agent_yaml"]
     abstract: "Identifying when a prompt is too complex and must be transitioned to an agentic workflow."
