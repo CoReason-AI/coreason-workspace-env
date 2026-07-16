@@ -1,4 +1,5 @@
 from typing import Any, Generic, TypeVar, Optional, TypedDict
+from langchain.agents import AgentState
 from pydantic import BaseModel, Field
 from enum import StrEnum
 
@@ -16,7 +17,7 @@ class CognitiveDeliberativeEnvelopeState(BaseModel, Generic[T]):
     deliberation_trace: str = Field(..., max_length=100000)
     payload: Optional[T] = None
 
-class CoreasonBaseState(TypedDict, total=False):
+class CoreasonBaseState(AgentState, total=False):
     pass
 
 class MakerCheckerState(CoreasonBaseState, total=False):

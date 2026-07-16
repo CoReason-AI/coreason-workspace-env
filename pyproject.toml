@@ -43,7 +43,7 @@ dependencies = [
     "langfuse>=4.14.0",
     "langfuse-langchain>=2.60.10.1",
     "psycopg-binary>=3.3.4",
-    "langchain-e2b",
+    "e2b-code-interpreter>=1.0.0",
 ]
 
 [project.scripts]

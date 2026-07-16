@@ -3,8 +3,8 @@ import pytest
 from unittest.mock import MagicMock, patch
 from src.agents.agent_validator.orchestrator import AgentValidatorAgent, ValidatorOutput
 
-@patch("src.agents.agent_validator.orchestrator.create_react_agent")
-def test_agent_validator_mocked_e2b(mock_create_react_agent):
+@patch("src.agents.agent_validator.orchestrator.create_agent")
+def test_agent_validator_mocked_e2b(mock_create_agent):
     """
     Unit test to verify the AgentValidatorAgent correctly spins up a react agent
     with the E2B tool and parses the output, without hitting the live API.
@@ -17,7 +17,7 @@ def test_agent_validator_mocked_e2b(mock_create_react_agent):
             MagicMock(content="I ran the code in the sandbox. It passed.")
         ]
     }
-    mock_create_react_agent.return_value = mock_react_agent
+    mock_create_agent.return_value = mock_react_agent
     
     # Initialize the agent
     with patch("src.agents.agent_validator.orchestrator.ChatOpenAI.with_structured_output") as mock_wso:
@@ -34,7 +34,7 @@ def test_agent_validator_mocked_e2b(mock_create_react_agent):
         result = agent.execute({"data": "test payload"}, session_id="test_123")
     
     # Assert the react agent was called
-    mock_create_react_agent.assert_called_once()
+    mock_create_agent.assert_called_once()
     mock_react_agent.invoke.assert_called_once()
     
     # Assert the final output was correctly parsed

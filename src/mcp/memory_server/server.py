@@ -26,7 +26,7 @@ async def init_db(pool):
     Initialize connection pool.
     Schema definition is now handled by Alembic migrations.
     """
-    pass
+    logger.info("Database pool initialized. Schema is handled by Alembic.")
 
 async def dummy_embed(text: str) -> list[float]:
     """

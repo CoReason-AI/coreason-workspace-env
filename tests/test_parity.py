@@ -204,25 +204,12 @@ class TestStreamingModules(unittest.IsolatedAsyncioTestCase):
         from src.api.streaming.crdt import router
         self.assertIsNotNone(router)
 
-    def test_tty_router_import(self):
-        from src.api.streaming.tty import router
-        self.assertIsNotNone(router)
 
     def test_state_sync_router_import(self):
         from src.api.streaming.state_sync import router
         self.assertIsNotNone(router)
 
-    def test_agent_progress_router_import(self):
-        from src.api.streaming.agent_progress import router
-        self.assertIsNotNone(router)
 
-    @patch("src.api.streaming.agent_progress.router")
-    async def test_sse_workflow_mock(self, mock_router):
-        """Mock test to verify SSE endpoint routes for the Accordion tracker updates."""
-        # Ensure the SSE router accepts the connection
-        self.assertIsNotNone(mock_router)
-        # In a real environment, we would use TestClient(app).get("/api/v1/streaming/agent_progress")
-        # and parse the EventSource stream chunks.
 
 
 class TestParityConsistency(unittest.TestCase):

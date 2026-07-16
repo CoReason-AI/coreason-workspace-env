@@ -50,7 +50,8 @@ To ensure stability across complex LangGraph architectures, the platform impleme
 
 ### Mock-Free Philosophy
 1. **No Database Mocking**: Tests utilize a stateful `DummyConnection` and `DummyPool` that actually parse and store SQL statements in an in-memory dictionary.
-2. **Deterministic LLM Harness**: We use a `DeterministicTestChatModel` that deterministically yields structurally perfect Pydantic output, eliminating brittle prompt-engineering logic during CI/CD.
+2. **Native LangChain v1 Agents**: We test against authentic `create_agent` graphs instead of deprecated `AgentExecutor` constructs, verifying modern state routing natively.
+3. **Deterministic LLM Harness**: We use a `DeterministicTestChatModel` that deterministically yields structurally perfect Pydantic output, eliminating brittle prompt-engineering logic during CI/CD.
 
 ### Running Tests
 To run the full E2E map-reduce testing suite:

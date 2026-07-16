@@ -71,7 +71,7 @@ class WORMStorageAuditor:
         Placeholder for the actual boto3 S3 put_object call with Object Lock retention parameters.
         """
         # s3_client.put_object(Bucket=self.worm_bucket, Key=object_key, Body=json.dumps(data), ...)
-        pass
+        logger.info(f"Simulating WORM S3 write for {object_key}")
 
 # Singleton instance
 auditor = WORMStorageAuditor()

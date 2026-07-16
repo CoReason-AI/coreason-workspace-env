@@ -5,14 +5,13 @@ The CoReason Workspace Environment is designed to be highly portable and secure,
 ## 1. Containerized Services
 
 To support asynchronous concurrency and horizontal scaling, the platform utilizes specialized Docker containers:
-- **`platform_server`**: A FastAPI web server handling synchronous REST API and SSE requests.
-- **`platform_worker`**: A `keda_worker` daemon pulling agent execution tasks off the Redis queue asynchronously.
-- **`postgres_checkpointer`**: Handles multi-tenant safe StateGraph checkpoints and events.
+- **`platform_server`**: A monolithic FastAPI web server handling synchronous REST API requests, native `asyncio` background executions, and SSE streaming.
+- **`postgres_checkpointer`**: Handles multi-tenant safe StateGraph checkpoints and events, providing the unified state backbone that enables stateless autoscaling of the server replicas.
 
 ## 2. Deployment Architectures
 
 ### Enterprise Kubernetes (Helm)
-For large-scale, distributed deployments, the entire stack is packaged as a unified Helm chart for clusters like EKS, GKE, or AKS. The worker daemon is seamlessly autoscaled by KEDA based on Redis queue depth.
+For large-scale, distributed deployments, the entire stack is packaged as a unified Helm chart for clusters like EKS, GKE, or AKS. The `platform_server` replicas are seamlessly autoscaled based on HTTP load (e.g. via HPA), ensuring responsive synchronous endpoints and horizontally distributed `asyncio` task processing.
 
 ### Marketplace & Infrastructure as Code
 - **OpenTofu & Terraform**: Complete IaC templates for AWS (EKS/RDS) and Azure (AKS/PostgreSQL) are located in `deploy/terraform/`.

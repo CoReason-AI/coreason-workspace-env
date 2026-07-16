@@ -5,7 +5,6 @@ import logging
 from typing import Dict, Any
 
 import asyncpg
-import redis.asyncio as aioredis
 
 logger = logging.getLogger(__name__)
 
@@ -29,8 +28,7 @@ class HealthService:
         # Postgres
         checks["postgres"] = await self._check_postgres(postgres_dsn)
 
-        # Redis
-        checks["redis"] = await self._check_redis(redis_url)
+        # Redis check removed - platform is Postgres-only
 
         overall = "healthy" if all(c["status"] == "ok" for c in checks.values()) else "degraded"
 
@@ -60,22 +58,7 @@ class HealthService:
             logger.warning(f"Postgres health check failed: {e}")
             return {"status": "error", "detail": str(e)}
 
-    async def _check_redis(self, url: str = None) -> Dict[str, str]:
-        if not url:
-            try:
-                from src.core.config import settings
-                url = settings.REDIS_URL
-            except Exception:
-                return {"status": "unknown", "detail": "Settings unavailable"}
 
-        try:
-            client = aioredis.from_url(url, decode_responses=True)
-            pong = await client.ping()
-            await client.aclose()
-            return {"status": "ok", "detail": f"PONG={pong}"}
-        except Exception as e:
-            logger.warning(f"Redis health check failed: {e}")
-            return {"status": "error", "detail": str(e)}
 
     def get_version(self) -> Dict[str, str]:
         return {"version": PLATFORM_VERSION, "platform": "coreason-workspace-env"}

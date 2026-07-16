@@ -132,7 +132,7 @@ class ObservabilityService:
             from src.core.engine.deepagent_runtime import PlatformOrchestrator
             import asyncio
             import json
-            orchestrator = PlatformOrchestrator(project_manifest={})
+            orchestrator = PlatformOrchestrator(project_manifest={}, agent_name=agent_name)
             asyncio.create_task(orchestrator.execute_graph(session_id=session_id, user_input=json.dumps(payload)))
             logger.info(f"LangGraph execution resumed for thread_id {session_id}")
             return {"status": "success", "message": f"Resumed agent {agent_name} for session {session_id}"}

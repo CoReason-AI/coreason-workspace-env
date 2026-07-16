@@ -111,7 +111,7 @@ class AgentService:
 
         job_id = session_id or str(uuid.uuid7())
 
-        orchestrator = PlatformOrchestrator(project_manifest={})
+        orchestrator = PlatformOrchestrator(project_manifest={}, agent_name=agent_name)
         asyncio.create_task(orchestrator.execute_graph(session_id=job_id, user_input=json.dumps(payload)))
         logger.info(f"LangGraph execution enqueued for thread_id {job_id}")
 

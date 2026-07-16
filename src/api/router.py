@@ -1,7 +1,7 @@
 from fastapi import APIRouter
 
 from src.api.endpoints import projects, agents, mcp, docs, health
-from src.api.streaming import crdt, tty, state_sync, agent_progress
+from src.api.streaming import crdt, state_sync
 
 api_router = APIRouter()
 
@@ -39,6 +39,4 @@ async def get_factory_status(session_id: str):
 
 # Register the Streaming endpoints (WebSocket/SSE)
 api_router.include_router(crdt.router, prefix="/ws", tags=["Streaming: CRDT"], dependencies=[Depends(get_current_user)])
-api_router.include_router(tty.router, prefix="/ws", tags=["Streaming: TTY"], dependencies=[Depends(get_current_user)])
 api_router.include_router(state_sync.router, prefix="/ws", tags=["Streaming: State Sync"], dependencies=[Depends(get_current_user)])
-api_router.include_router(agent_progress.router, prefix="/ws", tags=["Streaming: Agent Progress"], dependencies=[Depends(get_current_user)])

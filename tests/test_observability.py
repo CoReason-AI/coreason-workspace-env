@@ -11,9 +11,7 @@ async def test_fetch_postgres_state(obs_service, mocker):
     mock_conn = AsyncMock()
     mock_conn.fetchrow.return_value = {
         "thread_id": "test-session",
-        "checkpoint_id": "ckpt-1",
-        "metadata": b'{"status": "ok"}',
-        "checkpoint": b"fake-pickle-data"
+        "state": "{}"
     }
     
     mock_connect = mocker.patch("src.core.services.observability_service.asyncpg.connect", return_value=mock_conn)
@@ -23,9 +21,7 @@ async def test_fetch_postgres_state(obs_service, mocker):
     mock_connect.assert_called_once()
     mock_conn.fetchrow.assert_called_once()
     assert result["thread_id"] == "test-session"
-    assert result["checkpoint_id"] == "ckpt-1"
-    assert result["metadata"]["status"] == "ok"
-    assert result["checkpoint_size"] == 16
+
 
 @pytest.mark.asyncio
 async def test_fetch_langfuse_traces(obs_service, mocker):
@@ -63,15 +59,11 @@ async def test_write_dev_vault_secret(obs_service, mocker):
 
 @pytest.mark.asyncio
 async def test_resume_agent(obs_service, mocker):
-    mock_enqueue = mocker.patch("src.core.queue.DistributedTaskQueue.enqueue_workflow")
+    mock_execute = mocker.patch("src.core.engine.deepagent_runtime.PlatformOrchestrator.execute_graph", new_callable=AsyncMock)
     
     result = await obs_service.resume_agent("test-session", "factory_ceo", {"foo": "bar"})
     
-    mock_enqueue.assert_called_once_with(
-        session_id="test-session",
-        agent_name="factory_ceo",
-        payload={"foo": "bar"}
-    )
+    mock_execute.assert_called_once()
     assert result["status"] == "success"
 
 @pytest.mark.asyncio

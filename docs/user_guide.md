@@ -46,7 +46,7 @@ The Maker agents execute deterministically in the background. They do not ask yo
 Before any code is finalized, the artifacts hit the `agent_validator`. This agent acts as the strict "Checker" in the pipeline. It evaluates the generated files against the strict validation standards located in `src/core/skills/validation/` (e.g., verifying namespace mapping and Pydantic compliance).
 
 ### Step 6: The Remediation Loop
-If the `agent_validator` detects violations (e.g., a Maker agent hallucinated a Pydantic schema or failed to name a YAML file correctly), the `agent_pm` actively routes the artifact back to the Maker with the error trace for automatic remediation. You can observe this loop in real-time via the WebSocket streams or the Accordion tracker list in the UI.
+If the `agent_validator` detects violations (e.g., a Maker agent hallucinated a Pydantic schema or failed to name a YAML file correctly), the `agent_pm` actively routes the artifact back to the Maker with the error trace for automatic remediation. You can observe this loop in real-time via the SSE `state_sync` streams or the Accordion tracker list in the UI.
 
 ### Step 7: Packaging & Artifact Synthesis
 Once all artifacts pass the Checker phase, the platform generates a dynamically synthesized `pyproject.toml` containing exactly the dependencies your new agents need. It packages the raw Python code and `.yaml` manifests into an immutable ZIP bundle.

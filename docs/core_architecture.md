@@ -46,8 +46,8 @@ The platform strictly enforces a **Multi-Surface Parity** mandate. This constrai
 ## Agent Observability & Traceability
 To empower upstream AI coding assistants (the "Agent Improvement System") to natively debug and improve the platform's agents, the environment integrates deep, programmable observability exposed directly via the **MCP Server**:
 - **State Inspection (Postgres)**: Directly queries the `postgres_checkpointer` to read the exact LangGraph thread checkpoints, enabling deterministic analysis of stuck or failed agent states.
-- **LLM Tracing (Langfuse)**: Programmatically fetches execution traces from the local Langfuse API, providing full visibility into the prompts and completions that led to hallucination or validation errors.
+- **LLM Tracing (Langfuse)**: Programmatically fetches execution traces from the local Langfuse API, providing full visibility into the prompts and completions that led to hallucination or validation errors. It natively integrates with LangGraph using `langfuse.callback`.
 - **Dynamic Identity Federation (Vault)**: Supports injecting external API keys securely into the dev HashiCorp Vault at runtime, allowing agents to impersonate dynamic roles without hardcoded secrets.
-- **Agent Resumption**: Integrates with the Redis task queue to resume paused or failed agents seamlessly after remediation.
+- **Agent Resumption**: Directly invokes the `PlatformOrchestrator` to seamlessly resume paused or failed agents natively using the LangGraph checkpointer.
 
 All observability logic is encapsulated within `src/core/services/observability_service.py` and strictly obeys the platform's SSOT (Single Source of Truth) configuration, allowing it to transition seamlessly from local development into enterprise Kubernetes clusters without hardcoded topology strings.

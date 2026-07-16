@@ -17,7 +17,7 @@ class PlatformOrchestrator:
     This class handles the generic routing and LangGraph execution context for any Project Plugin.
     It manages the CISO-grade Checkpointer connection and the native MCP tool injection.
     """
-    def __init__(self, project_manifest: Dict[str, Any]):
+    def __init__(self, project_manifest: Dict[str, Any], agent_name: str = None):
         """
         Initializes the generic orchestrator using the dynamically loaded project.yaml manifest.
         Loads the active Agent Definition (The Brain) dynamically via AGENT_DEF_PATH.
@@ -29,7 +29,10 @@ class PlatformOrchestrator:
         if not agent_def_path:
             # Default to the built-in agents directory
             base_dir = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
-            agent_def_path = os.path.join(base_dir, "agents")
+            if agent_name:
+                agent_def_path = os.path.join(base_dir, "agents", agent_name)
+            else:
+                agent_def_path = os.path.join(base_dir, "agents")
             
         # Load core pyagentspec yaml from the active Brain
         yaml_path = os.path.join(agent_def_path, "agent.yaml")

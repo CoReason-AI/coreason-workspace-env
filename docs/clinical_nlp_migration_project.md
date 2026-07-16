@@ -55,7 +55,7 @@ LLM_BASE_URL=https://api.openai.com/v1
 ```
 
 ### Launching Infrastructure
-Once `.env` is configured, start the background infrastructure (Postgres checkpointer, Langfuse, Vault, Redis, and workers):
+Once `.env` is configured, start the background infrastructure (Postgres checkpointer, Langfuse, and Vault):
 ```bash
 docker compose up -d
 ```

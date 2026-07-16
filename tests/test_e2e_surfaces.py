@@ -16,7 +16,7 @@ from unittest.mock import patch, MagicMock
 
 from httpx import AsyncClient, ASGITransport
 from testcontainers.postgres import PostgresContainer
-from testcontainers.redis import RedisContainer
+
 from fastapi.testclient import TestClient
 
 from src.main import app
@@ -24,8 +24,7 @@ from src.core.config import settings
 from src.core.db import get_db_pool, close_db_pool
 from src.core import db
 from src.core.services import project_service, agent_service
-from src.core.ws_backplane import pubsub_backplane
-import redis.asyncio as redis
+
 from src.mcp.server import create_project, execute_agent, export_project
 import pytest_asyncio
 
@@ -35,28 +34,20 @@ def containers():
     postgres = PostgresContainer("postgres:15-alpine")
     postgres.start()
     
-    redis_container = RedisContainer("redis:7-alpine")
-    redis_container.start()
-    
     settings.POSTGRES_USER = postgres.username
     settings.POSTGRES_PASSWORD = postgres.password
     settings.POSTGRES_HOST = postgres.get_container_host_ip()
     settings.POSTGRES_PORT = int(postgres.get_exposed_port(5432))
     settings.POSTGRES_DB = postgres.dbname
-    settings.REDIS_URL = f"redis://{redis_container.get_container_host_ip()}:{redis_container.get_exposed_port(6379)}"
     
-    yield postgres, redis_container
+    yield postgres, None
     
     postgres.stop()
-    redis_container.stop()
 
 
 @pytest_asyncio.fixture(autouse=True)
 async def setup_db_and_tmpdir(containers):
     db._global_pool = None
-    pubsub_backplane.redis = redis.from_url(settings.REDIS_URL, decode_responses=True)
-    pubsub_backplane.pubsub = pubsub_backplane.redis.pubsub()
-    pubsub_backplane.subscriptions = {}
     
     await project_service.initialize()
     tmpdir = tempfile.mkdtemp()
@@ -71,8 +62,7 @@ async def setup_db_and_tmpdir(containers):
 
 @pytest.mark.asyncio
 @patch("src.core.security.auth.verify_token")
-@patch("src.core.queue.task_queue.enqueue_workflow")
-async def test_workflow_rest_api_layer(mock_enqueue, mock_verify):
+async def test_workflow_rest_api_layer(mock_verify):
     """Test the workflow strictly using the REST API (HTTP adapter)."""
     mock_user = MagicMock()
     mock_user.user_id = "test_user"
@@ -103,7 +93,7 @@ async def test_workflow_rest_api_layer(mock_enqueue, mock_verify):
         )
         assert exec_res.status_code == 200
         assert exec_res.json()["status"] == "accepted"
-        mock_enqueue.assert_called_once()
+
 
         # Step 8: Export Project
         Path(f"projects/{project_id}").mkdir(parents=True, exist_ok=True)
@@ -117,8 +107,7 @@ async def test_workflow_rest_api_layer(mock_enqueue, mock_verify):
 
 
 @pytest.mark.asyncio
-@patch("src.core.queue.task_queue.enqueue_workflow")
-async def test_workflow_service_layer(mock_enqueue):
+async def test_workflow_service_layer():
     """Test the workflow directly via the core service layer."""
     # Step 1: Create Project
     project = await project_service.create_project(
@@ -136,7 +125,7 @@ async def test_workflow_service_layer(mock_enqueue):
         tenant_id="test_tenant"
     )
     assert exec_res["status"] == "accepted"
-    mock_enqueue.assert_called_once()
+
 
     # Step 8: Export Project
     Path("projects/project_svc_123").mkdir(parents=True, exist_ok=True)
@@ -162,8 +151,7 @@ async def test_workflow_sdk_layer():
 
 
 @pytest.mark.asyncio
-@patch("src.core.queue.task_queue.enqueue_workflow")
-async def test_workflow_mcp_layer(mock_enqueue):
+async def test_workflow_mcp_layer():
     """Test the workflow using the MCP Server tools directly."""
     # Step 1: Create Project
     res = await create_project("mcp_test_project", "Testing MCP UI")
@@ -173,7 +161,7 @@ async def test_workflow_mcp_layer(mock_enqueue):
     # Step 3: Execute Agent
     exec_res = await execute_agent("factory_ceo", "test_user", "test_tenant", {"intent": "build a platform"})
     assert exec_res["status"] == "accepted"
-    mock_enqueue.assert_called_once()
+
     
     # Step 8: Export Project
     Path(f"projects/{project_id}").mkdir(parents=True, exist_ok=True)

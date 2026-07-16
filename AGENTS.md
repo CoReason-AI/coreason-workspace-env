@@ -105,6 +105,15 @@ While we prioritize the LangChain ecosystem, we strictly forbid the use of depre
 3. **Legacy Memory Abstractions**: Do not use in-memory buffers like `ConversationBufferMemory`. Agent state must be explicitly managed via LangGraph Checkpointers (e.g., `langgraph-checkpoint-postgres`) as integrated by `deepagents`.
 4. **Opaque Prompt Templates**: Do not use black-box components that hide their internal prompt templates. Prompts must be explicitly versioned, managed, and passed to the LLM to prevent abstraction leakage and prompt injection vulnerabilities.
 
+### LangChain v1 Migration Standards
+This platform STRICTLY enforces LangChain v1 architecture patterns per the migration guide (https://docs.langchain.com/oss/python/releases/langchain-v1). You MUST adhere to these rules when building or modifying agents:
+1. **No `langchain-community`**: The `langchain-community` package is deprecated and archived. It is strictly forbidden. Any legacy components must use `langchain-classic` or be refactored natively.
+2. **`create_agent` Factory**: Do NOT use `langgraph.prebuilt.create_react_agent`. Use `langchain.agents.create_agent`.
+3. **`system_prompt` Parameter**: Use the `system_prompt` argument in `create_agent` instead of the legacy `prompt` parameter.
+4. **Middleware for Hooks**: Do NOT use pre-model or post-model hooks. Implement logic via Agent Middleware using `before_model` and `after_model` methods.
+5. **Strict `TypedDict` State**: Agent state schemas MUST inherit from `langchain.agents.AgentState` (which is a `TypedDict`). Pydantic models (`BaseModel`) and dataclasses are no longer supported for state schemas.
+6. **Structured Output**: Prompted output is removed. Use `ToolStrategy` or `ProviderStrategy` when structured output is required.
+
 ### Strict Version Boundary (`deepagents >= 0.6.0`)
 This platform strictly targets the modern **`deepagents >= 0.6.0`** ecosystem. We do not support legacy deepagents API contracts (e.g., deprecated `ls_info`, `grep_raw`, or removed properties like `ASYNC_GREP_TIMEOUT`). 
 - Any LangChain integration or third-party plugin that relies on `deepagents < 0.6.0` internals must be aggressively monkey-patched, updated, or forked. 

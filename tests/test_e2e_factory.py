@@ -4,7 +4,7 @@ import os
 for k in [
     "ENVIRONMENT", "ALLOWED_ORIGINS", "VAULT_ADDR", "VAULT_NAMESPACE", 
     "POSTGRES_USER", "POSTGRES_PASSWORD", "POSTGRES_DB", "POSTGRES_HOST", 
-    "POSTGRES_PORT", "REDIS_URL", "WORM_S3_BUCKET", "WORM_S3_REGION", 
+    "POSTGRES_PORT", "WORM_S3_BUCKET", "WORM_S3_REGION", 
     "WORM_S3_ENDPOINT", "WORM_S3_ACCESS_KEY", "WORM_S3_SECRET_KEY", "OPENROUTER_API_KEY",
     "LLM_API_KEY", "LLM_BASE_URL", "LLM_MODEL_NAME", "LLM_TEMPERATURE"
 ]:
@@ -13,8 +13,7 @@ for k in [
             os.environ[k] = '5432'
         elif k == "LLM_TEMPERATURE":
             os.environ[k] = '0.0'
-        elif k == "REDIS_URL":
-            os.environ[k] = 'redis://localhost:6379/0'
+
         else:
             os.environ[k] = 'test'
 

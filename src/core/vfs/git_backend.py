@@ -2,11 +2,10 @@ import os
 import subprocess
 import logging
 from pathlib import Path
-from deepagents.backends.protocol import BackendProtocol
 
 logger = logging.getLogger(__name__)
 
-class TrueGitBackend(BackendProtocol):
+class TrueGitBackend:
     """
     Virtual Filesystem (VFS) True Git Backend.
     Enforces that all human and agent actions trigger automatic commits to the underlying Git repository.

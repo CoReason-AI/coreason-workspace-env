@@ -6,15 +6,40 @@ from src.core.base_agent import DeepAgent
 from langchain_openai import ChatOpenAI
 from langchain_core.messages import SystemMessage, HumanMessage
 from pydantic import BaseModel, Field
-# Monkeypatch to fix compatibility between langchain-e2b 0.0.5 and deepagents >= 0.6.0
-import deepagents.backends.protocol
-if not hasattr(deepagents.backends.protocol, "ASYNC_GREP_TIMEOUT"):
-    deepagents.backends.protocol.ASYNC_GREP_TIMEOUT = 30.0
+from langchain_core.tools import tool
 
-from langchain_e2b import E2BDataAnalysisTool
-from langgraph.prebuilt import create_react_agent
+from langchain.agents import create_agent
 
 logger = logging.getLogger(__name__)
+
+@tool
+def e2b_data_analysis_tool(code: str) -> str:
+    """Executes Python code in a secure E2B sandbox and returns the result."""
+    try:
+        from e2b_code_interpreter import CodeInterpreter
+        sandbox = CodeInterpreter()
+        execution = sandbox.notebook.exec_cell(code)
+        if execution.error:
+            sandbox.close()
+            return f"Error: {execution.error.name} - {execution.error.value}\n{execution.error.traceback}"
+        
+        results = []
+        for result in execution.results:
+            if result.is_main_result:
+                results.append(str(result.text))
+        
+        logs = []
+        if execution.logs.stdout:
+            logs.append("\n".join(execution.logs.stdout))
+        if execution.logs.stderr:
+            logs.append("\n".join(execution.logs.stderr))
+            
+        sandbox.close()
+        return "\n".join(results + logs) or "Code executed successfully."
+    except ImportError:
+        return "E2B Code Interpreter is not installed."
+    except Exception as e:
+        return f"Sandbox Error: {str(e)}"
 
 class ValidatorOutput(BaseModel):
     is_valid: bool = Field(description="True if the output conforms to standards, False otherwise.")
@@ -42,7 +67,8 @@ class AgentValidatorAgent(DeepAgent):
         
         # Initialize E2B tool
         if settings.E2B_API_KEY:
-            self.e2b_tool = E2BDataAnalysisTool(api_key=settings.E2B_API_KEY)
+            os.environ["E2B_API_KEY"] = settings.E2B_API_KEY
+            self.e2b_tool = e2b_data_analysis_tool
         else:
             self.e2b_tool = None
 
@@ -76,7 +102,7 @@ class AgentValidatorAgent(DeepAgent):
             
         # Run ReAct agent to allow code execution before final answer
         if tools:
-            react_agent = create_react_agent(self.llm, tools, state_modifier=prompt + f" Standards: {standards}")
+            react_agent = create_agent(self.llm, tools, system_prompt=prompt + f" Standards: {standards}")
             messages = [HumanMessage(content=f"Please validate this output: {payload}")]
             result_state = react_agent.invoke({"messages": messages}, config=config)
             final_message = result_state["messages"][-1]
