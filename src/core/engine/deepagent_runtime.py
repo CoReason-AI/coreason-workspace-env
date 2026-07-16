@@ -61,12 +61,12 @@ class PlatformOrchestrator:
             }
         )
         
-        # Initialize Standalone LLM (vLLM local endpoint)
         self.llm = ChatOpenAI(
             model=project_manifest.get("model", settings.LLM_MODEL_NAME),
             base_url=project_manifest.get("base_url", settings.LLM_BASE_URL),
             api_key=project_manifest.get("api_key", settings.LLM_API_KEY), # Handled by Vault in reality
-            temperature=project_manifest.get("temperature", settings.LLM_TEMPERATURE)
+            temperature=project_manifest.get("temperature", settings.LLM_TEMPERATURE),
+            max_retries=0
         )
         
         logger.info(f"PlatformOrchestrator initialized with Brain: {self.agent_name} at {agent_def_path}")
@@ -109,7 +109,8 @@ class PlatformOrchestrator:
                         "embed": OpenAIEmbeddings(
                             model=settings.EMBEDDING_MODEL_NAME,
                             base_url=settings.LLM_BASE_URL,
-                            api_key=settings.LLM_API_KEY
+                            api_key=settings.LLM_API_KEY,
+                            max_retries=0
                         ),
                         "fields": ["content"]
                     }

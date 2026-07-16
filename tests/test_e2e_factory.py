@@ -13,7 +13,8 @@ for k in [
             os.environ[k] = '5432'
         elif k == "LLM_TEMPERATURE":
             os.environ[k] = '0.0'
-
+        elif "URL" in k or "HOST" in k:
+            os.environ[k] = 'http://localhost:1'
         else:
             os.environ[k] = 'test'
 

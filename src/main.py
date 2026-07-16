@@ -61,7 +61,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+from src.api.streaming import events
+
 app.include_router(api_router, prefix="/api/v1")
+app.include_router(events.router)
 
 
 # --- Multi-User Async Execution ---

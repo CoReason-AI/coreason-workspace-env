@@ -1,10 +1,10 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Request
 from fastapi.responses import StreamingResponse
 import json
 
 router = APIRouter()
 
-async def langgraph_event_generator(session_id: str):
+async def langgraph_event_generator(request: Request, session_id: str):
     """
     Subscribes to LangGraph's astream_events for the Accordion UX via Postgres LISTEN.
     """
@@ -24,8 +24,13 @@ async def langgraph_event_generator(session_id: str):
             yield f"data: {json.dumps({'event': 'stream_connected', 'session': session_id})}\n\n"
             
             while True:
-                payload = await queue.get()
-                yield f"data: {payload}\n\n"
+                if await request.is_disconnected():
+                    break
+                try:
+                    payload = await asyncio.wait_for(queue.get(), timeout=0.5)
+                    yield f"data: {payload}\n\n"
+                except asyncio.TimeoutError:
+                    continue
     except asyncio.CancelledError:
         # Connection closed by client
         pass
@@ -37,8 +42,8 @@ async def langgraph_event_generator(session_id: str):
 
 
 @router.get("/api/v2/agents/{agent_name}/stream")
-async def stream_agent_events(agent_name: str, session_id: str = "default"):
+async def stream_agent_events(request: Request, agent_name: str, session_id: str = "default"):
     """
     SSE endpoint for streaming LangGraph tracker tasks in real-time.
     """
-    return StreamingResponse(langgraph_event_generator(session_id), media_type="text/event-stream")
+    return StreamingResponse(langgraph_event_generator(request, session_id), media_type="text/event-stream")

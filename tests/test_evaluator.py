@@ -63,7 +63,9 @@ class TestEvaluatorAndApprover(unittest.IsolatedAsyncioTestCase):
         }
         
         with patch.object(evaluate_artifact, '_arun', new=AsyncMock(return_value="EVALUATION PASSED. Score: 1.0")):
-            result = await approver_node(state)
+            with patch('src.core.engine.approver_node.settings.REQUIRE_CRYPTOGRAPHIC_SIGNATURE', True):
+                with patch('src.core.engine.approver_node.sign_artifact', new=AsyncMock(return_value={"signature": "mock_sigstore_signature_bundle_v1", "certificate": "mock_sigstore_certificate_v1"})):
+                    result = await approver_node(state)
             
         self.assertEqual(result["status"], "APPROVED")
         self.assertEqual(result["signature"], "mock_sigstore_signature_bundle_v1")

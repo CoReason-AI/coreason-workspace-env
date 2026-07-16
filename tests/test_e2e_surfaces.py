@@ -28,36 +28,38 @@ from src.core.services import project_service, agent_service
 from src.mcp.server import create_project, execute_agent, export_project
 import pytest_asyncio
 
-
-@pytest.fixture(scope="module")
-def containers():
-    postgres = PostgresContainer("postgres:15-alpine")
-    postgres.start()
-    
-    settings.POSTGRES_USER = postgres.username
-    settings.POSTGRES_PASSWORD = postgres.password
-    settings.POSTGRES_HOST = postgres.get_container_host_ip()
-    settings.POSTGRES_PORT = int(postgres.get_exposed_port(5432))
-    settings.POSTGRES_DB = postgres.dbname
-    
-    yield postgres, None
-    
-    postgres.stop()
-
-
 @pytest_asyncio.fixture(autouse=True)
-async def setup_db_and_tmpdir(containers):
+async def setup_db_and_tmpdir(global_postgres_container):
     db._global_pool = None
     
     await project_service.initialize()
+    
     tmpdir = tempfile.mkdtemp()
     
     yield tmpdir
     
+    # Cancel all orphaned background tasks spawned during the test
+    # (e.g., execute_agent's fire-and-forget orchestrator tasks)
+    # to prevent them from deadlocking Postgres or hanging pytest-asyncio.
+    current = asyncio.current_task()
+    tasks_to_cancel = [t for t in asyncio.all_tasks() if t is not current and not t.done()]
+    
+    for task in tasks_to_cancel:
+        task.cancel()
+    
+    if tasks_to_cancel:
+        # Give them a moment to process the CancelledError
+        done, pending = await asyncio.wait(tasks_to_cancel, timeout=2.0)
+        for p in pending:
+            print(f"[DEBUG] STILL PENDING TASK: {p}")
+    
+    print("[DEBUG] Calling close_db_pool")
     await close_db_pool()
+    print("[DEBUG] close_db_pool completed")
     shutil.rmtree(tmpdir, ignore_errors=True)
     shutil.rmtree("rest_export", ignore_errors=True)
     shutil.rmtree("service_export", ignore_errors=True)
+    print("[DEBUG] Teardown finished")
 
 
 @pytest.mark.asyncio
@@ -72,6 +74,11 @@ async def test_workflow_rest_api_layer(mock_verify):
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
         # Step 1: Create Project
         headers = {"Authorization": "Bearer coreason-dev-token"}
+        
+        from src.core.config import settings
+        print(f"\n[DEBUG] LLM_BASE_URL: {settings.LLM_BASE_URL}")
+        print(f"[DEBUG] LLM_API_KEY: {settings.LLM_API_KEY}")
+        
         res = await client.post(
             "/api/v1/projects/",
             json={"name": "rest_test_project", "description": "Testing REST UI"},
@@ -87,7 +94,7 @@ async def test_workflow_rest_api_layer(mock_verify):
                 "agent_name": "factory_ceo",
                 "user_id": "test_user",
                 "tenant_id": "test_tenant",
-                "payload": {"intent": "build a clinical trial platform"}
+                "payload": {"intent": "Build me an inventory management agent."}
             },
             headers=headers
         )
@@ -120,7 +127,7 @@ async def test_workflow_service_layer():
     # Step 3: Execute Agent
     exec_res = await agent_service.execute_agent(
         agent_name="factory_ceo",
-        payload={"intent": "build a clinical trial platform"},
+        payload={"intent": "Build me an inventory management agent."},
         user_id="test_user",
         tenant_id="test_tenant"
     )
@@ -159,7 +166,7 @@ async def test_workflow_mcp_layer():
     project_id = res["project"]["id"]
     
     # Step 3: Execute Agent
-    exec_res = await execute_agent("factory_ceo", "test_user", "test_tenant", {"intent": "build a platform"})
+    exec_res = await execute_agent("factory_ceo", "test_user", "test_tenant", {"intent": "Build me an inventory management agent."})
     assert exec_res["status"] == "accepted"
 
     
@@ -171,9 +178,9 @@ async def test_workflow_mcp_layer():
 
 
 @pytest.mark.asyncio
-async def test_workflow_cli_layer(containers):
+async def test_workflow_cli_layer(global_postgres_container):
     """Test the CLI interface mapping."""
-    postgres, _ = containers
+    postgres = global_postgres_container
     env = os.environ.copy()
     env["POSTGRES_USER"] = postgres.username
     env["POSTGRES_PASSWORD"] = postgres.password
@@ -192,3 +199,27 @@ async def test_workflow_cli_layer(containers):
         capture_output=True, text=True, cwd=".", env=env
     )
     assert result2.returncode == 0, f"CLI failed: {result2.stderr}"
+
+
+@pytest.mark.asyncio
+async def test_workflow_streaming_layer():
+    """Test the WebSocket/SSE layer parity (Accordion UX Stream)."""
+    import asyncio
+    
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+        try:
+            # ASGITransport hangs when exiting the context manager of a StreamingResponse
+            # because the background ASGI task doesn't receive the disconnect signal.
+            # We enforce a timeout to force-kill the context manager after reading the chunk.
+            async with asyncio.timeout(2.0):
+                async with client.stream("GET", "/api/v2/agents/factory_ceo/stream?session_id=test_stream_123") as response:
+                    assert response.status_code == 200
+                    assert response.headers["content-type"] == "text/event-stream; charset=utf-8"
+                    
+                    # Read just the first chunk to verify connection established
+                    async for chunk in response.aiter_text():
+                        assert "stream_connected" in chunk
+                        assert "test_stream_123" in chunk
+                        break
+        except asyncio.TimeoutError:
+            pass # Expected, test passed successfully

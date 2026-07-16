@@ -145,13 +145,58 @@ def interact(agent_name: str, session_id: str = typer.Option(..., '--session-id'
                                 # In a real implementation we'd append to a specific tree branch
                                 pass
                             else:
-                                # Generic event
                                 tree.add(f"[dim]Event: {event_type}[/dim]")
-                                
         except Exception as e:
-            typer.secho(f"Connection error: {e}", fg=typer.colors.RED)
-
+            typer.secho(f"\nStream processing error: {e}", fg=typer.colors.RED)
+            return
+        except httpx.RequestError as e:
+            typer.secho(f"Network error connecting to stream: {e}", fg=typer.colors.RED)
+            
     asyncio.run(consume_stream())
+
+@app.command()
+def test(coverage: bool = False, e2e: bool = False, verbose: bool = False):
+    """
+    Run the strict Zero Mock test suite using ephemeral Testcontainers infrastructure.
+    """
+    import subprocess
+    import sys
+    
+    typer.secho("Initiating CoReason Enterprise E2E Test Suite", fg=typer.colors.BRIGHT_BLUE, bold=True)
+    
+    # Pre-flight check for Docker
+    try:
+        subprocess.run(["docker", "info"], capture_output=True, check=True)
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        typer.secho("Error: Docker daemon is not running or not installed. 'Zero Mock' tests require Testcontainers.", fg=typer.colors.RED, bold=True)
+        typer.secho("Please start Docker Desktop and try again.", fg=typer.colors.YELLOW)
+        raise typer.Exit(code=1)
+        
+    cmd = [sys.executable, "-m", "pytest"]
+    
+    if coverage:
+        cmd.extend(["--cov=src", "--cov-report=term-missing"])
+        typer.secho("=> Code Coverage strictly enabled.", fg=typer.colors.CYAN)
+        
+    if e2e:
+        cmd.extend(["tests/test_e2e_factory.py", "tests/test_e2e_surfaces.py"])
+        typer.secho("=> Filtering to Core E2E surfaces only.", fg=typer.colors.CYAN)
+        
+    if verbose:
+        cmd.append("-v")
+        
+    typer.secho("=> Provisioning isolated PostgreSQL Database...", fg=typer.colors.CYAN)
+    
+    try:
+        result = subprocess.run(cmd, cwd=".")
+        if result.returncode == 0:
+            typer.secho("All Tests Passed! Zero Mock architecture verified.", fg=typer.colors.GREEN, bold=True)
+        else:
+            typer.secho("Test Suite Failed.", fg=typer.colors.RED, bold=True)
+            raise typer.Exit(code=result.returncode)
+    except KeyboardInterrupt:
+        typer.secho("\nTest suite interrupted by user.", fg=typer.colors.YELLOW)
+        raise typer.Exit(code=130)
 
 @projects_app.command("list")
 def list_projects():
