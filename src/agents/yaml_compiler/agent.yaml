@@ -24,6 +24,34 @@ skill_registry:
     abstract: "How to deconstruct legacy agentic patterns into normalized IR — spaghetti
       prompts, free-text handoffs, direct egress, linear pipelines"
     path: "core/skills/building/legacy_modernization_standards"
+  - name: "analogical_mapping"
+    artifact_types: ["agent_yaml"]
+    abstract: "Structural templates and schemas for Analogical Prompting and Transfer."
+    path: "core/skills/building/reasoning/analogical_mapping"
+  - name: "dialectical_synthesis"
+    artifact_types: ["agent_yaml"]
+    abstract: "State geometry for Thesis -> Antithesis -> Synthesis critique loops."
+    path: "core/skills/building/reasoning/dialectical_synthesis"
+  - name: "epidemiological_causal_inference"
+    artifact_types: ["agent_yaml"]
+    abstract: "Evaluation of causal hypotheses using Bradford Hill Criteria."
+    path: "core/skills/building/reasoning/epidemiological_causal_inference"
+  - name: "counterfactual_simulation"
+    artifact_types: ["agent_yaml"]
+    abstract: "Simulating do-interventions via causal engines like dowhy."
+    path: "core/skills/building/reasoning/counterfactual_simulation"
+  - name: "glass_box_traceability"
+    artifact_types: ["agent_yaml"]
+    abstract: "Explicit assumption boundaries for FDA/GxP compliance."
+    path: "core/skills/building/reasoning/glass_box_traceability"
+  - name: "bayesian_orchestration"
+    artifact_types: ["agent_yaml"]
+    abstract: "Tracking prior and posterior beliefs for uncertain routing."
+    path: "core/skills/building/reasoning/bayesian_orchestration"
+  - name: "abductive_root_cause"
+    artifact_types: ["agent_yaml"]
+    abstract: "Finding the most plausible cause from observed symptoms."
+    path: "core/skills/building/reasoning/abductive_root_cause"
 tools:
   - name: "local_fs_reader"
 system_prompt: |
