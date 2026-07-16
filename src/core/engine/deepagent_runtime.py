@@ -1,4 +1,9 @@
-import logging
+import structlog
+from src.core.telemetry import setup_telemetry, set_ambient_session
+
+# Bootstrap ambient telemetry stack globally
+setup_telemetry()
+
 from typing import Dict, Any, List
 from langchain_openai import ChatOpenAI
 from langgraph.checkpoint.postgres.aio import AsyncPostgresSaver
@@ -10,7 +15,7 @@ import yaml
 import os
 import json
 
-logger = logging.getLogger(__name__)
+logger = structlog.get_logger(__name__)
 
 class PlatformOrchestrator:
     """
@@ -82,6 +87,9 @@ class PlatformOrchestrator:
         """
         Compiles and executes the LangGraph using the Postgres checkpointer for state retention.
         """
+        # Bind session_id to structlog and OpenTelemetry globally for this request scope
+        set_ambient_session(session_id)
+        
         try:
             import asyncpg
             sys_conn = await asyncpg.connect(self.db_uri)
