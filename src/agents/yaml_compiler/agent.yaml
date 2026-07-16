@@ -24,6 +24,14 @@ skill_registry:
     abstract: "How to deconstruct legacy agentic patterns into normalized IR — spaghetti
       prompts, free-text handoffs, direct egress, linear pipelines"
     path: "core/skills/building/legacy_modernization_standards"
+  - name: "six_thinking_hats_evaluation"
+    artifact_types: ["agent_yaml"]
+    abstract: "Preventing Groupthink via adversarial, multi-perspective evaluation (De Bono Framework)."
+    path: "core/skills/building/six_thinking_hats_evaluation"
+  - name: "mece_logic_trees"
+    artifact_types: ["agent_yaml"]
+    abstract: "Forcing Mutually Exclusive, Collectively Exhaustive diagnostic problem solving (Arben Framework)."
+    path: "core/skills/building/mece_logic_trees"
   - name: "tree_of_thoughts_exploration"
     artifact_types: ["agent_yaml"]
     abstract: "Forcing System 2 deliberation via branching, pruning, and backtracking (ToT)."
