@@ -22,10 +22,17 @@ This pre-dispatch **Schema Saturation** acts as a programmatic choke point. Only
 The platform completely rejects stochastic self-correction (Generator-Critic) for structural and syntactical validation. Instead, it enforces a rigid **Maker-Checker-Approver** pipeline:
 1. **The Maker (Generation)**: Generates the required artifact (Python, JSON, SQL).
 2. **The Checker (Deterministic Validation)**: Intercepts the artifact with a purely deterministic LangGraph node containing zero generative LLM calls. It runs AST parsers (`libcst`), strict Pydantic checks, and sandboxed code execution. *Note: AST manipulation by Maker agents is strictly forbidden, as parsers instantly fail on syntactically invalid files, paralyzing the agent. Maker agents must use language-agnostic string replacement, while the Checker uses AST tools purely for read-only structural validation.*
-3. **Remediation / Approver**: Artifacts failing the Checker are routed back to the Maker. Passing artifacts proceed to an Approver (PM or Governance Agent). The Governance Agent implements **Multi-Model Consensus** by invoking an LCEL-based evaluation pipeline across multiple test-time compute profiles. If the consensus score fails, the Approver strictly enforces **Dialectical Synthesis** (generating an explicit Thesis, Antithesis, and Synthesis) to construct mathematically rigorous feedback before routing back to the Maker for remediation.
+3. **Remediation / Approver**: Artifacts failing the Checker are routed back to the Maker. Passing artifacts proceed to an Approver (PM or Governance Agent). The Governance Agent implements **Multi-Model Consensus** by invoking an LCEL-based evaluation pipeline across multiple test-time compute profiles. If the consensus score fails, the Approver strictly enforces **Dialectical Synthesis** (generating an explicit Thesis, Antithesis, and Synthesis) to construct mathematically rigorous feedback before routing back to the Maker for remediation. If the artifact passes consensus, the Governance Agent will optionally generate a cryptographically verifiable **Proof of Valid Validation (PVV)** via Sigstore, securing the software supply chain.
 
 ## Anti-Stub Enforcement Policy
 The platform operates under a strict **No-Mock, Anti-Stub Policy**. The words `mock`, `stub`, `fake`, and `simulate` are completely banned from all execution and orchestration paths. Every agent must fulfill a genuine structural role using real LLM invocations, real DB checkpointers, and authentic integrations.
+For example, the Virtual Filesystem (`src/core/vfs/git_backend.py`) is enforced as a True Git Backend utilizing native `git grep` and Python's `Path.rglob` for precise file operations, completely eliminating hollow stubs that might mask underlying integration failures.
+
+## Agent Identity & Access Management (Zero-Trust IAM)
+Agent permissions are governed by declarative, decoupled access policies using industry-standard **Open Policy Agent (OPA)** `.rego` files.
+- The platform uses a native LangChain `AsyncCallbackHandler` (`OPAAuthzCallbackHandler`) that intercepts the `on_tool_start` event.
+- It dynamically evaluates the agent's identity and the tool payload against the OPA server.
+- This entirely decouples security logic from the agent YAML definition, enabling SecOps to enforce Least-Privilege access natively using standard enterprise policies.
 
 ## The Epistemic Firewall (Zero-Trust RAG)
 Generative language models are mathematically forbidden from executing direct queries against high-entropy raw data lakes or unverified external APIs. 
