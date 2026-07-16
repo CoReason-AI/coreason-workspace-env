@@ -1,25 +1,7 @@
 version: '3.8'
 
 services:
-  # 1. PostgreSQL Database (Hosts both LangGraph checkpoints and Langfuse metrics)
-  postgres_checkpointer:
-    image: pgvector/pgvector:pg15
-    environment:
-      POSTGRES_USER: ${POSTGRES_USER:-coreason_admin}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-secure_dev_password}
-      POSTGRES_DB: ${POSTGRES_DB:-langgraph_state}
-    ports:
-      - "5434:5432"
-    volumes:
-      - pgdata:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U coreason_admin -d langgraph_state"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
-    restart: always
-
-  # 2. Redis for task queue
+  # 1. Redis for task queue
   redis_queue:
     image: redis:7-alpine
     ports:
@@ -59,7 +41,7 @@ services:
     ports:
       - "3002:3000"
     environment:
-      DATABASE_URL: "postgresql://${POSTGRES_USER:-coreason_admin}:${POSTGRES_PASSWORD:-secure_dev_password}@postgres_checkpointer:5432/langfuse"
+      DATABASE_URL: "postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_HOST:-demo.coreason.ai}:${POSTGRES_PORT:-5432}/langfuse"
       LANGFUSE_INIT_PROJECT_PUBLIC_KEY: ${LANGFUSE_PUBLIC_KEY:-pk-lf-1234567890}
       LANGFUSE_INIT_PROJECT_SECRET_KEY: ${LANGFUSE_SECRET_KEY:-sk-lf-1234567890}
       NEXTAUTH_URL: "http://localhost:3002"
@@ -71,11 +53,11 @@ services:
       CLICKHOUSE_USER: "langfuse"
       CLICKHOUSE_PASSWORD: "langfuse"
       CLICKHOUSE_CLUSTER_ENABLED: "false"
-      LANGFUSE_S3_EVENT_UPLOAD_BUCKET: "langfuse"
-      LANGFUSE_S3_EVENT_UPLOAD_REGION: "us-east-1"
-      LANGFUSE_S3_EVENT_UPLOAD_ENDPOINT: "http://minio:9000"
-      AWS_ACCESS_KEY_ID: "minioadmin"
-      AWS_SECRET_ACCESS_KEY: "minioadmin"
+      LANGFUSE_S3_EVENT_UPLOAD_BUCKET: "${WORM_S3_BUCKET:-fractal-study-outputs}"
+      LANGFUSE_S3_EVENT_UPLOAD_REGION: "${WORM_S3_REGION:-us-east-1}"
+      LANGFUSE_S3_EVENT_UPLOAD_ENDPOINT: "${WORM_S3_ENDPOINT:-https://demo.coreason.ai/fractal-s3}"
+      AWS_ACCESS_KEY_ID: "${WORM_S3_ACCESS_KEY:-minioadmin}"
+      AWS_SECRET_ACCESS_KEY: "${WORM_S3_SECRET_KEY:-minioadmin@CoRe}"
       LANGFUSE_S3_EVENT_UPLOAD_FORCE_PATH_STYLE: "true"
       REDIS_CONNECTION_STRING: "redis://redis_queue:6379"
       HOSTNAME: "0.0.0.0"
@@ -84,11 +66,7 @@ services:
       LANGFUSE_INIT_POSTGRES_CONNECTIONS: 20
       LANGFUSE_MAX_POSTGRES_CONNECTIONS: 150
     depends_on:
-      postgres_checkpointer:
-        condition: service_healthy
       clickhouse:
-        condition: service_started
-      minio:
         condition: service_started
       redis_queue:
         condition: service_started
@@ -99,30 +77,5 @@ services:
       retries: 10
     restart: always
 
-  # 6. MinIO — S3-compatible local storage for Langfuse events
-  minio:
-    image: minio/minio:latest
-    ports:
-      - "9000:9000"
-      - "9001:9001"
-    environment:
-      MINIO_ROOT_USER: minioadmin
-      MINIO_ROOT_PASSWORD: minioadmin
-    command: server /data --console-address ":9001"
-    restart: always
-
-  # 7. Helper to auto-create Langfuse bucket in MinIO
-  create_buckets:
-    image: minio/mc:latest
-    depends_on:
-      - minio
-    entrypoint: >
-      /bin/sh -c "
-      /usr/bin/mc alias set local http://minio:9000 minioadmin minioadmin;
-      /usr/bin/mc mb local/langfuse || true;
-      exit 0;
-      "
-
 volumes:
-  pgdata:
   clickhouse_data:
