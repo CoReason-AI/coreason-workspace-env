@@ -965,7 +965,7 @@ This shift to declarative infrastructure treats agent definitions as portable, v
 <p>This pre-dispatch <strong>Schema Saturation</strong> acts as a programmatic choke point. Only when the target schema achieves 100% saturation is the payload released to specialized sub-agents.</p>
 <h2 id="anti-stub-enforcement-policy">Anti-Stub Enforcement Policy</h2>
 <p>The platform operates under a strict <strong>No-Mock, Anti-Stub Policy</strong>. The words <code>mock</code>, <code>stub</code>, <code>fake</code>, and <code>simulate</code> are completely banned from all execution and orchestration paths. Every agent must fulfill a genuine structural role using real LLM invocations, real DB checkpointers, and authentic integrations.
-For example, the Virtual Filesystem (<code>src/core/vfs/git_backend.py</code>) is enforced as a True Git Backend utilizing native <code>git grep</code> and Python's <code>Path.rglob</code> for precise file operations, completely eliminating hollow stubs that might mask underlying integration failures.</p>
+For example, the project and database interactions are enforced as true integrations using genuine Postgres connection pools (<code>psycopg_pool.AsyncConnectionPool</code>) and real tracing (<code>src/core/services/observability_service.py</code>), completely eliminating hollow stubs that might mask underlying integration failures.</p>
 <h2 id="the-epistemic-firewall-zero-trust-rag">The Epistemic Firewall (Zero-Trust RAG)</h2>
 <p>Generative language models are mathematically forbidden from executing direct queries against high-entropy raw data lakes or unverified external APIs. 
 The platform introduces a multi-stage cryptographic pipeline:

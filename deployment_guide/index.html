@@ -828,16 +828,38 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#2-deployment-architectures" class="md-nav__link">
+  <a href="#2-deployment-architectures-cloud-only" class="md-nav__link">
     <span class="md-ellipsis">
       
-        2. Deployment Architectures
+        2. Deployment Architectures (Cloud Only)
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="2. Deployment Architectures">
+    <nav class="md-nav" aria-label="2. Deployment Architectures (Cloud Only)">
       <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#marketplace-infrastructure-as-code-terraform" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Marketplace &amp; Infrastructure as Code (Terraform)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#aws-cloudformation-serverless" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        AWS CloudFormation (Serverless)
+      
+    </span>
+  </a>
+  
+</li>
         
           <li class="md-nav__item">
   <a href="#enterprise-kubernetes-helm" class="md-nav__link">
@@ -851,10 +873,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#marketplace-infrastructure-as-code" class="md-nav__link">
+  <a href="#air-gapped-edge-k3s" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Marketplace &amp; Infrastructure as Code
+        Air-Gapped Edge (K3s)
       
     </span>
   </a>
@@ -862,10 +884,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#air-gapped-edge-k3s" class="md-nav__link">
+  <a href="#single-node-standalone-windows-linux" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Air-Gapped Edge (K3s)
+        Single-Node Standalone (Windows &amp; Linux)
       
     </span>
   </a>
@@ -977,17 +999,33 @@
 <p>To support asynchronous concurrency and horizontal scaling, the platform utilizes specialized Docker containers:
 - <strong><code>platform_server</code></strong>: A monolithic FastAPI web server handling synchronous REST API requests, native <code>asyncio</code> background executions, and SSE streaming.
 - <strong><code>postgres_checkpointer</code></strong>: Handles multi-tenant safe StateGraph checkpoints and events, providing the unified state backbone that enables stateless autoscaling of the server replicas.</p>
-<h2 id="2-deployment-architectures">2. Deployment Architectures</h2>
+<h2 id="2-deployment-architectures-cloud-only">2. Deployment Architectures (Cloud Only)</h2>
+<p>For production environments, the platform relies on Managed Cloud Services (like AWS RDS, Elasticache, managed Vault, and S3) rather than Docker containers for stateful infrastructure.</p>
+<h3 id="marketplace-infrastructure-as-code-terraform">Marketplace &amp; Infrastructure as Code (Terraform)</h3>
+<p>Complete IaC templates for AWS (EKS/RDS) and Azure (AKS/PostgreSQL) are located in <code>deploy/terraform/</code>. To deploy the full Cloud Only stack on AWS:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nb">cd</span><span class="w"> </span>deploy/terraform/aws
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>terraform<span class="w"> </span>init
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>terraform<span class="w"> </span>plan<span class="w"> </span>-out<span class="o">=</span>tfplan
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>terraform<span class="w"> </span>apply<span class="w"> </span><span class="s2">&quot;tfplan&quot;</span>
+</code></pre></div>
+<h3 id="aws-cloudformation-serverless">AWS CloudFormation (Serverless)</h3>
+<p>A 1-click serverless AWS ECS Fargate deployment template is provided. You can deploy this stack using the AWS CLI:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>aws<span class="w"> </span>cloudformation<span class="w"> </span>deploy<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span>--template-file<span class="w"> </span>deploy/cloudformation/coreason-enterprise.yaml<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">  </span>--stack-name<span class="w"> </span>coreason-production<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">  </span>--capabilities<span class="w"> </span>CAPABILITY_IAM
+</code></pre></div>
 <h3 id="enterprise-kubernetes-helm">Enterprise Kubernetes (Helm)</h3>
 <p>For large-scale, distributed deployments, the entire stack is packaged as a unified Helm chart for clusters like EKS, GKE, or AKS. The <code>platform_server</code> replicas are seamlessly autoscaled based on HTTP load (e.g. via HPA), ensuring responsive synchronous endpoints and horizontally distributed <code>asyncio</code> task processing.</p>
-<h3 id="marketplace-infrastructure-as-code">Marketplace &amp; Infrastructure as Code</h3>
-<ul>
-<li><strong>OpenTofu &amp; Terraform</strong>: Complete IaC templates for AWS (EKS/RDS) and Azure (AKS/PostgreSQL) are located in <code>deploy/terraform/</code>.</li>
-<li><strong>AWS CloudFormation</strong>: A 1-click serverless AWS ECS Fargate deployment template is located in <code>deploy/cloudformation/coreason-enterprise.yaml</code>.</li>
-<li><strong>GitHub Actions</strong>: A reusable workflow is available in <code>.github/workflows/deploy-helm.yml</code> for automated CI/CD deployments.</li>
-</ul>
+<p>To install the release via Helm:
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>helm<span class="w"> </span>repo<span class="w"> </span>add<span class="w"> </span>coreason<span class="w"> </span>https://charts.coreason.ai
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>helm<span class="w"> </span>install<span class="w"> </span>coreason-workspace<span class="w"> </span>coreason/coreason-workspace<span class="w"> </span>-f<span class="w"> </span>values.yaml
+</code></pre></div></p>
+<p>A reusable GitHub Actions workflow is also available in <code>.github/workflows/deploy-helm.yml</code> for automated CI/CD deployments.</p>
 <h3 id="air-gapped-edge-k3s">Air-Gapped Edge (K3s)</h3>
 <p>For internet-denied environments, the platform is available as a standalone K3s distribution, forcing all language models and tools to run locally via internal endpoints.</p>
+<h3 id="single-node-standalone-windows-linux">Single-Node Standalone (Windows &amp; Linux)</h3>
+<p>To run the full stack on a single bare-metal node or VM with native OS service parity (Systemd / Windows Services), refer to the <a href="../services/">Standalone Services Guide</a>.</p>
 <h2 id="3-immutable-agent-sandboxes">3. Immutable Agent Sandboxes</h2>
 <p>A critical security mandate is <strong>Deterministic Dependencies</strong>. The platform utilizes the <strong>NemoClaw for Deep Agents</strong> blueprint.
 - <strong>Governed Sandboxes</strong>: Agents operate strictly within isolated Kubernetes pod sandboxes managed by the NVIDIA OpenShell Gateway.
@@ -1005,6 +1043,13 @@
 - <code>--skip-state</code>: Bypasses the <code>pg_dump</code> command, excluding conversation history and RAG embeddings.</p>
 <h2 id="5-security-iam-configuration">5. Security &amp; IAM Configuration</h2>
 <p>The following environment variables govern the Zero-Trust and Supply Chain Security pipelines at runtime:</p>
+<ul>
+<li><code>VAULT_ADDR</code>: The address of the HashiCorp Vault server.</li>
+<li><code>VAULT_NAMESPACE</code>: The Vault namespace for secrets isolation.</li>
+<li><code>VAULT_DEV_ROOT_TOKEN_ID</code>: The root token for Vault authentication.</li>
+<li><code>LLM_API_KEY</code> / <code>LLM_BASE_URL</code>: Governs external LLM routing securely.</li>
+<li><code>WORM_S3_ACCESS_KEY</code> / <code>WORM_S3_SECRET_KEY</code>: Credentials for the Write-Once-Read-Many (WORM) storage.</li>
+</ul>
 
 
 

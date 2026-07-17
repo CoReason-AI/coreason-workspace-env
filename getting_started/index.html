@@ -519,21 +519,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#standalone-local-deployment" class="md-nav__link">
+  <a href="#starting-the-services-topologies" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Standalone Local Deployment
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#public-hybrid-cloud-deployments" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Public / Hybrid Cloud Deployments
+        Starting the Services (Topologies)
       
     </span>
   </a>
@@ -1002,24 +991,17 @@ Additionally, ensure you set <code>API_SECRET_TOKEN</code> to secure the platfor
 <p>[!NOTE]
 <strong>Tenant Isolation:</strong> LangGraph state checkpointers do not use the <code>public</code> schema. The runtime engine dynamically manages schema isolation (<code>project_{project_id}</code>) per tenant, ensuring zero data leakage and safe backups via <code>pg_dump</code>. </p>
 </blockquote>
-<h3 id="standalone-local-deployment">Standalone Local Deployment</h3>
-<p>The easiest way to spin this up locally is via Docker Compose using the Standalone override. This configuration natively spins up <strong>MinIO</strong> for S3-compatible local storage and <strong>Ollama</strong> for local LLM inference (requires an NVIDIA GPU). It bypasses remote images and builds the workspace directly from source.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>docker<span class="w"> </span>compose<span class="w"> </span>-f<span class="w"> </span>docker-compose.yaml<span class="w"> </span>-f<span class="w"> </span>docker-compose.standalone.yaml<span class="w"> </span>up<span class="w"> </span>-d<span class="w"> </span>--build
-</code></pre></div>
+<h3 id="starting-the-services-topologies">Starting the Services (Topologies)</h3>
+<p>The CoReason platform supports three deployment topologies depending on your needs:</p>
+<ol>
+<li><strong>Local Only</strong>: A fully localized Docker Compose stack including local LLM inference (Ollama) and local S3-compatible storage (MinIO).</li>
+<li><strong>Hybrid</strong>: A Docker Compose stack for core infrastructure (Postgres, Vault) but relies on Cloud API endpoints for LLMs (OpenAI, OpenRouter) and S3 via <code>.env</code>.</li>
+<li><strong>Cloud Only</strong>: Production-ready deployments to Enterprise Kubernetes (EKS/AKS) using Terraform, OpenTofu, or Helm.</li>
+</ol>
 <blockquote>
-<p>[!IMPORTANT]
-<strong>Ollama Setup:</strong> The first time you launch the standalone stack, you must pull the model:
-<code>docker compose -f docker-compose.yaml -f docker-compose.standalone.yaml exec ollama ollama run llama3</code></p>
-</blockquote>
-<p>This will automatically spin up the <code>platform_server</code>, <code>postgres_checkpointer</code>, <code>minio</code>, and <code>ollama</code> components. The REST API and SSE streams will be available, and the MCP server will dynamically query the Postgres database for state tracking.</p>
-<h3 id="public-hybrid-cloud-deployments">Public / Hybrid Cloud Deployments</h3>
-<p>For standard deployments using cloud-hosted models (e.g. OpenAI) and S3 endpoints, use the base compose file:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>docker<span class="w"> </span>compose<span class="w"> </span>up<span class="w"> </span>-d
-</code></pre></div>
-<blockquote>
-<p>[!TIP]
-<strong>Going to Production?</strong>
-If you are deploying to an enterprise environment (AWS, Azure), check out our <a href="../deployment_guide/">Deploying Guide</a> for 1-click Terraform, OpenTofu, and CloudFormation templates.</p>
+<p>[!NOTE]
+For the exact CLI commands and detailed steps to run the <strong>Local Only</strong> or <strong>Hybrid</strong> topologies, please refer to the <a href="../developer_guide/#3-local-development-topologies">Developer Guide</a>. 
+For <strong>Cloud Only</strong> deployment steps, see the <a href="../deployment_guide/#2-deployment-architectures">Deployment Guide</a>.</p>
 </blockquote>
 <h3 id="interacting-with-the-platform">Interacting with the Platform</h3>
 <p>Once the containers are running, the API is available locally.
@@ -1030,14 +1012,14 @@ To execute endpoints via the Swagger UI or via cURL, you must authenticate. Clic
 <h3 id="tracing-and-observability-harbor">Tracing and Observability (Harbor)</h3>
 <p>To capture and view OpenTelemetry and LangSmith traces locally without using public SaaS, we use <strong>Harbor</strong> (a local LangSmith instance). </p>
 <p>Start the Harbor containers:
-<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>uv<span class="w"> </span>run<span class="w"> </span>harbor<span class="w"> </span>up
-</code></pre></div>
-This will spin up the local LangSmith/Harbor container stack to capture traces. The platform is pre-configured via <code>.env</code> (<code>LANGCHAIN_ENDPOINT=http://localhost:1984</code>) to route all traces to this local instance.</p>
+- <strong>Linux/Mac</strong>: Run <code>harbor up langfuse</code>
+- <strong>Windows</strong>: Run <code>.\scripts\start_observability.ps1</code></p>
+<p>This will spin up the local LangSmith/Harbor container stack to capture traces. The platform is pre-configured via <code>.env</code> (<code>LANGCHAIN_ENDPOINT=http://localhost:1984</code>) to route all traces to this local instance.</p>
 <h3 id="standalone-troubleshooting-testing">Standalone Troubleshooting &amp; Testing</h3>
 <p>If you encounter issues during a local standalone build:
 - <strong>Corrupted Builds (<code>no such file or directory</code> errors for <code>uvicorn</code>)</strong>: Ensure the <code>.dockerignore</code> file exists in the root of the repository and includes <code>.venv</code>. Without it, local Windows/macOS <code>.venv</code> directories will overwrite the container's internal Linux <code>.venv</code> during the multi-stage build <code>COPY . .</code> command.
 - <strong>Testing inside Airgapped Containers</strong>: The production <code>Dockerfile</code> is strictly "Airgap Ready", meaning build and development tools (like <code>uv</code> and <code>pytest</code>) are explicitly excluded from the final image stage. If you need to verify environment connectivity inside a running container, use the pure-Python standard library test script rather than <code>pytest</code>:
-  <div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>docker<span class="w"> </span>compose<span class="w"> </span>-f<span class="w"> </span>docker-compose.yaml<span class="w"> </span>-f<span class="w"> </span>docker-compose.standalone.yaml<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>platform_server<span class="w"> </span>python<span class="w"> </span>tests/test_standalone_env.py
+  <div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>docker<span class="w"> </span>compose<span class="w"> </span>-f<span class="w"> </span>docker-compose.yaml<span class="w"> </span>-f<span class="w"> </span>docker-compose.standalone.yaml<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>platform_server<span class="w"> </span>python<span class="w"> </span>tests/test_standalone_env.py
 </code></pre></div></p>
 <h2 id="executing-exported-artifacts">Executing Exported Artifacts</h2>
 <p>When you build agents through the platform, it exports an installable ZIP archive containing the generated YAML manifests and a dynamically synthesized <code>pyproject.toml</code>. </p>

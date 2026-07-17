@@ -879,6 +879,45 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#3-local-development-topologies" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Local Development Topologies
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. Local Development Topologies">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#local-only" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Local Only
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hybrid" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Hybrid
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -969,7 +1008,7 @@
 <p>To ensure stability across complex LangGraph architectures, the platform implements a strict <strong>Mock-Free E2E Testing</strong> paradigm.</p>
 <h3 id="mock-free-philosophy">Mock-Free Philosophy</h3>
 <ol>
-<li><strong>No Database Mocking</strong>: Tests utilize a stateful <code>DummyConnection</code> and <code>DummyPool</code> that actually parse and store SQL statements in an in-memory dictionary.</li>
+<li><strong>No Database Mocking</strong>: Tests utilize <strong>Testcontainers</strong> to spin up genuine ephemeral Postgres databases, ensuring tests interact with real database engines without mocks or stubs.</li>
 <li><strong>Native LangChain v1 Agents</strong>: We test against authentic <code>create_agent</code> graphs instead of deprecated <code>AgentExecutor</code> constructs, verifying modern state routing natively.</li>
 <li><strong>Open-Source First Decoupling</strong>: Models are dynamically loaded via Langchain's <code>init_chat_model</code> rather than hardcoding proprietary SDKs (like <code>ChatOpenAI</code>), ensuring enterprise fallback to local VLLM/Ollama deployments without altering source code.</li>
 </ol>
@@ -978,6 +1017,23 @@
 <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>uv<span class="w"> </span>run<span class="w"> </span>pytest<span class="w"> </span>tests/test_integration.py<span class="w"> </span>-v
 </code></pre></div></p>
 <p>This ensures the entire runtime—from API input, down through hierarchical agent delegation, to the checkpointer and final artifact generation—is mathematically proven to work.</p>
+<h2 id="3-local-development-topologies">3. Local Development Topologies</h2>
+<p>When building or testing locally, you can choose how much of the stack you want to run on your own hardware versus relying on cloud endpoints.</p>
+<h3 id="local-only">Local Only</h3>
+<p>The easiest way to spin this up locally without any external dependencies is via Docker Compose using the Standalone override. This configuration natively spins up <strong>MinIO</strong> for S3-compatible local storage and <strong>Ollama</strong> for local LLM inference (requires an NVIDIA GPU). It bypasses remote images and builds the workspace directly from source.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>docker<span class="w"> </span>compose<span class="w"> </span>-f<span class="w"> </span>docker-compose.yaml<span class="w"> </span>-f<span class="w"> </span>docker-compose.standalone.yaml<span class="w"> </span>up<span class="w"> </span>-d<span class="w"> </span>--build
+</code></pre></div>
+<blockquote>
+<p>[!IMPORTANT]
+<strong>Ollama Setup:</strong> The first time you launch the standalone stack, you must pull the model manually by executing into the container:
+<code>docker compose -f docker-compose.yaml -f docker-compose.standalone.yaml exec ollama ollama run llama3</code></p>
+</blockquote>
+<p>This automatically spins up the <code>platform_server</code>, <code>postgres_checkpointer</code>, <code>vault</code>, <code>jaeger</code>, <code>minio</code>, and <code>ollama</code> components. </p>
+<h3 id="hybrid">Hybrid</h3>
+<p>For standard development using cloud-hosted models (e.g., OpenAI, OpenRouter) and public S3 endpoints, you can avoid spinning up local AI models by using the base compose file:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>docker<span class="w"> </span>compose<span class="w"> </span>up<span class="w"> </span>-d
+</code></pre></div>
+<p>This will run the core state infrastructure (Postgres, Vault, Jaeger) locally, but relies on the <code>LLM_BASE_URL</code> and <code>WORM_S3_ENDPOINT</code> variables in your <code>.env</code> file to route traffic to the cloud.</p>
 
 
 

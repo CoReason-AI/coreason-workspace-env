@@ -1021,7 +1021,7 @@
 <h3 id="step-8-oci-push-airgap-export">Step 8: OCI Push &amp; Airgap Export</h3>
 <p>You now have a completed platform. You can export it locally for an air-gapped deployment, or push it straight to your enterprise registry (e.g., AWS ECR) using the standard OCI (Open Container Initiative) commands.</p>
 <p><strong>Pushing to an OCI Registry:</strong>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>uv<span class="w"> </span>run<span class="w"> </span>coreason<span class="w"> </span>push_project<span class="w"> </span>&lt;project_id&gt;<span class="w"> </span>ghcr.io/my-org/trial-agent:v1.0.0
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>uv<span class="w"> </span>run<span class="w"> </span>coreason<span class="w"> </span>push-project<span class="w"> </span>&lt;project_id&gt;<span class="w"> </span>ghcr.io/my-org/trial-agent:v1.0.0
 </code></pre></div></p>
 <h3 id="step-9-downstream-deployment">Step 9: Downstream Deployment</h3>
 <p>You switch hats from "Creator" to "Operator". You pull your newly compiled agent platform onto your target server, unzip it, and run <code>uv run coreason dev</code> (or deploy via Docker). Your custom agents are now alive and exposing their own MCP/REST endpoints!</p>
