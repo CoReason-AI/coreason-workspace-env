@@ -1,14 +1,7 @@
 version: '3.8'
 
 services:
-  # 1. Redis for task queue
-  redis_queue:
-    image: redis:7-alpine
-    ports:
-      - "6379:6379"
-    restart: always
-
-  # 3. HashiCorp Vault (Dev Server for local secrets federation)
+  # 1. HashiCorp Vault (Dev Server for local secrets federation)
   vault:
     image: hashicorp/vault:latest
     ports:
@@ -20,62 +13,12 @@ services:
       - IPC_LOCK
     restart: always
 
-  # 4. ClickHouse — Highly performant OLAP DB for Langfuse v3
-  clickhouse:
-    image: clickhouse/clickhouse-server:23.12-alpine
+  # 2. Jaeger — OpenTelemetry OTLP Trace Collector
+  jaeger:
+    image: jaegertracing/all-in-one:latest
     environment:
-      - CLICKHOUSE_DB=langfuse
-      - CLICKHOUSE_USER=langfuse
-      - CLICKHOUSE_PASSWORD=langfuse
-      - CLICKHOUSE_DEFAULT_ACCESS_MANAGEMENT=1
+      - COLLECTOR_OTLP_ENABLED=true
     ports:
-      - "8123:8123"
-      - "9002:9000"
-    volumes:
-      - clickhouse_data:/var/lib/clickhouse
+      - "16686:16686" # Web UI
+      - "4318:4318"   # OTLP HTTP
     restart: always
-
-  # 5. Langfuse — Self-Hosted LLM Observability & Tracing
-  langfuse:
-    image: langfuse/langfuse:latest
-    ports:
-      - "3002:3000"
-    environment:
-      DATABASE_URL: "postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_HOST:-demo.coreason.ai}:${POSTGRES_PORT:-5432}/langfuse"
-      LANGFUSE_INIT_PROJECT_PUBLIC_KEY: ${LANGFUSE_PUBLIC_KEY:-pk-lf-1234567890}
-      LANGFUSE_INIT_PROJECT_SECRET_KEY: ${LANGFUSE_SECRET_KEY:-sk-lf-1234567890}
-      NEXTAUTH_URL: "http://localhost:3002"
-      NEXTAUTH_SECRET: "coreason-langfuse-dev-secret"
-      SALT: "coreason-langfuse-dev-salt"
-      TELEMETRY_ENABLED: "false"
-      CLICKHOUSE_URL: "http://clickhouse:8123"
-      CLICKHOUSE_MIGRATION_URL: "clickhouse://clickhouse:9000"
-      CLICKHOUSE_USER: "langfuse"
-      CLICKHOUSE_PASSWORD: "langfuse"
-      CLICKHOUSE_CLUSTER_ENABLED: "false"
-      LANGFUSE_S3_EVENT_UPLOAD_BUCKET: "${WORM_S3_BUCKET:-fractal-study-outputs}"
-      LANGFUSE_S3_EVENT_UPLOAD_REGION: "${WORM_S3_REGION:-us-east-1}"
-      LANGFUSE_S3_EVENT_UPLOAD_ENDPOINT: "${WORM_S3_ENDPOINT:-https://demo.coreason.ai/fractal-s3}"
-      AWS_ACCESS_KEY_ID: "${WORM_S3_ACCESS_KEY:-minioadmin}"
-      AWS_SECRET_ACCESS_KEY: "${WORM_S3_SECRET_KEY:-minioadmin@CoRe}"
-      LANGFUSE_S3_EVENT_UPLOAD_FORCE_PATH_STYLE: "true"
-      REDIS_CONNECTION_STRING: "redis://redis_queue:6379"
-      HOSTNAME: "0.0.0.0"
-      PORT: "3000"
-      # Performance scaling settings for large Kubernetes worker connection loads
-      LANGFUSE_INIT_POSTGRES_CONNECTIONS: 20
-      LANGFUSE_MAX_POSTGRES_CONNECTIONS: 150
-    depends_on:
-      clickhouse:
-        condition: service_started
-      redis_queue:
-        condition: service_started
-    healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://127.0.0.1:3000/api/public/health"]
-      interval: 10s
-      timeout: 5s
-      retries: 10
-    restart: always
-
-volumes:
-  clickhouse_data:

@@ -1,9 +1,9 @@
 replicaCount: 1
 
 image:
-  repository: coreason/platform
+  repository: ghcr.io/coreason-ai/coreason-workspace-env
   pullPolicy: IfNotPresent
-  tag: "latest"
+  tag: "develop"
 
 service:
   type: ClusterIP
@@ -22,7 +22,26 @@ securityContext:
   runAsNonRoot: true
   runAsUser: 1000
 
-# Sub-charts for Infinite Scalability
+# Web Server & Resiliency settings
+web:
+  workers: 2
+
+gracefulShutdownTimeout: 30
+
+# In-process monolithic architecture defaults (workers disabled)
+worker:
+  enabled: false
+
+# Autoscaling Configuration
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 80
+  targetMemoryUtilizationPercentage: 80
+  scaleDownStabilizationWindow: 300
+
+# Sub-charts for Infinite Scalability (Disabled in monolithic setup)
 redis:
   enabled: false
   architecture: replication

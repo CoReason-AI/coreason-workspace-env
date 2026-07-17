@@ -1,3 +1,4 @@
+{{- if .Values.worker.enabled -}}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -34,3 +35,4 @@ spec:
               value: "redis://{{ .Release.Name }}-redis-master:6379/0"
             - name: REDIS_QUEUE_NAME
               value: "tasks"
+{{- end -}}

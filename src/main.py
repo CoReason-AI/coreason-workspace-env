@@ -13,15 +13,22 @@ from src.core.services import health_service, project_service, portability_servi
 from src.core.security.auth import get_current_user, UserIdentity
 
 
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-)
-logger = logging.getLogger(__name__)
-
 # Load environment variables
 load_dotenv()
+
+# Configure logging and OpenTelemetry
+try:
+    from src.core.telemetry import setup_telemetry
+    setup_telemetry()
+    logger = logging.getLogger(__name__)
+    logger.info("OpenTelemetry and structlog telemetry initialized successfully.")
+except Exception as e:
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    )
+    logger = logging.getLogger(__name__)
+    logger.warning(f"Failed to initialize OpenTelemetry/structlog: {e}. Falling back to standard logging.")
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
