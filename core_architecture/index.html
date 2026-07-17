@@ -11,6 +11,10 @@
       
       
       
+        <link rel="prev" href="../user_guide/">
+      
+      
+        <link rel="next" href="../interaction_surfaces/">
       
       
         
@@ -21,7 +25,7 @@
     
     
       
-        <title>Core Architecture Principles - CoReason Workspace Environment</title>
+        <title>Core Architecture - CoReason Workspace Environment</title>
       
     
     
@@ -106,7 +110,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Core Architecture Principles
+              Core Architecture
             
           </span>
         </div>
@@ -225,11 +229,13 @@
   
   
   
+    
+  
   
     
     
-      <li class="md-tabs__item">
-        <a href="../architecture/landscape_comparison.md" class="md-tabs__link">
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="./" class="md-tabs__link">
           
   
   
@@ -249,7 +255,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../surfaces/mcp_server.md" class="md-tabs__link">
+        <a href="../interaction_surfaces/" class="md-tabs__link">
           
   
   
@@ -269,7 +275,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../guides/building_skills.md" class="md-tabs__link">
+        <a href="../developer_guide/" class="md-tabs__link">
           
   
   
@@ -431,7 +437,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../guides/user_guide.md" class="md-nav__link">
+      <a href="../user_guide/" class="md-nav__link">
         
   
   
@@ -463,26 +469,31 @@
       
   
   
+    
   
   
+  
     
     
     
     
+      
+        
+        
       
       
         
       
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
         
           
-          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
             
   
   
@@ -500,7 +511,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_2">
             <span class="md-nav__icon md-icon"></span>
             
@@ -515,17 +526,44 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../architecture/landscape_comparison.md" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Core Architecture
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
   <span class="md-ellipsis">
     
   
-    Landscape Comparison
+    Core Architecture
   
 
     
@@ -534,146 +572,125 @@
   
 
       </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../architecture/deepagent_pattern.md" class="md-nav__link">
+      
         
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
   
   
-  <span class="md-ellipsis">
+  
     
   
-    DeepAgent Pattern
   
-
-    
-  </span>
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#deepagent-pattern-declarative-manifests" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        DeepAgent Pattern &amp; Declarative Manifests
+      
+    </span>
+  </a>
   
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-brain-body-dichotomy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Brain / Body Dichotomy
+      
+    </span>
+  </a>
   
-
-      </a>
-    </li>
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#context-engineering-schema-saturation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Context Engineering &amp; Schema Saturation
+      
+    </span>
+  </a>
   
-
-              
-            
-              
-                
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#anti-stub-enforcement-policy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Anti-Stub Enforcement Policy
+      
+    </span>
+  </a>
   
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-epistemic-firewall-zero-trust-rag" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Epistemic Firewall (Zero-Trust RAG)
+      
+    </span>
+  </a>
   
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#enterprise-runtime" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Enterprise Runtime
+      
+    </span>
+  </a>
   
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#multi-surface-parity" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Multi-Surface Parity
+      
+    </span>
+  </a>
   
-    <li class="md-nav__item">
-      <a href="../architecture/context_engineering.md" class="md-nav__link">
-        
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#agent-observability-traceability" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Agent Observability &amp; Traceability
+      
+    </span>
+  </a>
   
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#zero-waste-ambient-telemetry-open-source-first" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Zero-Waste Ambient Telemetry (Open-Source First)
+      
+    </span>
+  </a>
   
-  <span class="md-ellipsis">
-    
+</li>
+      
+    </ul>
   
-    Context Engineering
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../architecture/epistemic_firewall.md" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Epistemic Firewall
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../architecture/maker_checker.md" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Maker-Checker Pipeline
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../architecture/multi_surface_parity.md" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Multi-Surface Parity
-  
-
-    
-  </span>
-  
-  
-
-      </a>
+</nav>
+      
     </li>
   
 
@@ -745,126 +762,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../surfaces/mcp_server.md" class="md-nav__link">
+      <a href="../interaction_surfaces/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    MCP Server
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../surfaces/cli.md" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    CLI
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../surfaces/rest_api.md" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    REST API
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../surfaces/websocket_sse.md" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    WebSocket / SSE
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../surfaces/python_sdk.md" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Python SDK
+    Overview
   
 
     
@@ -944,14 +849,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../guides/building_skills.md" class="md-nav__link">
+      <a href="../developer_guide/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Building Skills
+    Developer Guide
   
 
     
@@ -972,42 +877,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../guides/writing_validation_rules.md" class="md-nav__link">
+      <a href="../deployment_guide/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Validation Rules
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../guides/deploying.md" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Deploying
+    Deployment Guide
   
 
     
@@ -1048,9 +925,9 @@
 <h1 id="core-architecture-principles">Core Architecture Principles</h1>
 <p>The CoReason Workspace Environment implements an opinionated variant of the DeepAgent pattern. While the industry frequently treats multi-agent systems as experimental scripts, this platform enforces a strict Infrastructure as Code (IaC) approach, leveraging deterministic mathematical boundaries rather than heuristic prompting.</p>
 <h2 id="deepagent-pattern-declarative-manifests">DeepAgent Pattern &amp; Declarative Manifests</h2>
-<p>Agents within the platform are not instantiated via complex, hardcoded Python boilerplate. Instead, they are defined via strictly typed, <code>pyagentspec</code>-compatible <strong>YAML manifests</strong>. 
+<p>Agents within the platform are defined via strictly typed, <code>pyagentspec</code>-compatible <strong>YAML manifests</strong>. 
 This shift to declarative infrastructure treats agent definitions as portable, version-controlled configurations.</p>
-<p>At runtime, a specialized YAML compiler reads the agent manifest and dynamically synthesizes an executable <strong>LangGraph StateGraph</strong> node, enforcing deterministic routing and eliminating deliberation cascades.</p>
+<p>At runtime, a dynamically synthesized <strong>LangGraph StateGraph</strong> node enforces deterministic routing and eliminates deliberation cascades. The <code>factory_ceo</code> (instantiated via <code>create_deep_agent</code>) dynamically delegates to PMs and workers using standard tool calling and native <code>deepagents</code> middleware.</p>
 <h2 id="the-brain-body-dichotomy">The Brain / Body Dichotomy</h2>
 <p>The platform physically enforces a strict architectural boundary between <strong>Intent</strong> and <strong>Execution</strong> by separating the repository into two primary domains:
 - <strong>The Brain (<code>src/agents/</code>)</strong>: Represents pure cognitive intent (personas, YAML, StateGraphs) with zero infrastructure code.
@@ -1058,13 +935,9 @@ This shift to declarative infrastructure treats agent definitions as portable, v
 <h2 id="context-engineering-schema-saturation">Context Engineering &amp; Schema Saturation</h2>
 <p>Context Engineering is the practice of treating context assembly as a disciplined, mathematical control plane <em>prior</em> to kinetic execution. Before any deterministic worker node is activated, a supervisory routing node actively interrogates the user's input or the incoming API payload against a predefined <code>Pydantic</code> schema. </p>
 <p>This pre-dispatch <strong>Schema Saturation</strong> acts as a programmatic choke point. Only when the target schema achieves 100% saturation is the payload released to specialized sub-agents.</p>
-<h2 id="maker-checker-approver-pipeline">Maker-Checker-Approver Pipeline</h2>
-<p>The platform completely rejects stochastic self-correction (Generator-Critic) for structural and syntactical validation. Instead, it enforces a rigid <strong>Maker-Checker-Approver</strong> pipeline:
-1. <strong>The Maker (Generation)</strong>: Generates the required artifact (Python, JSON, SQL).
-2. <strong>The Checker (Deterministic Validation)</strong>: Intercepts the artifact with a purely deterministic LangGraph node containing zero generative LLM calls. It runs AST parsers, strict Pydantic checks, and sandboxed code execution.
-3. <strong>Remediation / Approver</strong>: Artifacts failing the Checker are routed back to the Maker. Passing artifacts proceed to an Approver (PM or Human-in-the-Loop) for semantic approval.</p>
 <h2 id="anti-stub-enforcement-policy">Anti-Stub Enforcement Policy</h2>
-<p>The platform operates under a strict <strong>No-Mock, Anti-Stub Policy</strong>. The words <code>mock</code>, <code>stub</code>, <code>fake</code>, and <code>simulate</code> are completely banned from all execution and orchestration paths. Every agent must fulfill a genuine structural role using real LLM invocations, real DB checkpointers, and authentic integrations.</p>
+<p>The platform operates under a strict <strong>No-Mock, Anti-Stub Policy</strong>. The words <code>mock</code>, <code>stub</code>, <code>fake</code>, and <code>simulate</code> are completely banned from all execution and orchestration paths. Every agent must fulfill a genuine structural role using real LLM invocations, real DB checkpointers, and authentic integrations.
+For example, the Virtual Filesystem (<code>src/core/vfs/git_backend.py</code>) is enforced as a True Git Backend utilizing native <code>git grep</code> and Python's <code>Path.rglob</code> for precise file operations, completely eliminating hollow stubs that might mask underlying integration failures.</p>
 <h2 id="the-epistemic-firewall-zero-trust-rag">The Epistemic Firewall (Zero-Trust RAG)</h2>
 <p>Generative language models are mathematically forbidden from executing direct queries against high-entropy raw data lakes or unverified external APIs. 
 The platform introduces a multi-stage cryptographic pipeline:
@@ -1081,10 +954,13 @@ The platform introduces a multi-stage cryptographic pipeline:
 <h2 id="agent-observability-traceability">Agent Observability &amp; Traceability</h2>
 <p>To empower upstream AI coding assistants (the "Agent Improvement System") to natively debug and improve the platform's agents, the environment integrates deep, programmable observability exposed directly via the <strong>MCP Server</strong>:
 - <strong>State Inspection (Postgres)</strong>: Directly queries the <code>postgres_checkpointer</code> to read the exact LangGraph thread checkpoints, enabling deterministic analysis of stuck or failed agent states.
-- <strong>LLM Tracing (Langfuse)</strong>: Programmatically fetches execution traces from the local Langfuse API, providing full visibility into the prompts and completions that led to hallucination or validation errors.
+- <strong>LLM Tracing (LangSmith)</strong>: Native LangChain tracing provides full visibility into the prompts and completions that led to hallucination or validation errors. It natively integrates with LangGraph using the <code>LANGCHAIN_TRACING_V2</code> environment variables.
 - <strong>Dynamic Identity Federation (Vault)</strong>: Supports injecting external API keys securely into the dev HashiCorp Vault at runtime, allowing agents to impersonate dynamic roles without hardcoded secrets.
-- <strong>Agent Resumption</strong>: Integrates with the Redis task queue to resume paused or failed agents seamlessly after remediation.</p>
+- <strong>Agent Resumption</strong>: Directly invokes the <code>PlatformOrchestrator</code> to seamlessly resume paused or failed agents natively using the LangGraph checkpointer.</p>
 <p>All observability logic is encapsulated within <code>src/core/services/observability_service.py</code> and strictly obeys the platform's SSOT (Single Source of Truth) configuration, allowing it to transition seamlessly from local development into enterprise Kubernetes clusters without hardcoded topology strings.</p>
+<h2 id="zero-waste-ambient-telemetry-open-source-first">Zero-Waste Ambient Telemetry (Open-Source First)</h2>
+<p>The orchestrator maintains rigorous Request-Scoped Telemetry across thousands of asynchronous nodes without leaking memory and without custom <code>weakref</code> boilerplate. It achieves this by strictly adopting the CNCF standard <strong>OpenTelemetry Context</strong> (<code>opentelemetry.context</code>) and <strong>Structlog ContextVars</strong> natively. </p>
+<p>Standard <code>logging</code> instances (used by third parties like Langchain or FastAPI) are transparently hijacked and pipelined through <code>structlog</code>. At the entry point of any orchestrator execution, the unique <code>session_id</code> is bound to the ambient context. Every deeply nested API call, database query, and model invocation automatically inherits this tracing ID gracefully, providing 100% causal visibility in LangSmith (or any OTel backend) without manually polluting function signatures.</p>
 
 
 
