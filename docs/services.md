@@ -57,49 +57,47 @@ sudo systemctl status coreason
 
 ---
 
-## Windows: NSSM Integration
+## Windows: WinSW Integration
 
-Windows does not use `systemd`. To achieve exact service parity on a standalone Windows Server or Windows Desktop machine, we utilize [NSSM (Non-Sucking Service Manager)](http://nssm.cc/) to wrap the Docker Compose commands into a native Windows Background Service.
+Windows does not use `systemd`. To achieve exact service parity on a standalone Windows Server or Desktop machine, we utilize [WinSW (Windows Service Wrapper)](https://github.com/winsw/winsw) — a modern, actively maintained standard backed by the .NET Foundation. This allows us to use a declarative XML configuration that closely mirrors the behavior of `systemd`.
 
 ### 1. Prerequisites
-1. Ensure **Docker Desktop** (or Docker Engine for Windows Server) is installed and configured to start automatically with Windows.
-2. Download `nssm.exe` and place it in a system path (or inside your project directory).
+1. Ensure **Docker Desktop** (or Docker Engine) is installed and configured to start automatically with Windows. *(Note: Windows Home Edition with WSL2 is fully supported!)*
+2. Download the latest `WinSW-x64.exe` from the [official releases](https://github.com/winsw/winsw/releases) and place it in your project root directory. Rename it to `coreason-service.exe`.
 
-### 2. Create the Startup Script
+### 2. Create the Service Definition (XML)
 
-Create a `start_coreason.bat` file in the root of your project:
+Create a file named `coreason-service.xml` in the same directory as the executable:
 
-```bat
-@echo off
-cd /d "%~dp0"
-docker compose -f docker-compose.yaml -f docker-compose.standalone.yaml up -d --build
+```xml
+<service>
+  <id>coreason</id>
+  <name>CoReason Workspace Environment</name>
+  <description>Standalone Docker Compose stack for CoReason agents.</description>
+  
+  <!-- Startup Command -->
+  <executable>docker</executable>
+  <arguments>compose -f docker-compose.yaml -f docker-compose.standalone.yaml up --build</arguments>
+  
+  <!-- Shutdown Command -->
+  <stopexecutable>docker</stopexecutable>
+  <stoparguments>compose -f docker-compose.yaml -f docker-compose.standalone.yaml down</stoparguments>
+  
+  <!-- Log rotation parity -->
+  <log mode="roll"></log>
+</service>
 ```
 
-### 3. Install the Windows Service
+> [!NOTE]
+> Unlike the CLI `up -d` command, WinSW expects the process to run in the foreground (`up` without `-d`) so it can natively capture standard output logs and automatically restart the service if it crashes!
 
-Open an **Administrator PowerShell** prompt and use NSSM to install the script as a service:
+### 3. Install and Start the Service
+
+Open an **Administrator PowerShell** prompt, navigate to your project directory, and run:
 
 ```powershell
-nssm install CoReasonService "C:\path\to\coreason-workspace-env\start_coreason.bat"
+.\coreason-service.exe install
+.\coreason-service.exe start
 ```
 
-### 4. Configure Service Properties
-
-Set the service to run automatically on boot, and route standard output/error to a log file for observability parity with `systemd`:
-
-```powershell
-nssm set CoReasonService AppDirectory "C:\path\to\coreason-workspace-env"
-nssm set CoReasonService Description "CoReason Workspace Environment"
-nssm set CoReasonService AppStdout "C:\path\to\coreason-workspace-env\service.log"
-nssm set CoReasonService AppStderr "C:\path\to\coreason-workspace-env\service-error.log"
-```
-
-### 5. Start the Service
-
-Finally, start the native Windows service:
-
-```powershell
-Start-Service CoReasonService
-```
-
-You can now manage the platform identically to any other Windows service via the `services.msc` GUI or PowerShell.
+You can now manage the platform identically to any native Windows service via the `services.msc` GUI or by using PowerShell (`Stop-Service coreason`).

@@ -47,6 +47,7 @@ dependencies = [
     "opentelemetry-sdk>=1.25.0",
     "opentelemetry-exporter-otlp>=1.25.0",
     "structlog>=24.1.0",
+    "opentelemetry-instrumentation-fastapi>=0.58b0",
 ]
 
 [project.scripts]

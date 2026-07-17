@@ -13,11 +13,9 @@ from src.core.services import health_service, project_service, portability_servi
 from src.core.security.auth import get_current_user, UserIdentity
 
 
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-)
+# Configure logging and Telemetry
+from src.core.telemetry import setup_telemetry
+setup_telemetry()
 logger = logging.getLogger(__name__)
 
 # Load environment variables
@@ -54,6 +52,9 @@ app = FastAPI(
     version="2.1.0",
     lifespan=lifespan
 )
+
+from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
+FastAPIInstrumentor.instrument_app(app)
 
 app.add_middleware(
     CORSMiddleware,
