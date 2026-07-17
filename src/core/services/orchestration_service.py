@@ -103,22 +103,25 @@ class OrchestrationService:
                     
                     # If not explicitly provided in state, try to parse markdown output
                     if not generated_agents and "messages" in result:
-                        final_content = result["messages"][-1].content
+                        final_content = ""
+                        for msg in reversed(result["messages"]):
+                            if hasattr(msg, "content") and isinstance(msg.content, str) and "```yaml" in msg.content:
+                                final_content = msg.content
+                                break
+                        if not final_content and result["messages"]:
+                            final_content = result["messages"][-1].content
                         yaml_blocks = re.findall(r"```yaml\n(.*?)\n```", final_content, re.DOTALL)
                         if yaml_blocks:
                             generated_agents = {}
                             if len(yaml_blocks) >= 1:
-                                generated_agents["orchestrator_agent"] = yaml_blocks[0]
+                                generated_agents["project"] = yaml_blocks[0]
                             if len(yaml_blocks) >= 2:
-                                generated_agents["project"] = yaml_blocks[1]
+                                generated_agents["orchestrator_agent"] = yaml_blocks[1]
 
                     if not generated_agents:
                         final_msg = result["messages"][-1].content if "messages" in result else "No messages"
-                        logger.warning(f"No 'generated_agents' found in result. Final content was: {final_msg}. Using fallback mock.")
-                        generated_agents = {
-                            "orchestrator_agent": "name: test_agent\n",
-                            "project": "name: test_project\n"
-                        }
+                        logger.error(f"No 'generated_agents' found in result. Final content was: {final_msg}.")
+                        return {"status": "failure", "details": f"Failed to generate valid agent yaml. Final output: {final_msg}", "is_saturated": True}
                         
                     state_payload = {
                         "generated_agents": generated_agents

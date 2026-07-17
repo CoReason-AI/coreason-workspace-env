@@ -36,56 +36,51 @@ Once complete, return the final Markdown response.
 
     def execute(self, context: Any, session_id: str = None, config: dict = None) -> str:
         """
-        Executes pipeline using a ReAct deep agent.
+        Executes pipeline using a deterministic linear StateGraph.
         """
-        logger.info(f"*** [{session_id}] AgentPM initiating ReAct deep agent pipeline! ***")
+        logger.info(f"*** [{session_id}] AgentPM initiating deterministic StateGraph pipeline! ***")
         
         from src.agents.prompt_engineer.orchestrator import PromptEngineerAgent
         from src.agents.yaml_compiler.orchestrator import YamlCompilerAgent
-        
+        from langgraph.graph import StateGraph, START, END
         from langchain_core.messages import AIMessage
-        subagents = [
-            {
-                "name": "prompt_engineer",
-                "description": "Generates a prompt from context.",
-                "runnable": RunnableLambda(lambda inputs, config: {"messages": [AIMessage(content=PromptEngineerAgent().execute(inputs, session_id=config.get("configurable", {}).get("thread_id"), config=config))]})
-            },
-            {
-                "name": "yaml_compiler",
-                "description": "Compiles a prompt into a yaml definition.",
-                "runnable": RunnableLambda(lambda inputs, config: {"messages": [AIMessage(content=YamlCompilerAgent().execute(inputs, session_id=config.get("configurable", {}).get("thread_id"), config=config))]})
-            }
-        ]
-
-        internal_thread_id = f"{session_id or str(uuid.uuid7())}-pm"
-        internal_config = {
-            "configurable": {"thread_id": internal_thread_id}
-        }
         
+        # 1. Prepare initial state
         initial_state = {"messages": context} if isinstance(context, list) else {"messages": [("user", str(context))]}
         
-        from langgraph.checkpoint.postgres import PostgresSaver
-        import psycopg
-        from src.core.services.observability_service import ObservabilityService
-        obs = ObservabilityService()
+        # 2. Define node execution logic
+        def run_prompt_engineer(state: DeepAgentState) -> dict:
+            logger.info(f"[{session_id}] PM Step 1: Delegating to PromptEngineerAgent")
+            messages = state.get("messages", [])
+            last_msg = messages[-1].content if messages else str(state)
+            pe_output = PromptEngineerAgent().execute(last_msg, session_id=session_id, config=config)
+            return {"messages": [AIMessage(content=pe_output)]}
+            
+        def run_yaml_compiler(state: DeepAgentState) -> dict:
+            logger.info(f"[{session_id}] PM Step 2: Delegating to YamlCompilerAgent")
+            messages = state.get("messages", [])
+            last_msg = messages[-1].content if messages else ""
+            yc_output = YamlCompilerAgent().execute(last_msg, session_id=session_id, config=config)
+            return {"messages": [AIMessage(content=yc_output)]}
+            
+        # 3. Build linear StateGraph
+        builder = StateGraph(DeepAgentState)
+        builder.add_node("prompt_engineer", run_prompt_engineer)
+        builder.add_node("yaml_compiler", run_yaml_compiler)
         
-        with psycopg.connect(obs.pg_dsn) as conn:
-            checkpointer = PostgresSaver(conn)
-            checkpointer.setup()
-            
-            graph = self.build_standard_deep_agent(
-                system_prompt=self.system_prompt,
-                state_schema=DeepAgentState,
-                subagents=subagents,
-                checkpointer=checkpointer
-            )
-            
-            try:
-                result = graph.invoke(initial_state, config=internal_config)
-                logger.warning(f"DEBUG: graph.invoke result: {result}")
-            except Exception as e:
-                logger.error(f"DEBUG: graph.invoke crashed: {e}")
-                result = {}
+        builder.add_edge(START, "prompt_engineer")
+        builder.add_edge("prompt_engineer", "yaml_compiler")
+        builder.add_edge("yaml_compiler", END)
+        
+        graph = builder.compile()
+        
+        # 4. Invoke graph execution
+        try:
+            result = graph.invoke(initial_state, config=config or {})
+            logger.info(f"[{session_id}] PM deterministic pipeline executed successfully.")
+        except Exception as e:
+            logger.error(f"[{session_id}] PM deterministic pipeline failed: {e}")
+            result = {}
             
         final_message = result.get("messages", [])[-1].content if result.get("messages") else "FAILURE: No output produced."
         return final_message

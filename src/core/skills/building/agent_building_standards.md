@@ -114,6 +114,22 @@ This strictly guarantees that the View (Markdown) is cleanly separated from the 
 
 All generated agents must be natively compatible with the [Omnigent](https://omnigent.ai/) meta-harness. When generating `agent.yaml` files, the following structural constraints MUST be applied:
 
+### A. AgentSpec v26 Schema (Mandated Standard)
+For production runtimes, the agent specification (`orchestrator_agent.yaml`) must follow the structured function schema (AgentSpec v26):
+1. **Version and Component**:
+   - `agentspec_version: "26.1.2"`
+   - `component_type: "Agent"`
+   - `id`: Unique namespace string (e.g., `nlp/clinical_ner_chunker`).
+2. **Metadata**: A structured block declaring `domain`, `primary_user`, `associated_mcp_tools`, `eu_ai_act_risk_category`, `human_oversight_modality` ("HITL"), and `explainability_method` ("Post-hoc").
+3. **LLM Reference & Components**:
+   - `llm_config`: references a config component (e.g., `$component_ref: default_gpt4`).
+   - `$referenced_components`: defines LlmConfig parameters (provider, model_id, api_type, etc.).
+4. **Inputs / Outputs Declarations**:
+   - `inputs`: typed input definitions (e.g., type, description).
+   - `outputs`: typed output parameters schema (JSON Schema definition).
+5. **Tools and Toolboxes**: List tools via `$component_ref` notation.
+
+### B. Legacy Manifest Schema (Fallback / DeepAgent Native)
 1. **Executor Configuration**: Every agent must specify an `executor` block detailing its runtime harness and model.
    - Default to `harness: deepagents` or `harness: claude-sdk` if unspecified.
    - Default to `model: auto` or a specific model ID (e.g., `databricks-claude-sonnet-4-6`).

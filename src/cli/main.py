@@ -20,7 +20,8 @@ logging.basicConfig(level=logging.INFO, stream=sys.stdout, format='%(asctime)s -
 
 app = typer.Typer()
 import langchain
-langchain.debug = True
+import os
+os.environ["LANGCHAIN_TRACING_V2"] = "false"
 import json
 agents_app = typer.Typer()
 projects_app = typer.Typer()
