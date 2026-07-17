@@ -1,101 +1,67 @@
 import os
+import uuid
 import yaml
 import logging
-from typing import Any, Dict, TypedDict
+from typing import Any
 from src.core.base_agent import DeepAgent
-from langgraph.graph import StateGraph, END
+from deepagents.graph import DeepAgentState
+
+from langchain_core.runnables import RunnableLambda
+from deepagents.graph import create_deep_agent
 
 logger = logging.getLogger(__name__)
 
-from src.core.ontology import MakerCheckerState
-
 class AgentPmAgent(DeepAgent):
     """
-    Project Manager for orchestrating the Maker-Checker pipeline.
+    Project Manager orchestrating the agent generation pipeline via create_deep_agent.
     """
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        
         yaml_path = os.path.join(os.path.dirname(__file__), "agent.yaml")
+        self.agent_spec = {}
         if os.path.exists(yaml_path):
             with open(yaml_path, "r", encoding="utf-8") as f:
                 self.agent_spec = yaml.safe_load(f)
                 
-        graph = StateGraph(MakerCheckerState)
-        graph.add_node("maker", self._run_maker)
-        graph.add_node("validator", self._run_validator)
+        base_prompt = self.agent_spec.get("system_prompt", "You are an autonomous PM.")
+        pm_prompt = """
+You are an autonomous PM.
+You have two subagents exposed as tools: prompt_engineer, yaml_compiler.
+Step 1: Delegate the user's context to prompt_engineer.
+Step 2: Delegate the prompt_engineer's output to yaml_compiler.
+Once complete, return the final Markdown response.
+"""
+        self.system_prompt = f"{base_prompt}\n{pm_prompt}"
+
+    def execute(self, context: Any, session_id: str = None, config: dict = None) -> str:
+        """
+        Executes pipeline using a ReAct deep agent.
+        """
+        logger.info(f"[{session_id}] AgentPM initiating ReAct deep agent pipeline.")
         
-        graph.set_entry_point("maker")
-        graph.add_edge("maker", "validator")
-        graph.add_conditional_edges(
-            "validator",
-            self._route_validation,
-            {
-                "success": END,
-                "retry": "maker",
-                "failed": END
-            }
-        )
-        self.graph_builder = graph
-        self.graph = self.graph_builder.compile()
-        
-    from langchain_core.runnables import RunnableConfig
-        
-    def _run_maker(self, state: MakerCheckerState, config: RunnableConfig):
         from src.agents.prompt_engineer.orchestrator import PromptEngineerAgent
         from src.agents.yaml_compiler.orchestrator import YamlCompilerAgent
         
-        session_id = config.get("configurable", {}).get("thread_id")
-        prompt_worker = PromptEngineerAgent()
-        yaml_worker = YamlCompilerAgent()
-        
-        context = state.get("messages", [])
-        feedback = state.get("feedback", "")
-        worker_context = f"{context}\nFeedback from previous run: {feedback}" if feedback else str(context)
-        
-        attempts = state.get("attempts", 0) + 1
-        
-        # 1. Generate Prompt
-        prompt_result = prompt_worker.execute(worker_context, session_id=session_id, config=config)
-        
-        # 2. Pass to YAML Compiler
-        compiler_context = f"{worker_context}\nPrompt Output:\n{prompt_result}"
-        final_result = yaml_worker.execute(compiler_context, session_id=session_id, config=config)
-        
-        return {"worker_result": str(final_result), "attempts": attempts}
+        subagents = [
+            {
+                "name": "prompt_engineer",
+                "description": "Generates a prompt from context.",
+                "runnable": RunnableLambda(lambda inputs, c: PromptEngineerAgent().execute(inputs, session_id=c.get("configurable", {}).get("thread_id"), config=c))
+            },
+            {
+                "name": "yaml_compiler",
+                "description": "Compiles a prompt into a yaml definition.",
+                "runnable": RunnableLambda(lambda inputs, c: YamlCompilerAgent().execute(inputs, session_id=c.get("configurable", {}).get("thread_id"), config=c))
+            }
+        ]
 
-    def _run_validator(self, state: MakerCheckerState, config: RunnableConfig):
-        from src.agents.agent_validator.orchestrator import AgentValidatorAgent
-        validator = AgentValidatorAgent()
-        session_id = config.get("configurable", {}).get("thread_id")
-        
-        validation = validator.execute(state["worker_result"], session_id=session_id, config=config)
-        if validation.is_valid:
-            return {"feedback": "", "final_output": f"SUCCESS: {state['worker_result']}"}
-        else:
-            return {"feedback": validation.feedback, "final_output": "FAILURE"}
-            
-    def _route_validation(self, state: MakerCheckerState):
-        if state.get("final_output", "").startswith("SUCCESS"):
-            return "success"
-        elif state.get("attempts", 0) >= 3:
-            return "failed"
-        else:
-            return "retry"
-
-    def execute(self, state: dict, session_id: str = None, config: dict = None) -> str:
-        """
-        Executes Maker-Checker loop using a declarative LangGraph StateGraph.
-        """
-        import uuid
-        
-        logger.info(f"[{session_id}] AgentPM initiating LangGraph StateGraph pipeline.")
-        initial_state = {
-            "messages": state.get("messages", []),
-            "worker_result": "",
-            "feedback": "",
-            "attempts": 0,
-            "final_output": ""
+        internal_thread_id = f"{session_id or str(uuid.uuid7())}-pm"
+        internal_config = {
+            "configurable": {"thread_id": internal_thread_id}
         }
+        
+        initial_state = {"messages": context} if isinstance(context, list) else {"messages": [("user", str(context))]}
         
         from langgraph.checkpoint.postgres import PostgresSaver
         import psycopg
@@ -105,24 +71,15 @@ class AgentPmAgent(DeepAgent):
         with psycopg.connect(obs.pg_dsn) as conn:
             checkpointer = PostgresSaver(conn)
             checkpointer.setup()
-            graph_with_checkpointer = self.graph_builder.compile(checkpointer=checkpointer)
             
-            if config is None:
-                config = {
-                    "configurable": {"thread_id": session_id or str(uuid.uuid7())}
-                }
-            else:
-                # We inherited config from factory_ceo (including Langfuse callbacks)
-                # But we MUST use a distinct thread_id for our internal checkpointer to avoid state collision
-                config = config.copy()
-                old_thread_id = config.get("configurable", {}).get("thread_id", str(uuid.uuid7()))
-                config["configurable"] = {
-                    **config.get("configurable", {}),
-                    "thread_id": f"{old_thread_id}-pm"
-                }
-                
-            result = graph_with_checkpointer.invoke(initial_state, config=config)
-        
-        if result.get("final_output", "").startswith("SUCCESS"):
-            return result["final_output"]
-        return "FAILURE: Max retries exceeded during validation loop."
+            graph = self.build_standard_deep_agent(
+                system_prompt=self.system_prompt,
+                state_schema=DeepAgentState,
+                subagents=subagents,
+                checkpointer=checkpointer
+            )
+            
+            result = graph.invoke(initial_state, config=internal_config)
+            
+        final_message = result.get("messages", [])[-1].content if result.get("messages") else "FAILURE: No output produced."
+        return final_message

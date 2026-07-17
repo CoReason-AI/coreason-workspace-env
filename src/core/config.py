@@ -11,10 +11,7 @@ class Settings(BaseSettings):
     ENVIRONMENT: str
     ALLOWED_ORIGINS: str
     
-    # Observability (Langfuse)
-    LANGFUSE_PUBLIC_KEY: str = ""
-    LANGFUSE_SECRET_KEY: str = ""
-    LANGFUSE_HOST: str = "http://localhost:3002"
+    # Observability (LangSmith is handled natively via LangChain env vars)
     
     # Secrets & Vault (OIDC Federation)
     VAULT_ADDR: str

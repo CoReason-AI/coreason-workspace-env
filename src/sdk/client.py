@@ -142,33 +142,6 @@ class _AgentsNamespace:
         return self._svc.rewind_checkpoint(checkpoint_id)
 
 
-class _MCPNamespace:
-    """SDK namespace for MCP server operations."""
-
-    def __init__(self):
-        from src.core.services import mcp_tool_service
-        self._svc = mcp_tool_service
-
-    def list_servers(self) -> List[Dict[str, Any]]:
-        """List configured MCP servers."""
-        return self._svc.list_servers()
-
-    async def execute_tool(
-        self,
-        server_name: str,
-        tool_name: str,
-        arguments: Dict[str, Any] = None,
-        session_id: str = "sdk-session",
-    ) -> Dict[str, Any]:
-        """Execute an MCP tool."""
-        return await self._svc.execute_tool(
-            server_name=server_name,
-            tool_name=tool_name,
-            arguments=arguments or {},
-            session_id=session_id,
-        )
-
-
 class _DocsNamespace:
     """SDK namespace for documentation generation."""
 
@@ -218,7 +191,6 @@ class CoReasonClient:
     def __init__(self):
         self.projects = _ProjectsNamespace()
         self.agents = _AgentsNamespace()
-        self.mcp = _MCPNamespace()
         self.docs = _DocsNamespace()
         self.factory = _FactoryNamespace()
 

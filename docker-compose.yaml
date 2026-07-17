@@ -12,7 +12,6 @@ services:
       POSTGRES_HOST: postgres_checkpointer
       POSTGRES_PORT: 5432
       VAULT_ADDR: http://vault:8200
-      LANGFUSE_HOST: http://langfuse:3000
     volumes:
       - ./src:/home/coreason/project/src
     depends_on:
@@ -50,53 +49,14 @@ services:
       - IPC_LOCK
     restart: always
 
-  # 6. ClickHouse — Highly performant OLAP DB for Langfuse v3
-  clickhouse:
-    image: clickhouse/clickhouse-server:23.12-alpine
+  # 6. Jaeger — OpenTelemetry OTLP Trace Collector
+  jaeger:
+    image: jaegertracing/all-in-one:latest
     environment:
-      - CLICKHOUSE_DB=langfuse
-      - CLICKHOUSE_USER=langfuse
-      - CLICKHOUSE_PASSWORD=langfuse
-      - CLICKHOUSE_DEFAULT_ACCESS_MANAGEMENT=1
+      - COLLECTOR_OTLP_ENABLED=true
     ports:
-      - "8123:8123"
-      - "9002:9000"
-    volumes:
-      - clickhouse_data:/var/lib/clickhouse
-    restart: always
-
-  # 7. Langfuse — Self-Hosted LLM Observability & Tracing
-  langfuse:
-    image: langfuse/langfuse:latest
-    ports:
-      - "3002:3000"
-    environment:
-      DATABASE_URL: "postgresql://${POSTGRES_USER:-coreason_admin}:${POSTGRES_PASSWORD:-secure_dev_password}@postgres_checkpointer:5432/langfuse"
-      LANGFUSE_INIT_PROJECT_PUBLIC_KEY: ${LANGFUSE_PUBLIC_KEY:-pk-lf-1234567890}
-      LANGFUSE_INIT_PROJECT_SECRET_KEY: ${LANGFUSE_SECRET_KEY:-sk-lf-1234567890}
-      NEXTAUTH_URL: "http://localhost:3002"
-      NEXTAUTH_SECRET: "coreason-langfuse-dev-secret"
-      SALT: "coreason-langfuse-dev-salt"
-      TELEMETRY_ENABLED: "false"
-      CLICKHOUSE_URL: "http://clickhouse:8123"
-      CLICKHOUSE_MIGRATION_URL: "clickhouse://clickhouse:9000"
-      CLICKHOUSE_USER: "langfuse"
-      CLICKHOUSE_PASSWORD: "langfuse"
-      CLICKHOUSE_CLUSTER_ENABLED: "false"
-      LANGFUSE_S3_EVENT_UPLOAD_BUCKET: "langfuse"
-      LANGFUSE_S3_EVENT_UPLOAD_REGION: "us-east-1"
-      HOSTNAME: "0.0.0.0"
-      PORT: "3000"
-    depends_on:
-      postgres_checkpointer:
-        condition: service_healthy
-      clickhouse:
-        condition: service_started
-    healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://127.0.0.1:3000/api/public/health"]
-      interval: 10s
-      timeout: 5s
-      retries: 10
+      - "16686:16686" # Web UI
+      - "4318:4318"   # OTLP HTTP
     restart: always
 
   # 8. Watchtower — Auto-update containers on new registry releases
@@ -108,4 +68,3 @@ services:
     restart: always
 volumes:
   pgdata:
-  clickhouse_data:

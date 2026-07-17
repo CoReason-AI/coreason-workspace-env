@@ -11,13 +11,15 @@ The platform exposes a comprehensive **FastAPI-powered REST API**.
 ## 2. Command Line Interface (CLI)
 The fully-featured headless CLI is built using **Typer** and maps user arguments to asynchronous background execution services via `asyncio.run()`.
 - **Core Operations**: Creating projects, triggering agent builds, managing OCI registry operations (push/pull), and air-gapped export/import.
-- **Educational Onboarding**: Provides an interactive `coreason onboard` workflow that boots the local observability stack (Langfuse + Postgres) and guides developers through the Maker-Checker-Approver pipeline natively in the terminal.
+- **Educational Onboarding**: Provides an interactive `coreason onboard` workflow that boots the local backend stack (Postgres, Vault) and guides developers through the native DeepAgents hierarchical workflow natively in the terminal.
 - **Context Engineering Enforcement**: CLI commands are evaluated by the State Machine Orchestrator for schema saturation. Vague inputs will prompt for clarification.
 
-## 3. Model Context Protocol (MCP) Server
-Since the platform is an agent-building factory, it natively exposes itself as a **Model Context Protocol (MCP)** server via `FastMCP`.
+## 3. The MCP Server (`src/mcp/`)
+
+Because this platform is fundamentally designed for Agent-to-Agent collaboration, the entire environment can be consumed natively by external AI coding assistants (like Claude Desktop or Cursor) via the Model Context Protocol.
+
+- **IDE Observability Loop**: Exposes internal telemetry via the `get_langsmith_trace` tool, empowering autonomous agents (like Claude Desktop or Cursor) to read exact orchestrator logs and self-debug complex hallucinations.
 - Upstream IDEs and agents can invoke the exact same core capabilities (e.g., `build_agent_platform`, `export_oci_bundle`) using JSON-RPC over `stdio` and `SSE`.
-- **IDE Observability Loop**: Exposes internal telemetry via the `get_langfuse_trace` tool, empowering autonomous agents (like Claude Desktop or Cursor) to read exact orchestrator logs and self-debug complex hallucinations.
 - Tools are grouped logically: Causal Server Tools, Memory Server Tools, and Project Tools.
 
 ## 4. WebSockets & Server-Sent Events (SSE)

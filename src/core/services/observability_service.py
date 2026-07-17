@@ -91,12 +91,22 @@ class ObservabilityService:
         Resumes a paused or failed agent execution via native LangGraph checkpoint state.
         """
         try:
-            from src.core.engine.deepagent_runtime import PlatformOrchestrator
             import asyncio
             import json
-            orchestrator = PlatformOrchestrator(project_manifest={}, agent_name=agent_name)
-            asyncio.create_task(orchestrator.execute_graph(session_id=session_id, user_input=json.dumps(payload)))
-            logger.info(f"LangGraph execution resumed for thread_id {session_id}")
+            import importlib
+            
+            module_path = f"src.agents.{agent_name}.orchestrator"
+            module = importlib.import_module(module_path)
+            agent_class_name = "".join(word.capitalize() for word in agent_name.split("_")) + "Agent"
+            agent_class = getattr(module, agent_class_name)
+            agent = agent_class()
+            
+            if hasattr(agent, "execute") and asyncio.iscoroutinefunction(agent.execute):
+                asyncio.create_task(agent.execute(context={"messages": [("user", json.dumps(payload))]}, session_id=session_id))
+            else:
+                asyncio.create_task(asyncio.to_thread(agent.execute, payload, session_id=session_id))
+            
+            logger.info(f"Native LangGraph execution resumed for thread_id {session_id}")
             return {"status": "success", "message": f"Resumed agent {agent_name} for session {session_id}"}
         except Exception as e:
             logger.error(f"Failed to resume agent: {e}")

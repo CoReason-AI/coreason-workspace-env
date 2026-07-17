@@ -64,10 +64,10 @@ To guarantee our architecture handles real-world usage, the End-to-End tests in 
 2. **Infrastructure Bootstrapping**: Dedicated local telemetry (Langfuse) and Checkpointer schemas are initialized.
 3. **Intent Injection**: The user sends an ambiguous domain intent (e.g., `"build a clinical trial platform"`) to the `factory_ceo` Orchestrator.
 4. **State Machine Interrogation**: The `factory_ceo` evaluates the context. If underspecified, it loops back to interrogate the human via the CLI prompt handler.
-5. **Maker Delegation**: Once saturated, the CEO deterministically delegates the context payload to specialized Sub-Agents (like the `yaml_compiler`).
-6. **Artifact Compilation**: The Maker agents generate strict YAML manifests matching the `snake_case` routing taxonomy.
-7. **Rigorous Validation**: The Checker agent (`agent_validator`) evaluates the compiled artifacts against the global building standards (e.g., V26-V29 compliance).
-8. **Multi-Agent Consensus**: The PM agent approves the validation checklist and finalizes the agent definitions.
+5. **Worker Delegation**: Once saturated, the CEO deterministically delegates the context payload to standard background workers (like the `yaml_compiler`).
+6. **Artifact Compilation**: The worker agents generate strict YAML manifests matching the `snake_case` routing taxonomy.
+7. **Native Finalization**: The generated artifacts are compiled and synchronized natively via `deepagents` middleware and state routing (eliminating brittle AST validation).
+8. **Multi-Agent Consensus**: The PM agent approves the final state and finalizes the agent definitions.
 9. **Streaming Accordion UX**: Throughout steps 3-8, all state mutations and tool calls are piped over a persistent Server-Sent Events (SSE) socket and rendered in real-time.
 10. **Platform Export**: The finished, fully-compiled multi-agent workspace is archived and exported as a deployable system (`workspace.tar.gz`).
 

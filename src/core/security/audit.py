@@ -23,7 +23,7 @@ class WORMStorageAuditor:
     def log_agent_thought(self, agent_id: str, run_id: str, thought_content: str, metadata: dict = None) -> str:
         """
         Streams an agent's internal LangGraph reasoning step to the WORM log.
-        Returns the cryptographic hash for cross-referencing with Langfuse spans.
+        Returns the cryptographic hash for cross-referencing with LangSmith spans.
         """
         event = {
             "timestamp": datetime.now(timezone.utc).isoformat(),
@@ -36,7 +36,7 @@ class WORMStorageAuditor:
         event_hash = self._hash_event(event)
         event["hash"] = event_hash
         
-        # Simulate pushing to SIEM (OpenTelemetry/Splunk)
+        # Simulate pushing to SIEM (OpenTelemetry OTLP Collector)
         logger.info(f"[SIEM AUDIT] Agent Thought Logged: {event_hash}")
         
         # Simulate pushing to WORM S3 Bucket
@@ -46,7 +46,7 @@ class WORMStorageAuditor:
     def log_supervisor_action(self, supervisor_email: str, action: str, target: str, request_id: str = None) -> str:
         """
         Streams a human Supervisor's action (e.g., JIT approval, graph rewind) to the WORM log.
-        Returns the cryptographic hash for cross-referencing with Langfuse spans.
+        Returns the cryptographic hash for cross-referencing with LangSmith spans.
         """
         event = {
             "timestamp": datetime.now(timezone.utc).isoformat(),
@@ -59,7 +59,7 @@ class WORMStorageAuditor:
         event_hash = self._hash_event(event)
         event["hash"] = event_hash
         
-        # Simulate pushing to SIEM (OpenTelemetry/Splunk)
+        # Simulate pushing to SIEM (OpenTelemetry OTLP Collector)
         logger.info(f"[SIEM AUDIT] Supervisor Action Logged: {event_hash} by {supervisor_email}")
         
         # Simulate pushing to WORM S3 Bucket

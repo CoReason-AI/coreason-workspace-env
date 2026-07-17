@@ -3,13 +3,8 @@ import asyncio
 import pytest
 import os
 
-os.environ["LANGFUSE_ENABLED"] = "false"
-
-try:
-    from src.core.tracing.config import langfuse_config
-    langfuse_config.enabled = False
-except ImportError:
-    pass
+# Test with tracing disabled to prevent test failures on missing credentials
+os.environ["LANGCHAIN_TRACING_V2"] = "false"
 
 if sys.platform == 'win32':
     # Psycopg requires SelectorEventLoop on Windows for async mode

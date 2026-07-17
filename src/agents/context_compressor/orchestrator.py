@@ -3,45 +3,39 @@ import yaml
 import logging
 from typing import Any
 from src.core.base_agent import DeepAgent
-from langchain_openai import ChatOpenAI
-from langchain_core.messages import SystemMessage, HumanMessage
-from pydantic import BaseModel, Field
+from langchain_core.messages import HumanMessage
+from deepagents.graph import DeepAgentState
 
 logger = logging.getLogger(__name__)
 
-class CompressorOutput(BaseModel):
-    compressed_context: str = Field(description="The compressed, highly dense context.")
-    compression_ratio: float = Field(description="Estimated compression ratio.")
-
 class ContextCompressorAgent(DeepAgent):
     """
-    Deterministic worker for Context Compression.
+    Worker for Context Compression via DeepAgent.
     """
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         yaml_path = os.path.join(os.path.dirname(__file__), "agent.yaml")
+        self.agent_spec = {}
         if os.path.exists(yaml_path):
             with open(yaml_path, "r", encoding="utf-8") as f:
                 self.agent_spec = yaml.safe_load(f)
         
-        from src.core.config import settings
-        self.llm = ChatOpenAI(
-            model=settings.LLM_MODEL_NAME,
-            api_key=settings.LLM_API_KEY,
-            temperature=settings.LLM_TEMPERATURE,
-            base_url=settings.LLM_BASE_URL
-        ).with_structured_output(CompressorOutput)
+        base_prompt = self.agent_spec.get("system_prompt", "You are a context compressor.")
+        self.system_prompt = f"{base_prompt}\nYOU MUST output your final result as a Markdown block."
 
-    def execute(self, context: dict, session_id: str = None) -> dict:
+    def execute(self, context: Any, session_id: str = None, config: dict = None) -> str:
         """
-        Executes deterministically based on saturated context.
+        Executes generation via DeepAgent.
         """
-        prompt = self.agent_spec.get("system_prompt", "You are a context compressor.")
-        messages = [
-            SystemMessage(content=prompt),
-            HumanMessage(content=f"Context to compress: {context}")
-        ]
+        logger.info(f"[{session_id}] ContextCompressor executing via DeepAgent.")
         
-        logger.info(f"[{session_id}] ContextCompressor executing deterministic generation.")
-        result = self.llm.invoke(messages)
-        return {"compressed_output": result.dict()}
+        graph = self.build_standard_deep_agent(
+            system_prompt=self.system_prompt,
+            state_schema=DeepAgentState,
+        )
+        
+        initial_state = {"messages": [HumanMessage(content=f"Context to compress: {context}")]}
+        result = graph.invoke(initial_state, config=config or {})
+        
+        final_message = result.get("messages", [])[-1].content if result.get("messages") else "FAILURE: No output produced."
+        return final_message

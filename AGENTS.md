@@ -94,8 +94,8 @@ As a LangChain-first company, we strictly prioritize native **LangChain, LangGra
 
 ### Open-Source First (Telemetry & Observability)
 We are an **Open-Source First** platform. Even within the LangChain ecosystem, we strictly reject closed-source or proprietary SaaS lock-in where an open-source alternative exists.
-- **LangSmith is permitted** when natively required by integrations (like `deepagents-evals`), provided it is configured locally and **never** sends data out to LangChain servers or any external servers. Data sovereignty must be maintained.
-- **Langfuse is the mandated standard** for all general tracing, observability, and evaluation because it provides a self-hostable, open-source alternative while seamlessly integrating with LangChain/LangGraph.
+- **LangSmith is the mandated standard** for all tracing, observability, and evaluation. However, to strictly maintain data sovereignty and satisfy the zero-waste mandate, **data MUST NEVER be sent to public LangChain servers (`smith.langchain.com`)**. All LangSmith traffic must be intercepted locally, logged to alternative backends, or run against a local LangSmith instance (e.g. `harbor[langsmith]`).
+- **Langfuse is strictly forbidden** to reduce dependency bloat, as we deeply integrate with the native LangChain/LangSmith ecosystem.
 
 ### 🚫 Exceptions & Anti-Patterns (What NOT to use)
 While we prioritize the LangChain ecosystem, we strictly forbid the use of deprecated or "black-box" legacy abstractions that hinder enterprise production readiness. You MUST avoid:

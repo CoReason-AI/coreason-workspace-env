@@ -27,11 +27,6 @@ class DeterministicTestChatModel(BaseChatModel):
         if "expert orchestrator" in content.lower() or "evaluate if the user's intent" in content.lower():
             response_text = "SATURATED"
             
-        # 2. agent_validator checks
-        elif "You are the CoReason Agent Validator" in content or "validation checklist" in content.lower():
-            # The structured output is usually handled by with_structured_output which expects JSON
-            response_text = json.dumps({"is_valid": True, "feedback": ""})
-            
         # 3. yaml_compiler (check first because prompt_output might be in its context)
         elif "yaml compiler" in content.lower() or "compiled_yaml" in content.lower():
             response_text = json.dumps({

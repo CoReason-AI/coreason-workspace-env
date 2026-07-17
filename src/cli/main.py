@@ -18,10 +18,8 @@ logging.getLogger("langfuse").setLevel(logging.CRITICAL)
 app = typer.Typer()
 import json
 agents_app = typer.Typer()
-mcp_app = typer.Typer()
 projects_app = typer.Typer()
 app.add_typer(agents_app, name="agents")
-app.add_typer(mcp_app, name="mcp")
 app.add_typer(projects_app, name="projects")
 
 @app.callback()
@@ -229,13 +227,6 @@ def execute_agent(agent_name: str, prompt: str):
         res = await orch.run_persona_graph(user_id, session_id, prompt)
         typer.echo(json.dumps(res))
     asyncio.run(run())
-
-@mcp_app.command("list-servers")
-def mcp_list_servers():
-    from src.core.services import mcp_tool_service
-    res = {"servers": mcp_tool_service.list_servers()}
-    typer.echo(json.dumps(res))
-
 
 @app.command()
 def build(

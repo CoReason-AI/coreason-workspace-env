@@ -11,7 +11,7 @@ from typing import Dict, Any, List, Optional
 
 import yaml
 
-from src.core.engine.deepagent_runtime import PlatformOrchestrator
+# from src.core.engine.deepagent_runtime import PlatformOrchestrator
 from src.core.services.observability_service import ObservabilityService
 
 logger = logging.getLogger(__name__)
@@ -111,9 +111,22 @@ class AgentService:
 
         job_id = session_id or str(uuid.uuid7())
 
-        orchestrator = PlatformOrchestrator(project_manifest={}, agent_name=agent_name)
-        asyncio.create_task(orchestrator.execute_graph(session_id=job_id, user_input=json.dumps(payload)))
-        logger.info(f"LangGraph execution enqueued for thread_id {job_id}")
+        import importlib
+        try:
+            module_path = f"src.agents.{agent_name}.orchestrator"
+            module = importlib.import_module(module_path)
+            agent_class_name = "".join(word.capitalize() for word in agent_name.split("_")) + "Agent"
+            agent_class = getattr(module, agent_class_name)
+            agent = agent_class()
+            
+            # Prepare context for the agent
+            if hasattr(agent, "execute") and asyncio.iscoroutinefunction(agent.execute):
+                asyncio.create_task(agent.execute(context={"messages": [("user", json.dumps(payload))]}, session_id=job_id))
+            else:
+                asyncio.create_task(asyncio.to_thread(agent.execute, payload, session_id=job_id))
+            logger.info(f"Native DeepAgent execution enqueued for thread_id {job_id}")
+        except Exception as e:
+            logger.error(f"Failed to instantiate agent {agent_name}: {e}")
 
         try:
             from src.core.tracing.langfuse_bridge import tracing_bridge

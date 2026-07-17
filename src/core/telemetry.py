@@ -2,14 +2,30 @@ import structlog
 import logging
 import logging.config
 import sys
-from opentelemetry import context
+import os
+from opentelemetry import context, trace
+from opentelemetry.sdk.trace import TracerProvider
+from opentelemetry.sdk.trace.export import BatchSpanProcessor
+from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
+from opentelemetry.sdk.resources import Resource
 
 def setup_telemetry(log_level: int = logging.INFO):
     """
     Bootstraps the open-source ambient telemetry stack (structlog + OpenTelemetry).
     Replaces standard logging with structlog configured for ContextVars,
     and hijacks third-party standard logging so they inherit ContextVars.
+    Also initializes the OpenTelemetry TracerProvider and OTLPSpanExporter.
     """
+    # 0. Initialize OpenTelemetry TracerProvider with OTLP Exporter
+    otlp_endpoint = os.environ.get("OTEL_EXPORTER_OTLP_ENDPOINT", "http://localhost:4318/v1/traces")
+    resource = Resource.create({"service.name": "coreason-workspace-env"})
+    
+    provider = TracerProvider(resource=resource)
+    otlp_exporter = OTLPSpanExporter(endpoint=otlp_endpoint)
+    span_processor = BatchSpanProcessor(otlp_exporter)
+    provider.add_span_processor(span_processor)
+    trace.set_tracer_provider(provider)
+
     # 1. Configure structlog to merge ContextVars globally
     structlog.configure(
         processors=[

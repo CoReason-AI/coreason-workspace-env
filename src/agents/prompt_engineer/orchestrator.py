@@ -3,49 +3,39 @@ import yaml
 import logging
 from typing import Any
 from src.core.base_agent import DeepAgent
-from langchain_openai import ChatOpenAI
-from langchain_core.messages import SystemMessage, HumanMessage
-from pydantic import BaseModel, Field
+from langchain_core.messages import HumanMessage
+from deepagents.graph import DeepAgentState
 
 logger = logging.getLogger(__name__)
 
-class PromptOutput(BaseModel):
-    system_prompt: str = Field(description="The generated system prompt.")
-    few_shot_examples: list[str] = Field(description="Examples to guide the LLM.")
-
 class PromptEngineerAgent(DeepAgent):
     """
-    Deterministic worker for Prompt engineering.
+    Deterministic worker for Prompt engineering, using DeepAgent.
     """
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         yaml_path = os.path.join(os.path.dirname(__file__), "agent.yaml")
+        self.agent_spec = {}
         if os.path.exists(yaml_path):
             with open(yaml_path, "r", encoding="utf-8") as f:
                 self.agent_spec = yaml.safe_load(f)
-        
-        from src.core.config import settings
-        self.llm = ChatOpenAI(
-            model=settings.LLM_MODEL_NAME,
-            api_key=settings.LLM_API_KEY,
-            temperature=settings.LLM_TEMPERATURE,
-            base_url=settings.LLM_BASE_URL
-        ).with_structured_output(PromptOutput)
+                
+        base_prompt = self.agent_spec.get("system_prompt", "You are an expert prompt engineer.")
+        self.system_prompt = f"{base_prompt}\nYOU MUST output your final result as a Markdown block (e.g. ```markdown ... ```)."
 
-    def execute(self, context: dict, session_id: str = None, config: dict = None) -> dict:
+    def execute(self, context: Any, session_id: str = None, config: dict = None) -> str:
         """
-        Executes deterministically based on saturated context.
+        Executes deterministic generation.
         """
-        prompt = self.agent_spec.get("system_prompt", "You are an expert prompt engineer.")
-        messages = [
-            SystemMessage(content=prompt),
-            HumanMessage(content=f"Requirements: {context}")
-        ]
+        logger.info(f"[{session_id}] PromptEngineer executing via DeepAgent.")
         
-        logger.info(f"[{session_id}] PromptEngineer executing deterministic generation.")
+        graph = self.build_standard_deep_agent(
+            system_prompt=self.system_prompt,
+            state_schema=DeepAgentState,
+        )
         
-        if config is None:
-            config = {}
-            
-        result = self.llm.invoke(messages, config=config)
-        return {"prompt_output": result.dict()}
+        initial_state = {"messages": [HumanMessage(content=f"Requirements: {context}")]}
+        result = graph.invoke(initial_state, config=config or {})
+        
+        final_message = result.get("messages", [])[-1].content if result.get("messages") else "FAILURE: No output produced."
+        return final_message
