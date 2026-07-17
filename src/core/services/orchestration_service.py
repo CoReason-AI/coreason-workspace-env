@@ -70,11 +70,16 @@ class OrchestrationService:
                             state JSONB NOT NULL
                         )
                     """)
-                    state_payload = {
-                        "generated_agents": {
+                    generated_agents = result.get("generated_agents")
+                    if not generated_agents:
+                        logger.warning("No 'generated_agents' found in result. Using fallback mock.")
+                        generated_agents = {
                             "orchestrator_agent": "name: test_agent\n",
                             "project": "name: test_project\n"
                         }
+                        
+                    state_payload = {
+                        "generated_agents": generated_agents
                     }
                     await conn.execute(
                         "INSERT INTO langgraph_state (thread_id, tenant_id, state) VALUES ($1, $2, $3)",

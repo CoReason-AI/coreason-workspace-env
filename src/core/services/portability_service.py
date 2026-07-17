@@ -11,7 +11,11 @@ from typing import Dict, Any, Optional
 
 from rocrate.rocrate import ROCrate
 from oras.client import OrasClient
-from src.core.services import project_service, health_service
+from src.core.services.health_service import HealthService
+from src.core.services.project_service import ProjectService
+
+project_service = ProjectService()
+health_service = HealthService()
 from src.core.db import get_db_pool
 import json
 from datetime import datetime, timezone
@@ -110,6 +114,8 @@ class PortabilityService:
 
             # 2. Add RO-Crate Metadata
             project = await project_service.get_project(project_id)
+            if not project:
+                project = {}
             crate = ROCrate()
             crate.name = project.get("name", "Unknown Project")
             crate.description = project.get("description", "Exported CoReason Project")
@@ -117,9 +123,10 @@ class PortabilityService:
             for filepath in export_result.get("files_written", []):
                 crate.add_file(filepath)
                 
-            current_version = health_service.get_version().get("version", "unknown")
+            from src.core.services.health_service import HealthService
+            current_version = HealthService().get_version().get("version", "unknown")
             crate.publisher = {"@id": "https://coreason.ai", "name": "CoReason Workspace Env"}
-            crate.version = current_version
+            crate.root_dataset["version"] = current_version
                 
             crate.write(str(temp_dir))
 
@@ -133,7 +140,7 @@ class PortabilityService:
                     password=os.environ["ORAS_PASS"]
                 )
                 
-            client.push(target=registry_url, packages=[str(temp_dir)])
+            client.push(target=registry_url, files=[str(temp_dir)], disable_path_validation=True)
 
             logger.info(json.dumps({
                 "event": "PortabilityExportCompleted",
@@ -201,7 +208,8 @@ class PortabilityService:
                     crate_data = json.load(f)
                     
                 export_version = crate_data.get("@graph", [{}])[0].get("version", "unknown")
-                local_version = health_service.get_version().get("version", "unknown")
+                from src.core.services.health_service import HealthService
+                local_version = HealthService().get_version().get("version", "unknown")
                 
                 if export_version != local_version:
                     logger.warning(
