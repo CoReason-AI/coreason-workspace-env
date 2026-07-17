@@ -86,10 +86,10 @@ The validator returns a structured result:
 - [ ] **FAIL** if any Markdown reports with computed data are not utilizing the Jinja2 decoupling pattern.
 
 ### V10. Omnigent Compatibility
-- [ ] Does the agent explicitly define an `executor` block with at least `harness` and `model`?
+- [ ] Does the agent explicitly define an `executor` block (with `harness` and `model`) OR an `llm_config` referencing a configured LLM component?
 - [ ] Does the agent explicitly declare `async: true` and `cancellable: true`?
 - [ ] If the agent references local filesystem or shell tools (e.g. `local_fs_writer`, `terminal`), does it define an `os_env` block?
-- [ ] **FAIL** if `executor.harness` is missing or malformed, or if `os_env` is missing when required.
+- [ ] **FAIL** if both `executor` and `llm_config` are missing or malformed, or if `os_env` is missing when required.
 
 ### V11. Causal Inference
 - [ ] If the agent performs analysis, estimation, or structural modeling — does it utilize causal inference (e.g., the `dowhy` library) rather than relying strictly on correlational heuristics?

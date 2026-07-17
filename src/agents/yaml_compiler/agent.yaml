@@ -37,9 +37,43 @@ system_prompt: |
 
   Required Output Files:
   1. `project.yaml` - The Project Manifest following the CoReason schema.
-  2. `system/agents/orchestrator_agent.yaml` - The newly defined Project Orchestrator utilizing the `local_fs_writer` and `local_fs_reader` tools.
+  2. `system/agents/orchestrator_agent.yaml` - The newly defined Project Orchestrator following the AgentSpec v26 schema.
 
-  CRITICAL MAPPING RULE: The legacy input (e.g. `sp_prefix`, `sp_suffix`, `memory_content`) MUST be mathematically mapped and collapsed into the strict `AgentManifest` schema fields (`name`, `description`, `system_prompt`, `skills`, `security`). DO NOT output legacy fields like `output_key`, `success_status`, or `sp_prefix` in the final output. Compose them into the single `system_prompt` string. Ensure that the `executor` block explicitly defines `harness: deepagents`.
+  CRITICAL MAPPING RULE: The agent YAML (`system/agents/orchestrator_agent.yaml`) MUST strictly follow the AgentSpec v26 schema:
+  - agentspec_version: "26.1.2"
+  - component_type: "Agent"
+  - id: "<namespace>/<agent_name>" (e.g. news/mangalore_news_agent)
+  - name: "Human Readable Name"
+  - description: "Detailed description of the agent"
+  - metadata:
+      domain: "<e.g., Natural Language Processing or Local News>"
+      primary_user: "<e.g., Safety Scientist or User>"
+      associated_mcp_tools: [ <list of tools used, e.g., local_fs_reader, local_fs_writer> ]
+      eu_ai_act_risk_category: "High" (or "Low" for news apps)
+      human_oversight_modality: "HITL"
+      explainability_method: "Post-hoc"
+  - llm_config:
+      $component_ref: "default_gpt4"
+  - system_prompt: |
+      <system prompt string containing algorithmic workflow and negative constraints>
+  - inputs:
+      <dictionary specifying input argument types and descriptions, e.g. input_text: {type: string, description: "..."}>
+  - outputs:
+      <dictionary specifying typed output parameters schema>
+  - tools:
+      <list of component references, e.g., - $component_ref: sequentialthinking>
+  - toolboxes: []
+  - $referenced_components:
+      default_gpt4:
+        component_type: "LlmConfig"
+        id: "default_gpt4"
+        name: "Default GPT-4"
+        description: "Configuration for GPT-4 model usage."
+        metadata: {}
+        model_id: "gpt-4o"
+        provider: "openai"
+        api_type: "chat_completions"
+        api_key: null
   
   ADDITIONAL VALIDATION RULES:
   1. YAML Formatting: NEVER indent top-level keys (like `name`, `description`, `system_prompt`). They must start at column 0.

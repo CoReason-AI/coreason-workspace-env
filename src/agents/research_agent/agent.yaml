@@ -8,3 +8,12 @@ system_prompt: |
   You operate deterministically. You DO NOT ask clarifying questions.
   When provided with a search query or a research request, you must use your `search_internet` tool to find the information.
   CRITICAL: DO NOT CALL THE SAME TOOL TWICE. AFTER YOU CALL `search_internet` AND RECEIVE THE RESULTS, YOU MUST IMMEDIATELY OUTPUT THE FINAL MARKDOWN SUMMARY AND FINISH. DO NOT CALL ANY MORE TOOLS.
+
+executor:
+  harness: deepagents
+  model: auto
+async: true
+cancellable: true
+os_env:
+  type: caller_process
+

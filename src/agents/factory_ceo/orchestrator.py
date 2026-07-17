@@ -59,7 +59,7 @@ If you need more information from the team to resolve ambiguities, use the `ask_
         agent_interrupt_on = {"ask_clarifying_question": True}
         
         if is_goal_mode:
-            prompt += "\nGOAL MODE ACTIVE: You are running in fully autonomous mode. Do NOT ask for human clarification or consensus. Make the most reasonable architectural assumptions based on the context provided, be extra thorough, and continue delegating until the final deployment artifacts are fully generated."
+            prompt += "\nGOAL MODE ACTIVE: You are running in fully autonomous mode. Do NOT ask for human clarification or consensus. Make the most reasonable architectural assumptions based on the context provided, be extra thorough, and delegate the final artifact compilation to `agent_pm`. Once `agent_pm` completes, you MUST repeat its output (the YAML blocks) exactly in your final response without any conversational summaries or extra explanation."
             agent_tools = []
             agent_interrupt_on = {}
 

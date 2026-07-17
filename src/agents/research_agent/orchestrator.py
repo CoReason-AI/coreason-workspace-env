@@ -36,7 +36,7 @@ def search_internet(query: str) -> str:
     # Fallback to Wikipedia search API
     try:
         wiki_url = f"https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch={query}&utf8=&format=json"
-        response = httpx.get(wiki_url, timeout=10.0)
+        response = httpx.get(wiki_url, headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"}, timeout=10.0)
         data = response.json()
         results = []
         for r in data.get("query", {}).get("search", [])[:3]:
