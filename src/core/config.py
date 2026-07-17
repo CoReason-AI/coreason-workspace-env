@@ -45,6 +45,7 @@ class Settings(BaseSettings):
     LLM_API_KEY: str = "local_dev_key"
     LLM_TEMPERATURE: float = 0.0
     EMBEDDING_MODEL_NAME: str = "local-embedding-v1"
+    EMBEDDING_BASE_URL: str = "http://localhost:11434/v1"
     
     LLM_BASE_URL: str = "https://api.openai.com/v1"
     

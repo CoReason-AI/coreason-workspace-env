@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   # Overrides for the main platform server to build locally and use sovereign endpoints
   platform_server:
