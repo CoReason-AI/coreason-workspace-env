@@ -52,6 +52,17 @@ If you need more information from the team to resolve ambiguities, use the `ask_
         self.system_prompt = full_system_prompt
 
     async def execute(self, context: dict, session_id: str = None) -> Any:
+        is_goal_mode = context.get("is_goal_mode", False)
+        
+        prompt = self.system_prompt
+        agent_tools = [ask_clarifying_question]
+        agent_interrupt_on = {"ask_clarifying_question": True}
+        
+        if is_goal_mode:
+            prompt += "\nGOAL MODE ACTIVE: You are running in fully autonomous mode. Do NOT ask for human clarification or consensus. Make the most reasonable architectural assumptions based on the context provided, be extra thorough, and continue delegating until the final deployment artifacts are fully generated."
+            agent_tools = []
+            agent_interrupt_on = {}
+
         from src.core.services.observability_service import ObservabilityService
         obs = ObservabilityService()
 
@@ -60,17 +71,18 @@ If you need more information from the team to resolve ambiguities, use the `ask_
         from src.agents.librarian_pm.orchestrator import LibrarianPmAgent
         from src.agents.agent_pm.orchestrator import AgentPmAgent
         
+        from langchain_core.messages import AIMessage
         # Subagents exposed to the CEO
         subagents = [
             {
                 "name": "librarian_pm",
                 "description": "Delegates codebase extraction and indexing. Must be called if a file path is provided.",
-                "runnable": RunnableLambda(lambda inputs, config: LibrarianPmAgent().execute(inputs, session_id=config["configurable"]["thread_id"]))
+                "runnable": RunnableLambda(lambda inputs, config: {"messages": [AIMessage(content=LibrarianPmAgent().execute(inputs, session_id=config["configurable"]["thread_id"]))]})
             },
             {
                 "name": "agent_pm",
                 "description": "Delegates saturated context to build the agent architecture.",
-                "runnable": RunnableLambda(lambda inputs, config: AgentPmAgent().execute(inputs, session_id=config["configurable"]["thread_id"], config=config))
+                "runnable": RunnableLambda(lambda inputs, config: {"messages": [AIMessage(content=AgentPmAgent().execute(inputs, session_id=config["configurable"]["thread_id"], config=config))]})
             }
         ]
 
@@ -88,11 +100,11 @@ If you need more information from the team to resolve ambiguities, use the `ask_
             # Construct the multi-user deep agent dynamically
             graph = create_deep_agent(
                 model=llm,
-                system_prompt=self.system_prompt,
+                system_prompt=prompt,
                 state_schema=DeepAgentState,
-                tools=[ask_clarifying_question],
+                tools=agent_tools,
                 subagents=subagents,
-                interrupt_on={"ask_clarifying_question": True},
+                interrupt_on=agent_interrupt_on,
                 checkpointer=checkpointer
             )
             

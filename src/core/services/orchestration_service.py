@@ -15,6 +15,12 @@ class OrchestrationService:
         """
         logger.info(f"Starting orchestration for session {session_id} by user {user_id}")
         
+        is_goal_mode = False
+        if input_data.strip().startswith("/goal"):
+            is_goal_mode = True
+            input_data = input_data.replace("/goal", "", 1).strip()
+            logger.info("Goal mode activated: Interrogation disabled.")
+        
         import os
         import importlib
         import zipfile
@@ -48,14 +54,27 @@ class OrchestrationService:
         from langchain_core.messages import HumanMessage
         context = {
             "messages": [HumanMessage(content=input_data)],
-            "raw_transcript": input_data
+            "raw_transcript": input_data,
+            "is_goal_mode": is_goal_mode
         }
         
         result = await ceo.execute(context, session_id)
         
+        # Check if the agent is asking a clarifying question (tool call)
+        messages = result.get("messages", [])
+        is_interactive = False
+        interrogation_question = None
+        
+        if messages and hasattr(messages[-1], "tool_calls") and messages[-1].tool_calls:
+            for tool_call in messages[-1].tool_calls:
+                if tool_call["name"] == "ask_clarifying_question":
+                    is_interactive = True
+                    interrogation_question = tool_call["args"].get("question", "Agent needs clarification.")
+                    break
+
         # Bundle the result if it was a success and context was saturated
         is_sat = result.get("is_saturated")
-        if result and "FAILURE" not in str(result) and is_sat is not False:
+        if result and "FAILURE" not in str(result) and not is_interactive and is_sat is not False:
             # Checkpoint to Postgres to simulate AsyncPostgresSaver behavior for the exporter
             import json
             from src.core.db import get_db_pool
@@ -70,9 +89,23 @@ class OrchestrationService:
                             state JSONB NOT NULL
                         )
                     """)
+                    import re
                     generated_agents = result.get("generated_agents")
+                    
+                    # If not explicitly provided in state, try to parse markdown output
+                    if not generated_agents and "messages" in result:
+                        final_content = result["messages"][-1].content
+                        yaml_blocks = re.findall(r"```yaml\n(.*?)\n```", final_content, re.DOTALL)
+                        if yaml_blocks:
+                            generated_agents = {}
+                            if len(yaml_blocks) >= 1:
+                                generated_agents["orchestrator_agent"] = yaml_blocks[0]
+                            if len(yaml_blocks) >= 2:
+                                generated_agents["project"] = yaml_blocks[1]
+
                     if not generated_agents:
-                        logger.warning("No 'generated_agents' found in result. Using fallback mock.")
+                        final_msg = result["messages"][-1].content if "messages" in result else "No messages"
+                        logger.warning(f"No 'generated_agents' found in result. Final content was: {final_msg}. Using fallback mock.")
                         generated_agents = {
                             "orchestrator_agent": "name: test_agent\n",
                             "project": "name: test_project\n"
@@ -93,5 +126,10 @@ class OrchestrationService:
             zip_path = await exporter.bundle_agent_specs(session_id)
             return {"status": "success", "artifact": zip_path, "details": str(result), "is_saturated": is_sat}
             
-        last_message = result.get("messages", [])[-1].content if result.get("messages") else "Interrogation requested by agent."
+        if is_interactive and interrogation_question:
+            last_message = interrogation_question
+            is_sat = False
+        else:
+            last_message = result.get("messages", [])[-1].content if result.get("messages") else "Interrogation requested by agent."
+            
         return {"status": "failure", "details": last_message, "is_saturated": is_sat}
