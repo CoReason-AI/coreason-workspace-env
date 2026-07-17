@@ -38,21 +38,22 @@ Once complete, return the final Markdown response.
         """
         Executes pipeline using a ReAct deep agent.
         """
-        logger.info(f"[{session_id}] AgentPM initiating ReAct deep agent pipeline.")
+        logger.info(f"*** [{session_id}] AgentPM initiating ReAct deep agent pipeline! ***")
         
         from src.agents.prompt_engineer.orchestrator import PromptEngineerAgent
         from src.agents.yaml_compiler.orchestrator import YamlCompilerAgent
         
+        from langchain_core.messages import AIMessage
         subagents = [
             {
                 "name": "prompt_engineer",
                 "description": "Generates a prompt from context.",
-                "runnable": RunnableLambda(lambda inputs, c: PromptEngineerAgent().execute(inputs, session_id=c.get("configurable", {}).get("thread_id"), config=c))
+                "runnable": RunnableLambda(lambda inputs, config: {"messages": [AIMessage(content=PromptEngineerAgent().execute(inputs, session_id=config.get("configurable", {}).get("thread_id"), config=config))]})
             },
             {
                 "name": "yaml_compiler",
                 "description": "Compiles a prompt into a yaml definition.",
-                "runnable": RunnableLambda(lambda inputs, c: YamlCompilerAgent().execute(inputs, session_id=c.get("configurable", {}).get("thread_id"), config=c))
+                "runnable": RunnableLambda(lambda inputs, config: {"messages": [AIMessage(content=YamlCompilerAgent().execute(inputs, session_id=config.get("configurable", {}).get("thread_id"), config=config))]})
             }
         ]
 
@@ -79,7 +80,12 @@ Once complete, return the final Markdown response.
                 checkpointer=checkpointer
             )
             
-            result = graph.invoke(initial_state, config=internal_config)
+            try:
+                result = graph.invoke(initial_state, config=internal_config)
+                logger.warning(f"DEBUG: graph.invoke result: {result}")
+            except Exception as e:
+                logger.error(f"DEBUG: graph.invoke crashed: {e}")
+                result = {}
             
         final_message = result.get("messages", [])[-1].content if result.get("messages") else "FAILURE: No output produced."
         return final_message

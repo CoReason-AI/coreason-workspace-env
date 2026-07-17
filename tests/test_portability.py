@@ -31,12 +31,15 @@ async def test_export_to_oci(mock_orasclient, mock_rocrate, mock_export_project,
 @pytest.mark.asyncio
 @patch('src.core.services.portability_service.uuid.uuid7', return_value="123", create=True)
 @patch('src.core.services.portability_service.PortabilityService._update_job', new_callable=AsyncMock)
-@patch('src.core.services.portability_service.health_service')
+@patch('src.core.services.health_service.HealthService')
 @patch('src.core.services.portability_service.project_service.import_project')
 @patch('src.core.services.portability_service.OrasClient')
-async def test_import_from_oci(mock_orasclient, mock_import_project, mock_health_service, mock_update_job, mock_uuid):
+async def test_import_from_oci(mock_orasclient, mock_import_project, mock_health_service_class, mock_update_job, mock_uuid):
     mock_import_project.return_value = {"status": "success", "project": {"id": "123"}}
-    mock_health_service.get_version.return_value = {"version": "v2.0.0"}
+    
+    mock_health_instance = MagicMock()
+    mock_health_service_class.return_value = mock_health_instance
+    mock_health_instance.get_version.return_value = {"version": "v2.0.0"}
 
     # Mocking the OrasClient to simulate pulling the metadata file
     mock_oras_instance = MagicMock()

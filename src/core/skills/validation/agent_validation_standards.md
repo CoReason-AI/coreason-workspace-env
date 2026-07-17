@@ -158,8 +158,8 @@ The validator returns a structured result:
 - [ ] **FAIL** if any deprecated LangChain abstractions or community packages are present.
 
 ### V27. Open-Source Observability
-- [ ] Does the payload contain telemetry endpoints or SDK imports pointing to `Langfuse`?
-- [ ] **FAIL** if `Langfuse` is referenced. `LangSmith` is the strictly mandated standard.
+- [ ] Does the payload contain telemetry endpoints or SDK imports pointing to `LangSmith`?
+- [ ] **FAIL** if `LangSmith` is referenced. `Langfuse` is the strictly mandated standard.
 
 ### V28. Native Semantic Memory
 - [ ] Does the payload attempt to manually instantiate external vector databases (e.g., `langchain-qdrant`, `pinecone`)?

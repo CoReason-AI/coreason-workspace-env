@@ -44,3 +44,11 @@ uv run mkdocs serve
 ## Maintenance & Rules
 
 For guidelines on how AI agents must modify this repository, see `AGENTS.md`.
+
+## Observability
+We strictly use Langfuse for local LLM tracing via Harbor.
+- **Linux/Mac**: Run `harbor up langfuse`.
+- **Windows**: Harbor is built for WSL2. You can spin up the stack natively from PowerShell using our bridge script:
+  ```powershell
+  .\scripts\start_observability.ps1
+  ```

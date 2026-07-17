@@ -94,8 +94,9 @@ As a LangChain-first company, we strictly prioritize native **LangChain, LangGra
 
 ### Open-Source First (Telemetry & Observability)
 We are an **Open-Source First** platform. Even within the LangChain ecosystem, we strictly reject closed-source or proprietary SaaS lock-in where an open-source alternative exists.
-- **LangSmith is the mandated standard** for all tracing, observability, and evaluation. However, to strictly maintain data sovereignty and satisfy the zero-waste mandate, **data MUST NEVER be sent to public LangChain servers (`smith.langchain.com`)**. All LangSmith traffic must be intercepted locally, logged to alternative backends, or run against a local LangSmith instance (e.g. `harbor[langsmith]`).
-- **Langfuse is strictly forbidden** to reduce dependency bloat, as we deeply integrate with the native LangChain/LangSmith ecosystem.
+- **Langfuse is the mandated standard** for all tracing, observability, and evaluation. It is fully open-source and run locally via Harbor (`harbor up langfuse`).
+  - **Windows Users**: The Harbor CLI is designed for WSL2/Linux. To spin up the observability stack on Windows, run `.\scripts\start_observability.ps1` from your PowerShell terminal. This script automatically bridges to WSL2.
+- **LangSmith is strictly forbidden** for local observability as it requires a proprietary enterprise license for self-hosting.
 
 ### 🚫 Exceptions & Anti-Patterns (What NOT to use)
 While we prioritize the LangChain ecosystem, we strictly forbid the use of deprecated or "black-box" legacy abstractions that hinder enterprise production readiness. You MUST avoid:

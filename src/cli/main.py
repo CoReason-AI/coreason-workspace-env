@@ -2,6 +2,9 @@ import typer
 import asyncio
 import sys
 from typing import Optional
+from dotenv import load_dotenv
+
+load_dotenv()
 import uuid
 import logging
 import re
@@ -13,8 +16,11 @@ from rich.tree import Tree
 from rich.console import Console
 from rich.prompt import Prompt
 
+logging.basicConfig(level=logging.INFO, stream=sys.stdout, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
 app = typer.Typer()
+import langchain
+langchain.debug = True
 import json
 agents_app = typer.Typer()
 projects_app = typer.Typer()
