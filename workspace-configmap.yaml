@@ -1,0 +1,34 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: workspace-config
+  namespace: coreason-workspace
+data:
+  ENVIRONMENT: "development"
+  ALLOWED_ORIGINS: '["http://localhost:3000"]'
+
+  # Public PostgreSQL Database (demo.coreason.ai)
+  POSTGRES_USER: "coreason"
+  POSTGRES_DB: "fractal"
+  POSTGRES_HOST: "demo.coreason.ai"
+  POSTGRES_PORT: "5432"
+
+  # HashiCorp Vault (routing to host container via Docker bridge)
+  VAULT_ADDR: "http://host.docker.internal:8200"
+  VAULT_NAMESPACE: "admin"
+
+  # Public S3 Object Storage (demo.coreason.ai)
+  WORM_S3_BUCKET: "fractal-study-outputs"
+  WORM_S3_REGION: "us-east-1"
+  WORM_S3_ENDPOINT: "https://demo.coreason.ai/fractal-s3"
+
+  # OpenTelemetry Jaeger Endpoint (routing to host container via Docker bridge)
+  OTEL_EXPORTER_OTLP_ENDPOINT: "http://host.docker.internal:4318/v1/traces"
+
+  # Redis Backplane (Dummy value to satisfy strict startup validation schema)
+  REDIS_URL: "redis://host.docker.internal:6379/0"
+
+  # Core LLM configurations
+  LLM_MODEL_NAME: "openai/gpt-4o"
+  LLM_TEMPERATURE: "0.0"
+  LLM_BASE_URL: "https://openrouter.ai/api/v1"

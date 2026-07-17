@@ -1,0 +1,24 @@
+version: '3.8'
+
+services:
+  # 1. HashiCorp Vault (Dev Server for local secrets federation)
+  vault:
+    image: hashicorp/vault:latest
+    ports:
+      - "8200:8200"
+    environment:
+      VAULT_DEV_ROOT_TOKEN_ID: "${VAULT_DEV_ROOT_TOKEN_ID:-root}"
+      VAULT_DEV_LISTEN_ADDRESS: "0.0.0.0:8200"
+    cap_add:
+      - IPC_LOCK
+    restart: always
+
+  # 2. Jaeger — OpenTelemetry OTLP Trace Collector
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    environment:
+      - COLLECTOR_OTLP_ENABLED=true
+    ports:
+      - "16686:16686" # Web UI
+      - "4318:4318"   # OTLP HTTP
+    restart: always
