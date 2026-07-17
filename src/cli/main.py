@@ -13,6 +13,7 @@ from rich.tree import Tree
 from rich.console import Console
 from rich.prompt import Prompt
 
+logging.basicConfig(level=logging.INFO, stream=sys.stdout, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
 app = typer.Typer()
 import json

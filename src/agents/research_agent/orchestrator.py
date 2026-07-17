@@ -13,16 +13,23 @@ logger = logging.getLogger(__name__)
 @tool
 def search_internet(query: str) -> str:
     """Searches the internet for the given query and returns a summary of the results."""
+    logger.info(f"*** TOOL CALL: search_internet('{query}') ***")
     tavily_key = os.environ.get("TAVILY_API_KEY")
     if tavily_key:
         try:
+            logger.info("Using Tavily for search...")
             from tavily import TavilyClient
             client = TavilyClient(api_key=tavily_key)
             response = client.search(query=query, search_depth="basic")
             results = []
             for r in response.get("results", []):
                 results.append(f"Title: {r.get('title')}\nURL: {r.get('url')}\nContent: {r.get('content')}\n")
-            return "\n".join(results)
+            
+            final_res = "\n".join(results)
+            if not final_res.strip():
+                final_res = "No results found for the query."
+            logger.info(f"Tavily returned {len(results)} results.")
+            return final_res
         except Exception as e:
             logger.error(f"Tavily search failed: {e}")
             
@@ -67,7 +74,8 @@ class ResearchAgent(DeepAgent):
         
         internal_thread_id = f"{session_id or str(uuid.uuid7())}-research"
         internal_config = {
-            "configurable": {"thread_id": internal_thread_id}
+            "configurable": {"thread_id": internal_thread_id},
+            "recursion_limit": 5
         }
         
         initial_state = {"messages": context} if isinstance(context, list) else {"messages": [("user", str(context))]}
@@ -88,8 +96,23 @@ class ResearchAgent(DeepAgent):
                 tools=[search_internet],
                 checkpointer=checkpointer
             )
+            try:
+                result = graph.invoke(initial_state, config=internal_config)
+            except Exception as e:
+                logger.warning(f"ResearchAgent graph stopped early (e.g. recursion limit): {e}")
+                result = graph.get_state(internal_config).values
             
-            result = graph.invoke(initial_state, config=internal_config)
-            
-        final_message = result.get("messages", [])[-1].content if result.get("messages") else "FAILURE: No output produced."
-        return final_message
+        messages = result.get("messages", [])
+        logger.info(f"ResearchAgent final messages: {[type(m).__name__ + ': ' + str(m.content)[:100] for m in messages]}")
+        if not messages:
+            return "FAILURE: No output produced."
+        
+        # Try to find the last substantive text message or ToolMessage
+        for msg in reversed(messages):
+            if hasattr(msg, "content") and msg.content and isinstance(msg.content, str):
+                if len(msg.content.strip()) > 10:
+                    return msg.content
+            if msg.__class__.__name__ == "ToolMessage":
+                return f"Raw Search Results:\n{msg.content}"
+        
+        return "FAILURE: Empty content received from model."

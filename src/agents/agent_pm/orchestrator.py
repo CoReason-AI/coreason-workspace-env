@@ -38,7 +38,7 @@ Once complete, return the final Markdown response.
         """
         Executes pipeline using a ReAct deep agent.
         """
-        logger.info(f"[{session_id}] AgentPM initiating ReAct deep agent pipeline.")
+        logger.info(f"*** [{session_id}] AgentPM initiating ReAct deep agent pipeline! ***")
         
         from src.agents.prompt_engineer.orchestrator import PromptEngineerAgent
         from src.agents.yaml_compiler.orchestrator import YamlCompilerAgent
