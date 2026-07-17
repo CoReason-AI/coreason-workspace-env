@@ -193,14 +193,14 @@ def list_projects():
     from src.core.services import project_service
     async def run():
         res = await project_service.list_projects()
-        typer.echo(json.dumps({"projects": res}))
+        typer.echo(json.dumps({"projects": res}, default=str))
     asyncio.run(run())
 
 @agents_app.command("list")
 def list_agents():
     from src.core.services import agent_service
     res = {"agents": agent_service.list_agents()}
-    typer.echo(json.dumps(res))
+    typer.echo(json.dumps(res, default=str))
 
 @agents_app.command("get")
 def get_agent(name: str = typer.Option(..., '--name')):
@@ -210,7 +210,7 @@ def get_agent(name: str = typer.Option(..., '--name')):
     if not res:
         typer.echo("Not found")
         sys.exit(1)
-    typer.echo(json.dumps({"agent": res}))
+    typer.echo(json.dumps({"agent": res}, default=str))
 
 @agents_app.command("execute")
 def execute_agent(agent_name: str, prompt: str):
