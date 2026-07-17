@@ -46,29 +46,3 @@ uv run pytest tests/test_integration.py -v
 ```
 
 This ensures the entire runtime—from API input, down through hierarchical agent delegation, to the checkpointer and final artifact generation—is mathematically proven to work.
-
-## 3. Agent Tool Authorization (OPA)
-
-Permissions within the platform are completely decoupled from Python code via **Open Policy Agent (OPA)**. 
-
-### Writing Native Tools (No Decorators)
-When writing a new tool, developers do **not** need to add custom Python decorators (e.g., `@opa_enforced`) or hardcoded `if user_role == "..."` logic into their `@tool` functions. 
-
-The platform intercepts the native LangChain `on_tool_start` event globally via the `OPAAuthzCallbackHandler`. If an agent lacks permission, the handler catches it, raises a standard `ToolException`, and safely returns "Permission Denied" to the LLM without crashing the orchestrator.
-
-### Writing Policies
-To authorize a new tool, write a declarative `.rego` policy in `policies/agent_rbac.rego`.
-
-```rego
-# Example: Allow factory_ceo to use all tools
-allow {
-    input.agent == "factory_ceo"
-}
-
-# Example: Allow yaml_compiler to strictly write .yaml files
-allow {
-    input.agent == "yaml_compiler"
-    input.tool == "write_file"
-    endswith(input.payload.kwargs.file_path, ".yaml")
-}
-```

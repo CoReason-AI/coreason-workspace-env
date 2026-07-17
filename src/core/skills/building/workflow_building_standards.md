@@ -10,15 +10,15 @@ Avoid single-stage sequential pipelines for complex, multi-variable problems. De
 
 - **Supervisor Agent**: A central supervisory agent sets policies, goals, and strict sequencing
 - **Decentralized Workers**: Dispatch specific tasks to scoped worker agents for exploratory execution and asynchronous discovery
-- **Maker-Checker-Approver**: Every workflow MUST formally separate roles:
-  - The agent that **drafts** the data (Maker) cannot be the same agent that **validates** it (Checker)
+- **Builder-Validator-Approver**: Every workflow MUST formally separate roles:
+  - The agent that **drafts** the data (Builder) cannot be the same agent that **validates** it (Validator)
   - Neither can be the agent that **signs it off** (Approver)
 
 ## 2. Cyclic Routing & Feedback Loops
 
 Unlike basic DAGs, advanced agentic workflows require cyclic loops for multi-hop reasoning and failure recovery:
 
-- Workflows must explicitly define feedback loops (e.g., if the Checker rejects the Maker's draft, route back to the Maker with a specific `remediation_directives` schema)
+- Workflows must explicitly define feedback loops (e.g., if the Validator rejects the Builder's draft, route back to the Builder with a specific `remediation_directives` schema)
 - **Circuit Breakers**: Implement strict retry limits on all loops to prevent runaway token costs and infinite cycles
 - Define maximum iteration counts for every feedback loop
 

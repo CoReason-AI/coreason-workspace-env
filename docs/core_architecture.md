@@ -22,11 +22,7 @@ This pre-dispatch **Schema Saturation** acts as a programmatic choke point. Only
 The platform operates under a strict **No-Mock, Anti-Stub Policy**. The words `mock`, `stub`, `fake`, and `simulate` are completely banned from all execution and orchestration paths. Every agent must fulfill a genuine structural role using real LLM invocations, real DB checkpointers, and authentic integrations.
 For example, the Virtual Filesystem (`src/core/vfs/git_backend.py`) is enforced as a True Git Backend utilizing native `git grep` and Python's `Path.rglob` for precise file operations, completely eliminating hollow stubs that might mask underlying integration failures.
 
-## Agent Identity & Access Management (Zero-Trust IAM)
-Agent permissions are governed by declarative, decoupled access policies using industry-standard **Open Policy Agent (OPA)** `.rego` files.
-- The platform uses a native LangChain `AsyncCallbackHandler` (`OPAAuthzCallbackHandler`) that intercepts the `on_tool_start` event.
-- It dynamically evaluates the agent's identity and the tool payload against the OPA server.
-- This entirely decouples security logic from the agent YAML definition, enabling SecOps to enforce Least-Privilege access natively using standard enterprise policies.
+
 
 ## The Epistemic Firewall (Zero-Trust RAG)
 Generative language models are mathematically forbidden from executing direct queries against high-entropy raw data lakes or unverified external APIs. 

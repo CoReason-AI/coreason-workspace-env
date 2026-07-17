@@ -15,7 +15,7 @@ The rules in this file govern **you** — the AI coding assistant editing this r
 | **Building standards** | Factory Maker agents at runtime | `src/core/skills/building/` | Governs how factory agents construct artifacts (agents, MCPs, skills, workflows, diagrams) |
 | **Validation standards** | `agent_validator` at runtime | `src/core/skills/validation/` | Governs how the Checker validates artifacts before disk write — formal pass/fail checklists |
 
-The factory operates a **Maker-Checker-Approver** pipeline: builders (yaml_compiler, prompt_engineer) produce artifacts → `agent_validator` checks them against validation standards → `agent_pm` approves or routes back for remediation.
+The factory operates a **Builder-Validator-Approver** workflow: builders (yaml_compiler, prompt_engineer) produce artifacts → `agent_validator` checks them against validation standards → `agent_pm` approves or routes back for remediation.
 
 When you update a rule in this file, ask yourself: *does the corresponding building standard AND/OR validation standard also need to be updated?* Keep all three layers aligned.
 
@@ -90,7 +90,7 @@ The platform exposes **five first-class interaction surfaces**. Every platform c
 2. **Agent Improvement System**: You act as the "agent improvement system". When coding, your job is to configure the environment (e.g., passing secrets to the workspace agents) so they can operate autonomously. Tests consist of observing the agents execute in the dev/test environment, identifying where they fail, and improving their code/prompts. You do not execute the test logic yourself; you watch them work and improve them.
 
 ## LangChain-First & DeepAgent-First Architecture
-As a LangChain-first company, we strictly prioritize native **LangChain, LangGraph, and deepagents** ecosystem packages over custom abstractions or external third-party wrappers. Furthermore, **among all LangChain tools, we are DeepAgent-first**. If an official LangChain ecosystem integration exists (e.g. `langchain-e2b`, `langfuse-langchain`, `langchain-community`), it MUST be the default architectural choice, but it should always be routed through the `deepagents` Maker-Checker-Approver paradigm. Do not build custom wrappers, reinvent API SDKs, or introduce non-native frameworks unless absolutely necessary.
+As a LangChain-first company, we strictly prioritize native **LangChain, LangGraph, and deepagents** ecosystem packages over custom abstractions or external third-party wrappers. Furthermore, **among all LangChain tools, we are DeepAgent-first**. If an official LangChain ecosystem integration exists (e.g. `langchain-e2b`, `langfuse-langchain`, `langchain-community`), it MUST be the default architectural choice, but it should always be routed through the `deepagents` Builder-Validator-Approver paradigm. Do not build custom wrappers, reinvent API SDKs, or introduce non-native frameworks unless absolutely necessary.
 
 ### Open-Source First (Telemetry & Observability)
 We are an **Open-Source First** platform. Even within the LangChain ecosystem, we strictly reject closed-source or proprietary SaaS lock-in where an open-source alternative exists.

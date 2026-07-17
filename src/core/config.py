@@ -19,9 +19,6 @@ class Settings(BaseSettings):
     JWT_SECRET_KEY: str = "fallback_secret_for_local_dev"
     REQUIRE_CRYPTOGRAPHIC_SIGNATURE: bool = False
     
-    # Open Policy Agent (OPA) / IAM
-    ENABLE_OPA_IAM: bool = False
-    OPA_URL: str = "http://localhost:8181/v1/data/coreason/authz/allow"
     
     # Checkpointer Database (Postgres)
     POSTGRES_USER: str

@@ -44,6 +44,4 @@ To bypass heavy layers when only sharing logic:
 
 The following environment variables govern the Zero-Trust and Supply Chain Security pipelines at runtime:
 
-- `REQUIRE_CRYPTOGRAPHIC_SIGNATURE` (bool): Defaults to `False`. When `True`, the Governance Agent uses `sigstore` to generate cryptographically verifiable PVV signature bundles for all approved artifacts.
-- `ENABLE_OPA_IAM` (bool): Defaults to `False`. When `True`, the `OPAAuthzCallbackHandler` will intercept all tool invocations and validate them against an external OPA policy server.
-- `OPA_URL` (str): Defines the HTTP endpoint for the Open Policy Agent server (Default: `http://localhost:8181/v1/data/coreason/authz/allow`).
+

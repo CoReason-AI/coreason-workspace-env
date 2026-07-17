@@ -13,8 +13,7 @@ from rich.tree import Tree
 from rich.console import Console
 from rich.prompt import Prompt
 
-# Suppress Langfuse background telemetry warnings from contaminating CLI output
-logging.getLogger("langfuse").setLevel(logging.CRITICAL)
+
 app = typer.Typer()
 import json
 agents_app = typer.Typer()
@@ -35,19 +34,19 @@ def health():
 def onboard():
     """Interactive onboarding flow for coreason-workspace-env."""
     typer.secho("🚀 Welcome to the CoReason Agent Factory Onboarding!", fg=typer.colors.BRIGHT_BLUE, bold=True)
-    typer.echo("This CLI will walk you through our Maker-Checker-Approver pipeline.")
+    typer.echo("This CLI will walk you through our native DeepAgents hierarchical workflow.")
     
     # Phase 1: Observability
-    if typer.confirm("Would you like to bootstrap the local observability stack (Langfuse + Postgres)?"):
+    if typer.confirm("Would you like to bootstrap the local observability stack (Jaeger + Postgres)?"):
         try:
             import sys
             import os
             project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
             if project_root not in sys.path:
                 sys.path.insert(0, project_root)
-            from scripts.env_utils import start_observability_stack, verify_langfuse_connection
+            from scripts.env_utils import start_observability_stack, verify_observability_connection
             if start_observability_stack():
-                verify_langfuse_connection()
+                verify_observability_connection()
         except ImportError:
             typer.secho("Could not find scripts.env_utils. Ensure you are running from the project root.", fg=typer.colors.RED)
 
@@ -85,9 +84,8 @@ def onboard():
     typer.secho(f"\n⚙️ Compiling Agent...", fg=typer.colors.BRIGHT_MAGENTA)
     typer.echo(f"Session ID: {session_id}")
     typer.echo("-> Delegating to yaml_compiler... SUCCESS")
-    typer.echo("-> Delegating to agent_validator... SUCCESS (Passed V26, V27, V28)")
     typer.secho("🎉 Agent successfully compiled and validated!", fg=typer.colors.GREEN, bold=True)
-    typer.echo(f"Look up session {session_id} in your local Langfuse instance to view the full trace.")
+    typer.echo(f"Look up session {session_id} in your local Jaeger instance to view the full trace.")
 
 @app.command()
 def interact(agent_name: str, session_id: str = typer.Option(..., '--session-id')):

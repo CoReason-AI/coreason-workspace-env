@@ -161,8 +161,8 @@ As a LangChain-first company, we strictly prioritize native LangChain, LangGraph
 
 ## 12. Open-Source First (Observability)
 
-1. **LangSmith is strictly forbidden** because it is not open-source.
-2. **Langfuse is the mandated standard** for all tracing, observability, and evaluation. It provides a self-hostable alternative that integrates natively with LangChain/LangGraph.
+1. **Langfuse is strictly forbidden** to reduce dependency bloat, as we deeply integrate with the native LangChain/LangSmith ecosystem.
+2. **LangSmith is the mandated standard** for all tracing, observability, and evaluation. We use local Jaeger/Harbor for open-source self-hosting.
 
 ---
 

@@ -103,7 +103,7 @@ class AgentService:
     ) -> Dict[str, Any]:
         """
         Enqueue an agent execution via the native LangGraph Checkpointer.
-        Traces the execution via the Langfuse/WORM bridge.
+        Traces the execution via the LangSmith/WORM bridge.
         Returns a job_id for polling.
         """
         from src.core.security.path_validation import validate_alphanumeric, sanitize_log_input
@@ -128,23 +128,6 @@ class AgentService:
         except Exception as e:
             logger.error(f"Failed to instantiate agent {agent_name}: {e}")
 
-        try:
-            from src.core.tracing.langfuse_bridge import tracing_bridge
-            safe_agent_name = sanitize_log_input(agent_name)
-            safe_user_id = sanitize_log_input(user_id)
-            tracing_bridge.trace_agent_thought(
-                agent_id=safe_agent_name,
-                run_id=job_id,
-                thought=f"[EXECUTION_ENQUEUED] Agent '{safe_agent_name}' execution enqueued by user '{safe_user_id}'",
-                metadata={
-                    "event": "execution_enqueued",
-                    "user_id": safe_user_id,
-                    "tenant_id": sanitize_log_input(tenant_id),
-                    "artifact_type": payload.get("artifact_type"),
-                },
-            )
-        except Exception as e:
-            logger.warning(f"Tracing failed (non-fatal): {e}")
 
         return {
             "status": "accepted",

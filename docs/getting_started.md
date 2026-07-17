@@ -65,7 +65,7 @@ docker compose up -d
 
 > [!TIP]
 > **Going to Production?**
-> If you are deploying to an enterprise environment (AWS, Azure), check out our [Deploying Guide](guides/deploying.md) for 1-click Terraform, OpenTofu, and CloudFormation templates.
+> If you are deploying to an enterprise environment (AWS, Azure), check out our [Deploying Guide](deployment_guide.md) for 1-click Terraform, OpenTofu, and CloudFormation templates.
 
 ### Interacting with the Platform
 
