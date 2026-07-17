@@ -36,11 +36,19 @@ uv run mkdocs serve
 ```
 
 ### Key Pillars
-1. **[DeepAgent Pattern](docs/architecture/deepagent_pattern.md)**: YAML-driven progressive disclosure and structured eventing (Accordion UX).
-2. **[Maker-Checker Pipeline](docs/architecture/maker_checker.md)**: Strict separation of duties and Tier 1 Deterministic Validation.
-3. **[Epistemic Firewall](docs/architecture/epistemic_firewall.md)**: Zero-trust knowledge retrieval and strict provenance tracking.
-4. **[Interaction Surfaces](docs/surfaces/mcp_server.md)**: Complete parity across MCP, DeepAgents TUI (dcode), REST API, WebSocket (JSON Patch Streaming), and SDK.
+1. **[DeepAgent Pattern](docs/core_architecture.md#deepagent-pattern--declarative-manifests)**: YAML-driven progressive disclosure and structured eventing (Accordion UX).
+2. **[Builder-Validator-Approver](docs/vignette_mangalore_news.md#4-delegation-and-the-builder-validator-approver-workflow)**: Strict separation of duties and deterministic artifact validation.
+3. **[Epistemic Firewall](docs/core_architecture.md#the-epistemic-firewall-zero-trust-rag)**: Zero-trust knowledge retrieval and strict provenance tracking.
+4. **[Interaction Surfaces](docs/interaction_surfaces.md)**: Complete parity across MCP, REST API, CLI, WebSocket (JSON Patch Streaming), and SDK.
 
 ## Maintenance & Rules
 
 For guidelines on how AI agents must modify this repository, see `AGENTS.md`.
+
+## Observability
+We strictly use Langfuse for local LLM tracing via Harbor.
+- **Linux/Mac**: Run `harbor up langfuse`.
+- **Windows**: Harbor is built for WSL2. You can spin up the stack natively from PowerShell using our bridge script:
+  ```powershell
+  .\scripts\start_observability.ps1
+  ```

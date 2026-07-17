@@ -51,7 +51,7 @@ You now have a completed platform. You can export it locally for an air-gapped d
 
 **Pushing to an OCI Registry:**
 ```bash
-uv run coreason push_project <project_id> ghcr.io/my-org/trial-agent:v1.0.0
+uv run coreason push-project <project_id> ghcr.io/my-org/trial-agent:v1.0.0
 ```
 
 ### Step 9: Downstream Deployment
