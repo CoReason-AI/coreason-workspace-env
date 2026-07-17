@@ -68,5 +68,3 @@ You can also push your agent to public or private cloud registries by swapping o
   ```
 
 Your Mangalore News agent is now packaged, portable, and ready to discuss the latest updates from the coastal city anywhere!
-
-Your Mangalore News agent is now live and ready to discuss the latest updates from the coastal city!

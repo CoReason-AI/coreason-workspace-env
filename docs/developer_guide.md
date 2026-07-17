@@ -35,7 +35,7 @@ The `SKILL.md` file is the absolute source of truth. It contains YAML frontmatte
 To ensure stability across complex LangGraph architectures, the platform implements a strict **Mock-Free E2E Testing** paradigm.
 
 ### Mock-Free Philosophy
-1. **No Database Mocking**: Tests utilize a stateful `DummyConnection` and `DummyPool` that actually parse and store SQL statements in an in-memory dictionary.
+1. **No Database Mocking**: Tests utilize **Testcontainers** to spin up genuine ephemeral Postgres databases, ensuring tests interact with real database engines without mocks or stubs.
 2. **Native LangChain v1 Agents**: We test against authentic `create_agent` graphs instead of deprecated `AgentExecutor` constructs, verifying modern state routing natively.
 3. **Open-Source First Decoupling**: Models are dynamically loaded via Langchain's `init_chat_model` rather than hardcoding proprietary SDKs (like `ChatOpenAI`), ensuring enterprise fallback to local VLLM/Ollama deployments without altering source code.
 
@@ -46,3 +46,29 @@ uv run pytest tests/test_integration.py -v
 ```
 
 This ensures the entire runtime—from API input, down through hierarchical agent delegation, to the checkpointer and final artifact generation—is mathematically proven to work.
+
+## 3. Local Development Topologies
+
+When building or testing locally, you can choose how much of the stack you want to run on your own hardware versus relying on cloud endpoints.
+
+### Local Only
+The easiest way to spin this up locally without any external dependencies is via Docker Compose using the Standalone override. This configuration natively spins up **MinIO** for S3-compatible local storage and **Ollama** for local LLM inference (requires an NVIDIA GPU). It bypasses remote images and builds the workspace directly from source.
+
+```bash
+docker compose -f docker-compose.yaml -f docker-compose.standalone.yaml up -d --build
+```
+
+> [!IMPORTANT]
+> **Ollama Setup:** The first time you launch the standalone stack, you must pull the model manually by executing into the container:
+> `docker compose -f docker-compose.yaml -f docker-compose.standalone.yaml exec ollama ollama run llama3`
+
+This automatically spins up the `platform_server`, `postgres_checkpointer`, `vault`, `jaeger`, `minio`, and `ollama` components. 
+
+### Hybrid
+For standard development using cloud-hosted models (e.g., OpenAI, OpenRouter) and public S3 endpoints, you can avoid spinning up local AI models by using the base compose file:
+
+```bash
+docker compose up -d
+```
+
+This will run the core state infrastructure (Postgres, Vault, Jaeger) locally, but relies on the `LLM_BASE_URL` and `WORM_S3_ENDPOINT` variables in your `.env` file to route traffic to the cloud.

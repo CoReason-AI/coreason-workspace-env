@@ -43,29 +43,17 @@ The CoReason platform relies on a distributed multi-tenant architecture utilizin
 > [!NOTE]
 > **Tenant Isolation:** LangGraph state checkpointers do not use the `public` schema. The runtime engine dynamically manages schema isolation (`project_{project_id}`) per tenant, ensuring zero data leakage and safe backups via `pg_dump`. 
 
-### Standalone Local Deployment
-The easiest way to spin this up locally is via Docker Compose using the Standalone override. This configuration natively spins up **MinIO** for S3-compatible local storage and **Ollama** for local LLM inference (requires an NVIDIA GPU). It bypasses remote images and builds the workspace directly from source.
+### Starting the Services (Topologies)
 
-```bash
-docker compose -f docker-compose.yaml -f docker-compose.standalone.yaml up -d --build
-```
+The CoReason platform supports three deployment topologies depending on your needs:
 
-> [!IMPORTANT]
-> **Ollama Setup:** The first time you launch the standalone stack, you must pull the model:
-> `docker compose -f docker-compose.yaml -f docker-compose.standalone.yaml exec ollama ollama run llama3`
+1. **Local Only**: A fully localized Docker Compose stack including local LLM inference (Ollama) and local S3-compatible storage (MinIO).
+2. **Hybrid**: A Docker Compose stack for core infrastructure (Postgres, Vault) but relies on Cloud API endpoints for LLMs (OpenAI, OpenRouter) and S3 via `.env`.
+3. **Cloud Only**: Production-ready deployments to Enterprise Kubernetes (EKS/AKS) using Terraform, OpenTofu, or Helm.
 
-This will automatically spin up the `platform_server`, `postgres_checkpointer`, `minio`, and `ollama` components. The REST API and SSE streams will be available, and the MCP server will dynamically query the Postgres database for state tracking.
-
-### Public / Hybrid Cloud Deployments
-For standard deployments using cloud-hosted models (e.g. OpenAI) and S3 endpoints, use the base compose file:
-
-```bash
-docker compose up -d
-```
-
-> [!TIP]
-> **Going to Production?**
-> If you are deploying to an enterprise environment (AWS, Azure), check out our [Deploying Guide](deployment_guide.md) for 1-click Terraform, OpenTofu, and CloudFormation templates.
+> [!NOTE]
+> For the exact CLI commands and detailed steps to run the **Local Only** or **Hybrid** topologies, please refer to the [Developer Guide](developer_guide.md#3-local-development-topologies). 
+> For **Cloud Only** deployment steps, see the [Deployment Guide](deployment_guide.md#2-deployment-architectures).
 
 ### Interacting with the Platform
 
@@ -82,9 +70,9 @@ To execute endpoints via the Swagger UI or via cURL, you must authenticate. Clic
 To capture and view OpenTelemetry and LangSmith traces locally without using public SaaS, we use **Harbor** (a local LangSmith instance). 
 
 Start the Harbor containers:
-```bash
-uv run harbor up
-```
+- **Linux/Mac**: Run `harbor up langfuse`
+- **Windows**: Run `.\scripts\start_observability.ps1`
+
 This will spin up the local LangSmith/Harbor container stack to capture traces. The platform is pre-configured via `.env` (`LANGCHAIN_ENDPOINT=http://localhost:1984`) to route all traces to this local instance.
 
 ### Standalone Troubleshooting & Testing
