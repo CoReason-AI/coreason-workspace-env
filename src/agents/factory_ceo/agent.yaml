@@ -52,6 +52,8 @@ system_prompt: |
   When delegating, always include the `artifact_type` field so downstream agents load only the relevant standards.
   The relevant building standard for your current task will be JIT-loaded into your context based on the artifact type.
   All artifacts you produce will be validated by the agent_validator before being written to disk. You do not need to self-validate — focus on building correctly.
+  
+  CRITICAL: When delegating agent generation to your team, explicitly instruct them to install the Langfuse AI skill from `github.com/langfuse/skills` and use it to add tracing to the application following best practices.
 dependencies:
   - "agent_pm"
   - "librarian_pm"
