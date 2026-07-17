@@ -8,18 +8,46 @@ To support asynchronous concurrency and horizontal scaling, the platform utilize
 - **`platform_server`**: A monolithic FastAPI web server handling synchronous REST API requests, native `asyncio` background executions, and SSE streaming.
 - **`postgres_checkpointer`**: Handles multi-tenant safe StateGraph checkpoints and events, providing the unified state backbone that enables stateless autoscaling of the server replicas.
 
-## 2. Deployment Architectures
+## 2. Deployment Architectures (Cloud Only)
+
+For production environments, the platform relies on Managed Cloud Services (like AWS RDS, Elasticache, managed Vault, and S3) rather than Docker containers for stateful infrastructure.
+
+### Marketplace & Infrastructure as Code (Terraform)
+Complete IaC templates for AWS (EKS/RDS) and Azure (AKS/PostgreSQL) are located in `deploy/terraform/`. To deploy the full Cloud Only stack on AWS:
+
+```bash
+cd deploy/terraform/aws
+terraform init
+terraform plan -out=tfplan
+terraform apply "tfplan"
+```
+
+### AWS CloudFormation (Serverless)
+A 1-click serverless AWS ECS Fargate deployment template is provided. You can deploy this stack using the AWS CLI:
+
+```bash
+aws cloudformation deploy \
+  --template-file deploy/cloudformation/coreason-enterprise.yaml \
+  --stack-name coreason-production \
+  --capabilities CAPABILITY_IAM
+```
 
 ### Enterprise Kubernetes (Helm)
 For large-scale, distributed deployments, the entire stack is packaged as a unified Helm chart for clusters like EKS, GKE, or AKS. The `platform_server` replicas are seamlessly autoscaled based on HTTP load (e.g. via HPA), ensuring responsive synchronous endpoints and horizontally distributed `asyncio` task processing.
 
-### Marketplace & Infrastructure as Code
-- **OpenTofu & Terraform**: Complete IaC templates for AWS (EKS/RDS) and Azure (AKS/PostgreSQL) are located in `deploy/terraform/`.
-- **AWS CloudFormation**: A 1-click serverless AWS ECS Fargate deployment template is located in `deploy/cloudformation/coreason-enterprise.yaml`.
-- **GitHub Actions**: A reusable workflow is available in `.github/workflows/deploy-helm.yml` for automated CI/CD deployments.
+To install the release via Helm:
+```bash
+helm repo add coreason https://charts.coreason.ai
+helm install coreason-workspace coreason/coreason-workspace -f values.yaml
+```
+
+A reusable GitHub Actions workflow is also available in `.github/workflows/deploy-helm.yml` for automated CI/CD deployments.
 
 ### Air-Gapped Edge (K3s)
 For internet-denied environments, the platform is available as a standalone K3s distribution, forcing all language models and tools to run locally via internal endpoints.
+
+### Single-Node Standalone (Windows & Linux)
+To run the full stack on a single bare-metal node or VM with native OS service parity (Systemd / Windows Services), refer to the [Standalone Services Guide](services.md).
 
 ## 3. Immutable Agent Sandboxes
 
@@ -44,4 +72,8 @@ To bypass heavy layers when only sharing logic:
 
 The following environment variables govern the Zero-Trust and Supply Chain Security pipelines at runtime:
 
-
+- `VAULT_ADDR`: The address of the HashiCorp Vault server.
+- `VAULT_NAMESPACE`: The Vault namespace for secrets isolation.
+- `VAULT_DEV_ROOT_TOKEN_ID`: The root token for Vault authentication.
+- `LLM_API_KEY` / `LLM_BASE_URL`: Governs external LLM routing securely.
+- `WORM_S3_ACCESS_KEY` / `WORM_S3_SECRET_KEY`: Credentials for the Write-Once-Read-Many (WORM) storage.

@@ -20,7 +20,7 @@ This pre-dispatch **Schema Saturation** acts as a programmatic choke point. Only
 
 ## Anti-Stub Enforcement Policy
 The platform operates under a strict **No-Mock, Anti-Stub Policy**. The words `mock`, `stub`, `fake`, and `simulate` are completely banned from all execution and orchestration paths. Every agent must fulfill a genuine structural role using real LLM invocations, real DB checkpointers, and authentic integrations.
-For example, the Virtual Filesystem (`src/core/vfs/git_backend.py`) is enforced as a True Git Backend utilizing native `git grep` and Python's `Path.rglob` for precise file operations, completely eliminating hollow stubs that might mask underlying integration failures.
+For example, the project and database interactions are enforced as true integrations using genuine Postgres connection pools (`psycopg_pool.AsyncConnectionPool`) and real tracing (`src/core/services/observability_service.py`), completely eliminating hollow stubs that might mask underlying integration failures.
 
 
 
