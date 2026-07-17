@@ -1,6 +1,9 @@
 import os
 from pydantic_settings import BaseSettings
 
+# Disable LangSmith telemetry locally to prevent ConnectionRefused loops
+os.environ["LANGCHAIN_TRACING_V2"] = "false"
+ 
 class Settings(BaseSettings):
     """
     Strict SSOT Configuration for the Platform.
@@ -42,12 +45,12 @@ class Settings(BaseSettings):
     
     # LLM Configuration
     LLM_MODEL_NAME: str = "nvidia/nemotron-3-nano-30b-a3b:free"
-    LLM_API_KEY: str = "local_dev_key"
+    LLM_API_KEY: str = "LLM_API_KEY"
     LLM_TEMPERATURE: float = 0.0
     EMBEDDING_MODEL_NAME: str = "local-embedding-v1"
     EMBEDDING_BASE_URL: str = "http://localhost:11434/v1"
     
-    LLM_BASE_URL: str = "https://api.openai.com/v1"
+    LLM_BASE_URL: str = "https://openrouter.ai/api/v1"
     
     # E2B Sandbox
     E2B_API_KEY: str = ""
@@ -56,8 +59,7 @@ class Settings(BaseSettings):
         env_file = ".env"
         env_file_encoding = 'utf-8'
         extra = "ignore"
-
+ 
 # Instantiate settings. This will immediately throw an error if the .env file
 # or environment variables are missing required CISO keys.
 settings = Settings()
-

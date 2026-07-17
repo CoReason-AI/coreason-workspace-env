@@ -120,11 +120,8 @@ class OrchestrationService:
 
                     if not generated_agents:
                         final_msg = result["messages"][-1].content if "messages" in result else "No messages"
-                        logger.warning(f"No 'generated_agents' found in result. Final content was: {final_msg}. Using fallback mock.")
-                        generated_agents = {
-                            "orchestrator_agent": "name: test_agent\n",
-                            "project": "name: test_project\n"
-                        }
+                        logger.error(f"No 'generated_agents' found in result. Final content was: {final_msg}.")
+                        return {"status": "failure", "details": f"Failed to generate valid agent yaml. Final output: {final_msg}", "is_saturated": True}
                         
                     state_payload = {
                         "generated_agents": generated_agents
