@@ -77,6 +77,16 @@ You can explore and test the endpoints directly from your browser by navigating 
 **Authentication**: 
 To execute endpoints via the Swagger UI or via cURL, you must authenticate. Click the green "Authorize" button and input your `API_SECRET_TOKEN` as a Bearer token. If you did not explicitly set this in your `.env` file, use the default local development token: `coreason-dev-token`.
 
+### Tracing and Observability (Harbor)
+
+To capture and view OpenTelemetry and LangSmith traces locally without using public SaaS, we use **Harbor** (a local LangSmith instance). 
+
+Start the Harbor containers:
+```bash
+uv run harbor up
+```
+This will spin up the local LangSmith/Harbor container stack to capture traces. The platform is pre-configured via `.env` (`LANGCHAIN_ENDPOINT=http://localhost:1984`) to route all traces to this local instance.
+
 ### Standalone Troubleshooting & Testing
 
 If you encounter issues during a local standalone build:
