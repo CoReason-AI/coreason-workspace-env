@@ -117,6 +117,13 @@ If you need more information from the team to resolve ambiguities, use the `ask_
             config = {
                 "configurable": {"thread_id": session_id or str(uuid.uuid7())}
             }
+            
+            try:
+                from langfuse.callback import CallbackHandler
+                langfuse_handler = CallbackHandler()
+                config["callbacks"] = [langfuse_handler]
+            except ImportError:
+                pass
 
             state = await graph.aget_state(config)
             if state and getattr(state, "next", None):
