@@ -155,7 +155,10 @@ class ProjectService:
             return tarinfo
             
         with tarfile.open(workspace_tar, "w:gz") as tar:
-            tar.add(str(safe_project_path), arcname=safe_project_path.name, filter=_exclude_secrets)
+            if safe_project_path.exists():
+                tar.add(str(safe_project_path), arcname=safe_project_path.name, filter=_exclude_secrets)
+            else:
+                logger.warning(f"Project path {safe_project_path} does not exist, skipping Git VFS package.")
         files_written.append(workspace_tar)
 
         # 3. Export Docker Image
