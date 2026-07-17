@@ -70,6 +70,7 @@ If you need more information from the team to resolve ambiguities, use the `ask_
         
         from src.agents.librarian_pm.orchestrator import LibrarianPmAgent
         from src.agents.agent_pm.orchestrator import AgentPmAgent
+        from src.agents.research_agent.orchestrator import ResearchAgent
         
         from langchain_core.messages import AIMessage
         # Subagents exposed to the CEO
@@ -83,6 +84,11 @@ If you need more information from the team to resolve ambiguities, use the `ask_
                 "name": "agent_pm",
                 "description": "Delegates saturated context to build the agent architecture.",
                 "runnable": RunnableLambda(lambda inputs, config: {"messages": [AIMessage(content=AgentPmAgent().execute(inputs, session_id=config["configurable"]["thread_id"], config=config))]})
+            },
+            {
+                "name": "research_agent",
+                "description": "Searches the internet for required factual context, news, or domain-specific information.",
+                "runnable": RunnableLambda(lambda inputs, config: {"messages": [AIMessage(content=ResearchAgent().execute(inputs, session_id=config["configurable"]["thread_id"], config=config))]})
             }
         ]
 
