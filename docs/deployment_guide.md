@@ -46,6 +46,9 @@ A reusable GitHub Actions workflow is also available in `.github/workflows/deplo
 ### Air-Gapped Edge (K3s)
 For internet-denied environments, the platform is available as a standalone K3s distribution, forcing all language models and tools to run locally via internal endpoints.
 
+### Single-Node Standalone (Windows & Linux)
+To run the full stack on a single bare-metal node or VM with native OS service parity (Systemd / Windows Services), refer to the [Standalone Services Guide](services.md).
+
 ## 3. Immutable Agent Sandboxes
 
 A critical security mandate is **Deterministic Dependencies**. The platform utilizes the **NemoClaw for Deep Agents** blueprint.

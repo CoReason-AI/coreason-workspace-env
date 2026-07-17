@@ -10,3 +10,4 @@ Welcome to the headless agent factory. This platform natively enforces the DeepA
 - [User Guide](user_guide.md): The end-to-end 10-step operational workflow.
 - [Developer Guide](developer_guide.md): Building skills, writing validation rules, and testing the platform.
 - [Deployment Guide](deployment_guide.md): Deploying to Enterprise Kubernetes, Cloud, Air-gapped environments, and the Portability Engine.
+- [Standalone Services Guide](services.md): Running the platform as a persistent background service on standalone Windows and Linux nodes.
