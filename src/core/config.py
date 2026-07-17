@@ -11,15 +11,14 @@ class Settings(BaseSettings):
     ENVIRONMENT: str
     ALLOWED_ORIGINS: str
     
-    # Observability (Langfuse)
-    LANGFUSE_PUBLIC_KEY: str = ""
-    LANGFUSE_SECRET_KEY: str = ""
-    LANGFUSE_HOST: str = "http://localhost:3001"
+    # Observability (LangSmith is handled natively via LangChain env vars)
     
     # Secrets & Vault (OIDC Federation)
     VAULT_ADDR: str
     VAULT_NAMESPACE: str
     JWT_SECRET_KEY: str = "fallback_secret_for_local_dev"
+    REQUIRE_CRYPTOGRAPHIC_SIGNATURE: bool = False
+    
     
     # Checkpointer Database (Postgres)
     POSTGRES_USER: str
@@ -43,9 +42,14 @@ class Settings(BaseSettings):
     
     # LLM Configuration
     LLM_MODEL_NAME: str = "nvidia/nemotron-3-nano-30b-a3b:free"
-    LLM_API_KEY: str = "standalone-key-placeholder"
+    LLM_API_KEY: str = "local_dev_key"
     LLM_TEMPERATURE: float = 0.0
+    EMBEDDING_MODEL_NAME: str = "local-embedding-v1"
+    
     LLM_BASE_URL: str = "https://api.openai.com/v1"
+    
+    # E2B Sandbox
+    E2B_API_KEY: str = ""
     
     class Config:
         env_file = ".env"

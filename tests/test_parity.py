@@ -50,14 +50,6 @@ class TestCLISurface(unittest.TestCase):
         result = self._run_cli("agents", "get", "--name", "nonexistent_xyz")
         self.assertNotEqual(result.returncode, 0)
 
-    def test_cli_mcp_list_servers(self):
-        """CLI mcp list-servers should return servers."""
-        result = self._run_cli("mcp", "list-servers")
-        self.assertEqual(result.returncode, 0, f"stderr: {result.stderr}")
-        data = json.loads(result.stdout)
-        self.assertIn("servers", data)
-        self.assertGreater(len(data["servers"]), 0)
-
     def test_cli_structured_json_output(self):
         """CLI without --pretty should return compact JSON."""
         cmd = [sys.executable, "-m", "src.cli.main", "agents", "list"]
@@ -107,14 +99,6 @@ class TestSDKSurface(unittest.TestCase):
         agent = client.agents.get("nonexistent_xyz")
         self.assertIsNone(agent)
 
-    def test_sdk_mcp_list_servers(self):
-        """SDK mcp.list_servers() should return servers."""
-        from src.sdk import CoReasonClient
-        client = CoReasonClient()
-        servers = client.mcp.list_servers()
-        self.assertIsInstance(servers, list)
-        self.assertGreater(len(servers), 0)
-
     def test_sdk_version(self):
         """SDK version() should return platform info."""
         from src.sdk import CoReasonClient
@@ -129,43 +113,8 @@ class TestSDKSurface(unittest.TestCase):
         client = CoReasonClient()
         self.assertTrue(hasattr(client, "projects"))
         self.assertTrue(hasattr(client, "agents"))
-        self.assertTrue(hasattr(client, "mcp"))
         self.assertTrue(hasattr(client, "docs"))
 
-
-class TestMCPServerSurface(unittest.IsolatedAsyncioTestCase):
-    """Test the MCP server tool registration."""
-
-    def test_mcp_server_builds(self):
-        """MCP server should build without error."""
-        from src.mcp.server import _build_server
-        server = _build_server()
-        self.assertIsNotNone(server)
-
-    def test_mcp_server_name(self):
-        """MCP server should have the correct name."""
-        from src.mcp.server import _build_server
-        server = _build_server()
-        self.assertEqual(server.name, "coreason-platform")
-
-    @patch("src.core.services.project_service.ProjectService.create_project")
-    @patch("src.core.services.agent_service.AgentService.execute_agent")
-    @patch("src.core.services.project_service.ProjectService.export_project")
-    async def test_mcp_workflow_mock(self, mock_export, mock_execute, mock_create):
-        """Mock test to verify MCP server tool mapping for the 10-step workflow."""
-        # This is a conceptual test verifying that the tools map to the correct service methods.
-        mock_create.return_value = {"id": "p123"}
-        mock_execute.return_value = {"job_id": "j123"}
-        mock_export.return_value = {"status": "success"}
-        
-        # Verify that these methods can be called (simulating MCP tool invocation)
-        await mock_create(project_id="p123", name="test")
-        await mock_execute(agent_name="factory_ceo", payload={}, user_id="u", tenant_id="t")
-        await mock_export(project_id="p123", output_path="/tmp/out", skip_state=True, skip_docker=True)
-        
-        mock_create.assert_called_once()
-        mock_execute.assert_called_once()
-        mock_export.assert_called_once()
 
 
 class TestAPIRouter(unittest.TestCase):
@@ -193,7 +142,6 @@ class TestAPIRouter(unittest.TestCase):
         path_str = " ".join(route_paths)
         self.assertIn("/projects", path_str)
         self.assertIn("/agents", path_str)
-        self.assertIn("/mcp", path_str)
         self.assertIn("/docs", path_str)
 
 
@@ -204,25 +152,12 @@ class TestStreamingModules(unittest.IsolatedAsyncioTestCase):
         from src.api.streaming.crdt import router
         self.assertIsNotNone(router)
 
-    def test_tty_router_import(self):
-        from src.api.streaming.tty import router
-        self.assertIsNotNone(router)
 
     def test_state_sync_router_import(self):
         from src.api.streaming.state_sync import router
         self.assertIsNotNone(router)
 
-    def test_agent_progress_router_import(self):
-        from src.api.streaming.agent_progress import router
-        self.assertIsNotNone(router)
 
-    @patch("src.api.streaming.agent_progress.router")
-    async def test_sse_workflow_mock(self, mock_router):
-        """Mock test to verify SSE endpoint routes for the Accordion tracker updates."""
-        # Ensure the SSE router accepts the connection
-        self.assertIsNotNone(mock_router)
-        # In a real environment, we would use TestClient(app).get("/api/v1/streaming/agent_progress")
-        # and parse the EventSource stream chunks.
 
 
 class TestParityConsistency(unittest.TestCase):
@@ -241,18 +176,6 @@ class TestParityConsistency(unittest.TestCase):
 
         sdk_names = sorted([a["name"] for a in sdk_agents])
         svc_names = sorted([a["name"] for a in svc_agents])
-        self.assertEqual(sdk_names, svc_names)
-
-    def test_mcp_servers_parity_sdk_vs_service(self):
-        """SDK and service layer should return identical MCP server lists."""
-        from src.sdk import CoReasonClient
-        from src.core.services import mcp_tool_service
-
-        sdk_servers = CoReasonClient().mcp.list_servers()
-        svc_servers = mcp_tool_service.list_servers()
-
-        sdk_names = sorted([s["name"] for s in sdk_servers])
-        svc_names = sorted([s["name"] for s in svc_servers])
         self.assertEqual(sdk_names, svc_names)
 
     def test_agents_list_parity_cli_vs_sdk(self):

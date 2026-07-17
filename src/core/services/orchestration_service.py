@@ -9,19 +9,6 @@ class OrchestrationService:
     Centralized logic for dispatching and tracing LangGraph execution flows.
     """
     
-    # Fallback telemetry wrapper if Langfuse is not installed
-    @staticmethod
-    def observe(*args, **kwargs):
-        def decorator(func):
-            def wrapper(*a, **kw):
-                logger.info(f"[TELEMETRY] Starting trace for {func.__name__} with args={args}, kwargs={kwargs}")
-                result = func(*a, **kw)
-                logger.info(f"[TELEMETRY] Ended trace for {func.__name__}")
-                return result
-            return wrapper
-        return decorator
-
-    @observe(name="run_persona_graph")
     async def run_persona_graph(self, user_id: str, session_id: str, input_data: str, output_dir: str = "./generated_agents", input_path: str = None) -> dict:
         """
         Abstracts the LangGraph execution for the active persona (dynamic entrypoint).

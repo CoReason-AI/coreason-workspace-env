@@ -3,54 +3,39 @@ import yaml
 import logging
 from typing import Any
 from src.core.base_agent import DeepAgent
-from langchain_openai import ChatOpenAI
-from langchain_core.messages import SystemMessage, HumanMessage
-from pydantic import BaseModel, Field
+from langchain_core.messages import HumanMessage
+from deepagents.graph import DeepAgentState
 
 logger = logging.getLogger(__name__)
 
-class YamlCompilerOutput(BaseModel):
-    agent_yaml: str = Field(description="The generated agent.yaml contents.")
-    project_yaml: str = Field(description="The generated project.yaml contents.")
-
 class YamlCompilerAgent(DeepAgent):
     """
-    Deterministic worker for YAML compilation.
+    Deterministic worker for YAML compilation via DeepAgent.
     """
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         yaml_path = os.path.join(os.path.dirname(__file__), "agent.yaml")
+        self.agent_spec = {}
         if os.path.exists(yaml_path):
             with open(yaml_path, "r", encoding="utf-8") as f:
                 self.agent_spec = yaml.safe_load(f)
         
-        from src.core.config import settings
-        self.llm = ChatOpenAI(
-            model=settings.LLM_MODEL_NAME,
-            api_key=settings.LLM_API_KEY,
-            temperature=settings.LLM_TEMPERATURE,
-            base_url=settings.LLM_BASE_URL
-        ).with_structured_output(YamlCompilerOutput)
+        base_prompt = self.agent_spec.get("system_prompt", "You are an expert YAML compiler.")
+        self.system_prompt = f"{base_prompt}\nYOU MUST output your final result as a Markdown block (e.g. ```yaml ... ```)."
 
-    def execute(self, context: dict, session_id: str = None, config: dict = None) -> dict:
+    def execute(self, context: Any, session_id: str = None, config: dict = None) -> str:
         """
-        Executes deterministically based on saturated context.
+        Executes deterministic generation via DeepAgent loop.
         """
-        prompt = self.agent_spec.get("system_prompt", "You are an expert YAML compiler.")
-        messages = [
-            SystemMessage(content=prompt),
-            HumanMessage(content=f"Requirements: {context}")
-        ]
+        logger.info(f"[{session_id}] YamlCompiler executing via DeepAgent.")
         
-        logger.info(f"[{session_id}] YamlCompiler executing deterministic generation.")
+        graph = self.build_standard_deep_agent(
+            system_prompt=self.system_prompt,
+            state_schema=DeepAgentState,
+        )
         
-        if config is None:
-            from src.core.services.observability_service import ObservabilityService
-            obs = ObservabilityService()
-            langfuse_cb = obs.get_langfuse_callback(session_id)
-            config = {}
-            if langfuse_cb:
-                config["callbacks"] = [langfuse_cb]
-            
-        result = self.llm.invoke(messages, config=config)
-        return {"compiled_yaml": result.dict()}
+        initial_state = {"messages": [HumanMessage(content=f"Requirements: {context}")]}
+        result = graph.invoke(initial_state, config=config or {})
+        
+        final_message = result.get("messages", [])[-1].content if result.get("messages") else "FAILURE: No output produced."
+        return final_message

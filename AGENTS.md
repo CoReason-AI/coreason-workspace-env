@@ -15,7 +15,7 @@ The rules in this file govern **you** — the AI coding assistant editing this r
 | **Building standards** | Factory Maker agents at runtime | `src/core/skills/building/` | Governs how factory agents construct artifacts (agents, MCPs, skills, workflows, diagrams) |
 | **Validation standards** | `agent_validator` at runtime | `src/core/skills/validation/` | Governs how the Checker validates artifacts before disk write — formal pass/fail checklists |
 
-The factory operates a **Maker-Checker-Approver** pipeline: builders (yaml_compiler, prompt_engineer) produce artifacts → `agent_validator` checks them against validation standards → `agent_pm` approves or routes back for remediation.
+The factory operates a **Builder-Validator-Approver** workflow: builders (yaml_compiler, prompt_engineer) produce artifacts → `agent_validator` checks them against validation standards → `agent_pm` approves or routes back for remediation.
 
 When you update a rule in this file, ask yourself: *does the corresponding building standard AND/OR validation standard also need to be updated?* Keep all three layers aligned.
 
@@ -88,3 +88,33 @@ The platform exposes **five first-class interaction surfaces**. Every platform c
 ## Assistant's Role and Scope
 1. **Assistant Identity**: The AI coding assistant (you) is not solving the final domain tasks directly (e.g., designing the agent topology for the user). Your role is strictly to help the user build the `coreason-workspace-env` platform itself. The platform contains the agents (like `factory_ceo`) that will perform those tasks at runtime. You help the user build the platform by walking through and implementing these use cases in the platform codebase.
 2. **Agent Improvement System**: You act as the "agent improvement system". When coding, your job is to configure the environment (e.g., passing secrets to the workspace agents) so they can operate autonomously. Tests consist of observing the agents execute in the dev/test environment, identifying where they fail, and improving their code/prompts. You do not execute the test logic yourself; you watch them work and improve them.
+
+## LangChain-First & DeepAgent-First Architecture
+As a LangChain-first company, we strictly prioritize native **LangChain, LangGraph, and deepagents** ecosystem packages over custom abstractions or external third-party wrappers. Furthermore, **among all LangChain tools, we are DeepAgent-first**. If an official LangChain ecosystem integration exists (e.g. `langchain-e2b`, `langfuse-langchain`, `langchain-community`), it MUST be the default architectural choice, but it should always be routed through the `deepagents` Builder-Validator-Approver paradigm. Do not build custom wrappers, reinvent API SDKs, or introduce non-native frameworks unless absolutely necessary.
+
+### Open-Source First (Telemetry & Observability)
+We are an **Open-Source First** platform. Even within the LangChain ecosystem, we strictly reject closed-source or proprietary SaaS lock-in where an open-source alternative exists.
+- **LangSmith is the mandated standard** for all tracing, observability, and evaluation. However, to strictly maintain data sovereignty and satisfy the zero-waste mandate, **data MUST NEVER be sent to public LangChain servers (`smith.langchain.com`)**. All LangSmith traffic must be intercepted locally, logged to alternative backends, or run against a local LangSmith instance (e.g. `harbor[langsmith]`).
+- **Langfuse is strictly forbidden** to reduce dependency bloat, as we deeply integrate with the native LangChain/LangSmith ecosystem.
+
+### 🚫 Exceptions & Anti-Patterns (What NOT to use)
+While we prioritize the LangChain ecosystem, we strictly forbid the use of deprecated or "black-box" legacy abstractions that hinder enterprise production readiness. You MUST avoid:
+
+1. **Legacy `AgentExecutor`**: Do not use `AgentExecutor` or `initialize_agent`. All orchestrator and agent routing logic MUST be built using **LangGraph** (`StateGraph`, `create_react_agent`) or native **deepagents** routing for deterministic control flow and observability.
+2. **Legacy Pre-built Chains**: Do not use deprecated chain classes like `LLMMathChain`, `SQLDatabaseChain`, or `LLMChain`. Rely on **LangGraph Tool Calling** or **LCEL (LangChain Expression Language)** for transparent, debuggable execution.
+3. **Legacy Memory Abstractions**: Do not use in-memory buffers like `ConversationBufferMemory`. Agent state must be explicitly managed via LangGraph Checkpointers (e.g., `langgraph-checkpoint-postgres`) as integrated by `deepagents`.
+4. **Opaque Prompt Templates**: Do not use black-box components that hide their internal prompt templates. Prompts must be explicitly versioned, managed, and passed to the LLM to prevent abstraction leakage and prompt injection vulnerabilities.
+
+### LangChain v1 Migration Standards
+This platform STRICTLY enforces LangChain v1 architecture patterns per the migration guide (https://docs.langchain.com/oss/python/releases/langchain-v1). You MUST adhere to these rules when building or modifying agents:
+1. **No `langchain-community`**: The `langchain-community` package is deprecated and archived. It is strictly forbidden. Any legacy components must use `langchain-classic` or be refactored natively.
+2. **`create_agent` Factory**: Do NOT use `langgraph.prebuilt.create_react_agent`. Use `langchain.agents.create_agent`.
+3. **`system_prompt` Parameter**: Use the `system_prompt` argument in `create_agent` instead of the legacy `prompt` parameter.
+4. **Middleware for Hooks**: Do NOT use pre-model or post-model hooks. Implement logic via Agent Middleware using `before_model` and `after_model` methods.
+5. **Strict `TypedDict` State**: Agent state schemas MUST inherit from `langchain.agents.AgentState` (which is a `TypedDict`). Pydantic models (`BaseModel`) and dataclasses are no longer supported for state schemas.
+6. **Structured Output**: Prompted output is removed. Use `ToolStrategy` or `ProviderStrategy` when structured output is required.
+
+### Strict Version Boundary (`deepagents >= 0.6.0`)
+This platform strictly targets the modern **`deepagents >= 0.6.0`** ecosystem. We do not support legacy deepagents API contracts (e.g., deprecated `ls_info`, `grep_raw`, or removed properties like `ASYNC_GREP_TIMEOUT`). 
+- Any LangChain integration or third-party plugin that relies on `deepagents < 0.6.0` internals must be aggressively monkey-patched, updated, or forked. 
+- Never downgrade the core `deepagents` runtime to accommodate a legacy plugin.

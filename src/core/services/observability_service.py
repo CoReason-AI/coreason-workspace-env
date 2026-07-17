@@ -20,29 +20,12 @@ class ObservabilityService:
         default_dsn = f"postgresql://{settings.POSTGRES_USER}:{settings.POSTGRES_PASSWORD}@{settings.POSTGRES_HOST}:{settings.POSTGRES_PORT}/{settings.POSTGRES_DB}"
         self.pg_dsn = os.environ.get("DATABASE_URL", default_dsn)
         
-        self.langfuse_host = settings.LANGFUSE_HOST
-        self.langfuse_public = settings.LANGFUSE_PUBLIC_KEY
-        self.langfuse_secret = settings.LANGFUSE_SECRET_KEY
         
         # Use settings for Vault Address
         self.vault_addr = settings.VAULT_ADDR
         self.vault_token = os.environ.get("VAULT_DEV_ROOT_TOKEN_ID", "root")
 
-    def get_langfuse_callback(self, session_id: str):
-        """
-        Returns a configured Langchain CallbackHandler for Langfuse.
-        """
-        from langfuse.callback import CallbackHandler
-        if not self.langfuse_public or not self.langfuse_secret:
-            logger.warning("Langfuse credentials missing; returning None for callback.")
-            return None
-            
-        return CallbackHandler(
-            public_key=self.langfuse_public,
-            secret_key=self.langfuse_secret,
-            host=self.langfuse_host,
-            session_id=session_id
-        )
+
 
     async def fetch_postgres_state(self, session_id: str) -> Dict[str, Any]:
         """
@@ -68,27 +51,6 @@ class ObservabilityService:
             return {"error": f"No state found for session {session_id}"}
         except Exception as e:
             logger.error(f"Failed to fetch postgres state: {e}")
-            return {"error": str(e)}
-
-    async def fetch_langfuse_traces(self, session_id: str) -> Dict[str, Any]:
-        """
-        Query the Langfuse local API for traces linked to the session_id.
-        """
-        if not self.langfuse_public or not self.langfuse_secret:
-            return {"error": "Langfuse API keys are not set in environment."}
-            
-        url = f"{self.langfuse_host}/api/public/traces?tags={session_id}"
-        try:
-            async with httpx.AsyncClient() as client:
-                response = await client.get(
-                    url, 
-                    auth=(self.langfuse_public, self.langfuse_secret),
-                    timeout=10.0
-                )
-                response.raise_for_status()
-                return response.json()
-        except Exception as e:
-            logger.error(f"Failed to fetch langfuse traces: {e}")
             return {"error": str(e)}
 
     async def write_dev_vault_secret(self, secret_path: str, data: Dict[str, Any]) -> Dict[str, Any]:
@@ -126,15 +88,25 @@ class ObservabilityService:
 
     async def resume_agent(self, session_id: str, agent_name: str, payload: Dict[str, Any]) -> Dict[str, Any]:
         """
-        Resumes a paused or failed agent execution by enqueuing a new task to Redis.
+        Resumes a paused or failed agent execution via native LangGraph checkpoint state.
         """
         try:
-            from src.core.queue import task_queue
-            task_queue.enqueue_workflow(
-                session_id=session_id,
-                agent_name=agent_name,
-                payload=payload
-            )
+            import asyncio
+            import json
+            import importlib
+            
+            module_path = f"src.agents.{agent_name}.orchestrator"
+            module = importlib.import_module(module_path)
+            agent_class_name = "".join(word.capitalize() for word in agent_name.split("_")) + "Agent"
+            agent_class = getattr(module, agent_class_name)
+            agent = agent_class()
+            
+            if hasattr(agent, "execute") and asyncio.iscoroutinefunction(agent.execute):
+                asyncio.create_task(agent.execute(context={"messages": [("user", json.dumps(payload))]}, session_id=session_id))
+            else:
+                asyncio.create_task(asyncio.to_thread(agent.execute, payload, session_id=session_id))
+            
+            logger.info(f"Native LangGraph execution resumed for thread_id {session_id}")
             return {"status": "success", "message": f"Resumed agent {agent_name} for session {session_id}"}
         except Exception as e:
             logger.error(f"Failed to resume agent: {e}")

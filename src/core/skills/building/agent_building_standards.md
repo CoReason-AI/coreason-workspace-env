@@ -135,3 +135,40 @@ All generated agents must be natively compatible with the [Omnigent](https://omn
 7. **Explicit Structural Mapping**: When performing analogical transfer, agents must not rely on unstructured text. They must explicitly externalize the *relational structure* by generating a structural mapping artifact (e.g., a JSON or YAML graph mapping the Source Domain entities/relations to the Target Domain entities/relations) *before* synthesizing the final answer.
 8. **Archetypal Anchoring**: To stabilize complex reasoning in orchestrators, use Archetypal Anchoring. The system prompt must invoke a highly specific, coherent behavioral persona (an "archetype") early in the context window. This anchors the LLM's latent space and drastically reduces hallucinations during deep Tree-of-Thoughts exploration.
 9. **Dialectical Synthesis**: Agents tasked with ideation, design, or hypothesis generation must employ Dialectical Reasoning. The agent must explicitly generate a Thesis (proposed solution), an Antithesis (the strongest possible counter-argument or structural flaw), and a Synthesis (a reconciled solution) before delegating or concluding.
+10. **Epidemiological Causal Inference (Hill's Criteria)**: Agents evaluating health, scientific, or safety risks must explicitly evaluate associations against Bradford Hill criteria (strength, consistency, temporality, etc.) and map assumed confounders via Directed Acyclic Graphs (DAGs) before drawing conclusions.
+11. **Counterfactual Simulation (Do-Calculus)**: When proposing interventions in Predictive Health Maintenance (PHM) or clinical scenarios, the agent must interface with a formal causal engine to simulate `do-interventions` and rank recommendations based on estimated treatment effects, not token probability.
+12. **Multi-Model Consensus & Governance**: For high-risk regulatory (GxP) tasks, do not rely on a single model. Employ a Consortium Pattern where a heterogeneous group of models generates candidate reasoning paths, and a distinct Governance Agent evaluates them against safety constraints to synthesize a final auditable decision.
+13. **Abductive Root-Cause Isolation**: For diagnostics and system observability, agents must use abductive reasoning—working backward from observed symptoms to find the most plausible explanation using a causal graph, explicitly eliminating hypotheses contradicted by negative evidence.
+14. **"Glass Box" Traceability**: In FDA and GxP regulated environments, agents must explicitly document their assumptions, the constraints they are respecting, and their domain boundaries (via an `assumptions_and_constraints` structured output) before executing actions, ensuring full auditability.
+15. **Bayesian Belief Updating (Orchestration)**: When orchestrators face high uncertainty (e.g., routing to experts, deciding to retry, or diagnosing complex failures), they must employ Bayes-consistent control layers. The agent explicitly maintains a probabilistic world model (prior beliefs), observes outcomes, and updates routing preferences or diagnostic probabilities (posterior beliefs) systematically.
+
+---
+
+## 11. LangChain-First & DeepAgent-First Architecture
+
+As a LangChain-first company, we strictly prioritize native LangChain, LangGraph, and deepagents ecosystem packages. You MUST NOT use legacy abstractions.
+
+1. **No Legacy AgentExecutor**: Do not use `AgentExecutor` or `initialize_agent`. Use LangGraph (`StateGraph`, `create_agent`) for deterministic control flow.
+2. **No Pre-built Chains or Buffers**: Do not use `LLMMathChain`, `SQLDatabaseChain`, or `ConversationBufferMemory`. Rely on LangGraph checkpointers for short-term state, and native Tool Calling.
+3. **LangChain v1 Migration Adherence**: 
+   - No `langchain-community`. It is deprecated.
+   - Use `langchain.agents.create_agent`, NOT `langgraph.prebuilt.create_react_agent`.
+   - Use `system_prompt` parameter, NOT the legacy `prompt` parameter.
+   - Use LangChain `TypedDict` state schemas.
+4. **DeepAgents version >= 0.6.0**: You MUST strictly adhere to the modern deepagents API contract. Legacy properties (e.g., `ls_info`, `ASYNC_GREP_TIMEOUT`) are forbidden. Do not use pre-model or post-model hooks; implement logic via Agent Middleware (`before_model`, `after_model`).
+
+---
+
+## 12. Open-Source First (Observability)
+
+1. **Langfuse is strictly forbidden** to reduce dependency bloat, as we deeply integrate with the native LangChain/LangSmith ecosystem.
+2. **LangSmith is the mandated standard** for all tracing, observability, and evaluation. We use local Jaeger/Harbor for open-source self-hosting.
+
+---
+
+## 13. Native Semantic Memory (Store API)
+
+When an agent requires long-term, cross-thread semantic memory (such as retrieving past failures or contextual facts):
+1. **No External Vector Databases**: Do NOT configure or instantiate Qdrant, Pinecone, or Chroma.
+2. **Native Store Injection**: You MUST rely exclusively on LangGraph's native `BaseStore` API via dependency injection.
+3. **InjectedStore Annotation**: Tools that require memory access must use the `store: Annotated[BaseStore, InjectedStore()]` parameter, allowing the orchestrator to dynamically pass the `AsyncPostgresStore` (via `pgvector`) at runtime.

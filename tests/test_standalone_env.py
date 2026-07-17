@@ -1,7 +1,7 @@
 import os
 import sys
 import psycopg2
-import redis
+
 import urllib.request
 from urllib.error import URLError, HTTPError
 
@@ -19,13 +19,7 @@ def check_postgres():
     except Exception as e:
         return f"FAILED: Postgres - {e}"
 
-def check_redis():
-    try:
-        r = redis.Redis.from_url(os.getenv('REDIS_URL', 'redis://redis_queue:6379/0'))
-        r.ping()
-        return "SUCCESS: Connected to Redis"
-    except Exception as e:
-        return f"FAILED: Redis - {e}"
+
 
 def check_url(url, name, expect_403=False):
     if not url:
@@ -48,8 +42,7 @@ if __name__ == "__main__":
     print("Testing Postgres...")
     print(check_postgres())
     
-    print("\nTesting Redis...")
-    print(check_redis())
+
     
     print("\nTesting Vault...")
     vault_addr = os.getenv('VAULT_ADDR', 'http://vault:8200')

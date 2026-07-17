@@ -1,10 +1,10 @@
 # User Guide: The Factory Workflow
 
-As an operator of the CoReason Workspace Environment, your primary role is to act as the visionary and stakeholder. The heavy lifting of software engineering, YAML compilation, and validation is delegated to your internal hierarchy of factory agents.
+As an operator of the CoReason Workspace Environment, your primary role is to act as the visionary and stakeholder. The heavy lifting of software engineering and agent orchestration is delegated to your internal hierarchy of factory agents.
 
-This guide outlines the complete 10-step real-world workflow used to build, validate, and deploy a brand new agent platform.
+This guide outlines the complete 10-step real-world workflow used to build, validate, and deploy a brand new agent platform natively with `deepagents`.
 
-## The Maker-Checker Pipeline
+## The DeepAgent Hierarchy
 
 Before diving into the steps, it is essential to understand the organizational structure of the factory you are commanding:
 
@@ -12,13 +12,8 @@ Before diving into the steps, it is essential to understand the organizational s
 flowchart TD
     User([Human Operator]) --> |Provides Natural Language Intent| CEO[factory_ceo Orchestrator]
     CEO --> |Delegates Saturated Payload| PM[agent_pm]
-    PM --> |Task 1| M1[prompt_engineer Maker]
-    PM --> |Task 2| M2[yaml_compiler Maker]
-    M1 --> |Drafts Artifact| Checker[agent_validator Checker]
-    M2 --> |Drafts Artifact| Checker
-    Checker --> |Passes Standard| Synth[Artifact Synthesizer]
-    Checker --> |Fails Standard| PM
-    Note over Checker,PM: Remediation Loop
+    PM --> |Task 1| W1[prompt_engineer Worker]
+    PM --> |Task 2| W2[yaml_compiler Worker]
 ```
 
 ---
@@ -36,20 +31,20 @@ uv run coreason build "I need an automated clinical trial matching agent platfor
 ### Step 2: The Interrogation Loop (Context Saturation)
 Instead of blindly writing code, the `factory_ceo` orchestrator agent intercepts your request. Because it operates as a rigid state machine, it will evaluate your input against its required internal context schema. If it needs more details (e.g., "What specific databases should it query?"), it will stream clarifying questions back to you in the UI. You answer until the context is fully saturated.
 
-### Step 3: PM & Maker Delegation
-Once the context threshold is met, the `factory_ceo` stops interrogating you. It automatically delegates the raw context payload to the `agent_pm`. The PM breaks the project down into component tasks and routes them to deterministic sub-agents (the "Makers"), such as the `prompt_engineer` and `yaml_compiler`. 
+### Step 3: PM & Worker Delegation
+Once the context threshold is met, the `factory_ceo` stops interrogating you. It automatically delegates the raw context payload to the `agent_pm`. The PM breaks the project down into component tasks and routes them to standard native DeepAgent workers, such as the `prompt_engineer` and `yaml_compiler`. 
 
 ### Step 4: The Factory Floor (Drafting Artifacts)
-The Maker agents execute deterministically in the background. They do not ask you questions. Using the shared skills library (`src/core/skills/building/`), they construct the necessary artifacts: Python nodes, tool integrations, and agent YAML definitions strictly bound by the DeepAgent pattern.
+The worker agents execute deterministically in the background. They do not ask you questions. Using the shared skills library (`src/core/skills/building/`), they construct the necessary artifacts: Python nodes, tool integrations, and agent YAML definitions strictly bound by the DeepAgent pattern.
 
-### Step 5: The Checker Phase (Agent Validation)
-Before any code is finalized, the artifacts hit the `agent_validator`. This agent acts as the strict "Checker" in the pipeline. It evaluates the generated files against the strict validation standards located in `src/core/skills/validation/` (e.g., verifying namespace mapping and Pydantic compliance).
+### Step 5: Artifact Finalization
+Instead of using brittle AST parsers and a legacy Maker-Checker pipeline, the artifacts are generated natively through LangGraph StateGraph nodes. The system verifies Pydantic compliance and native checkpointer synchronization natively within the `deepagents` middleware.
 
-### Step 6: The Remediation Loop
-If the `agent_validator` detects violations (e.g., a Maker agent hallucinated a Pydantic schema or failed to name a YAML file correctly), the `agent_pm` actively routes the artifact back to the Maker with the error trace for automatic remediation. You can observe this loop in real-time via the WebSocket streams or the Accordion tracker list in the UI.
+### Step 6: The Remediation & Approval Loop
+If a worker encounters an integration error, the `agent_pm` actively routes the artifact back for remediation. You can observe this loop in real-time via the SSE `state_sync` streams or the Accordion tracker list in the UI.
 
 ### Step 7: Packaging & Artifact Synthesis
-Once all artifacts pass the Checker phase, the platform generates a dynamically synthesized `pyproject.toml` containing exactly the dependencies your new agents need. It packages the raw Python code and `.yaml` manifests into an immutable ZIP bundle.
+Once all artifacts are generated and finalized, the platform generates a dynamically synthesized `pyproject.toml` containing exactly the dependencies your new agents need. It packages the raw Python code and `.yaml` manifests into an immutable ZIP bundle.
 
 ### Step 8: OCI Push & Airgap Export
 You now have a completed platform. You can export it locally for an air-gapped deployment, or push it straight to your enterprise registry (e.g., AWS ECR) using the standard OCI (Open Container Initiative) commands.

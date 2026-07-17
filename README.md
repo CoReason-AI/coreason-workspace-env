@@ -12,8 +12,7 @@
 [![Security: Bandit](https://img.shields.io/badge/security-bandit-yellow.svg)](https://github.com/PyCQA/bandit)
 
 **Tech Stack:**
-[![LangGraph](https://img.shields.io/badge/LangGraph-Native-black?style=flat)]()
-[![Langfuse](https://img.shields.io/badge/Langfuse-Observability-FF5E00?style=flat)]()
+[![DeepAgents](https://img.shields.io/badge/deepagents-%E2%9C%A8-blue)](https://github.com/langchain-ai/deepagents)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.100+-009688?style=flat&logo=fastapi&logoColor=white)]()
 [![MCP](https://img.shields.io/badge/MCP-Server-8A2BE2?style=flat)]()
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Checkpointer-4169E1?style=flat&logo=postgresql&logoColor=white)]()

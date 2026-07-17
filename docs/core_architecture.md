@@ -3,10 +3,10 @@
 The CoReason Workspace Environment implements an opinionated variant of the DeepAgent pattern. While the industry frequently treats multi-agent systems as experimental scripts, this platform enforces a strict Infrastructure as Code (IaC) approach, leveraging deterministic mathematical boundaries rather than heuristic prompting.
 
 ## DeepAgent Pattern & Declarative Manifests
-Agents within the platform are not instantiated via complex, hardcoded Python boilerplate. Instead, they are defined via strictly typed, `pyagentspec`-compatible **YAML manifests**. 
+Agents within the platform are defined via strictly typed, `pyagentspec`-compatible **YAML manifests**. 
 This shift to declarative infrastructure treats agent definitions as portable, version-controlled configurations.
 
-At runtime, a specialized YAML compiler reads the agent manifest and dynamically synthesizes an executable **LangGraph StateGraph** node, enforcing deterministic routing and eliminating deliberation cascades.
+At runtime, a dynamically synthesized **LangGraph StateGraph** node enforces deterministic routing and eliminates deliberation cascades. The `factory_ceo` (instantiated via `create_deep_agent`) dynamically delegates to PMs and workers using standard tool calling and native `deepagents` middleware.
 
 ## The Brain / Body Dichotomy
 The platform physically enforces a strict architectural boundary between **Intent** and **Execution** by separating the repository into two primary domains:
@@ -18,14 +18,11 @@ Context Engineering is the practice of treating context assembly as a discipline
 
 This pre-dispatch **Schema Saturation** acts as a programmatic choke point. Only when the target schema achieves 100% saturation is the payload released to specialized sub-agents.
 
-## Maker-Checker-Approver Pipeline
-The platform completely rejects stochastic self-correction (Generator-Critic) for structural and syntactical validation. Instead, it enforces a rigid **Maker-Checker-Approver** pipeline:
-1. **The Maker (Generation)**: Generates the required artifact (Python, JSON, SQL).
-2. **The Checker (Deterministic Validation)**: Intercepts the artifact with a purely deterministic LangGraph node containing zero generative LLM calls. It runs AST parsers, strict Pydantic checks, and sandboxed code execution.
-3. **Remediation / Approver**: Artifacts failing the Checker are routed back to the Maker. Passing artifacts proceed to an Approver (PM or Human-in-the-Loop) for semantic approval.
-
 ## Anti-Stub Enforcement Policy
 The platform operates under a strict **No-Mock, Anti-Stub Policy**. The words `mock`, `stub`, `fake`, and `simulate` are completely banned from all execution and orchestration paths. Every agent must fulfill a genuine structural role using real LLM invocations, real DB checkpointers, and authentic integrations.
+For example, the Virtual Filesystem (`src/core/vfs/git_backend.py`) is enforced as a True Git Backend utilizing native `git grep` and Python's `Path.rglob` for precise file operations, completely eliminating hollow stubs that might mask underlying integration failures.
+
+
 
 ## The Epistemic Firewall (Zero-Trust RAG)
 Generative language models are mathematically forbidden from executing direct queries against high-entropy raw data lakes or unverified external APIs. 
@@ -46,8 +43,13 @@ The platform strictly enforces a **Multi-Surface Parity** mandate. This constrai
 ## Agent Observability & Traceability
 To empower upstream AI coding assistants (the "Agent Improvement System") to natively debug and improve the platform's agents, the environment integrates deep, programmable observability exposed directly via the **MCP Server**:
 - **State Inspection (Postgres)**: Directly queries the `postgres_checkpointer` to read the exact LangGraph thread checkpoints, enabling deterministic analysis of stuck or failed agent states.
-- **LLM Tracing (Langfuse)**: Programmatically fetches execution traces from the local Langfuse API, providing full visibility into the prompts and completions that led to hallucination or validation errors.
+- **LLM Tracing (LangSmith)**: Native LangChain tracing provides full visibility into the prompts and completions that led to hallucination or validation errors. It natively integrates with LangGraph using the `LANGCHAIN_TRACING_V2` environment variables.
 - **Dynamic Identity Federation (Vault)**: Supports injecting external API keys securely into the dev HashiCorp Vault at runtime, allowing agents to impersonate dynamic roles without hardcoded secrets.
-- **Agent Resumption**: Integrates with the Redis task queue to resume paused or failed agents seamlessly after remediation.
+- **Agent Resumption**: Directly invokes the `PlatformOrchestrator` to seamlessly resume paused or failed agents natively using the LangGraph checkpointer.
 
 All observability logic is encapsulated within `src/core/services/observability_service.py` and strictly obeys the platform's SSOT (Single Source of Truth) configuration, allowing it to transition seamlessly from local development into enterprise Kubernetes clusters without hardcoded topology strings.
+
+## Zero-Waste Ambient Telemetry (Open-Source First)
+The orchestrator maintains rigorous Request-Scoped Telemetry across thousands of asynchronous nodes without leaking memory and without custom `weakref` boilerplate. It achieves this by strictly adopting the CNCF standard **OpenTelemetry Context** (`opentelemetry.context`) and **Structlog ContextVars** natively. 
+
+Standard `logging` instances (used by third parties like Langchain or FastAPI) are transparently hijacked and pipelined through `structlog`. At the entry point of any orchestrator execution, the unique `session_id` is bound to the ambient context. Every deeply nested API call, database query, and model invocation automatically inherits this tracing ID gracefully, providing 100% causal visibility in LangSmith (or any OTel backend) without manually polluting function signatures.

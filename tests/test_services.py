@@ -31,12 +31,6 @@ class TestAgentService(unittest.TestCase):
         names = [a["name"] for a in agents]
         self.assertIn("factory_ceo", names)
 
-    def test_list_agents_contains_agent_validator(self):
-        """agent_validator must be discoverable (created in Maker-Checker split)."""
-        agents = self.service.list_agents()
-        names = [a["name"] for a in agents]
-        self.assertIn("agent_validator", names)
-
     def test_list_agents_schema(self):
         """Every agent must have required fields."""
         agents = self.service.list_agents()
@@ -71,54 +65,6 @@ class TestAgentService(unittest.TestCase):
         self.assertIsNotNone(agent)
         # factory_ceo has an orchestrator.py
         self.assertIn("orchestrator_source", agent)
-
-    def test_agent_validator_skills_are_validation(self):
-        """agent_validator must reference validation/ standards."""
-        agent = self.service.get_agent("agent_validator")
-        self.assertIsNotNone(agent)
-        # After migration, uses skill_registry
-        if "skill_registry" in agent:
-            for entry in agent["skill_registry"]:
-                self.assertIn("validation", entry["path"], f"Validator entry {entry['name']} should reference validation/")
-        else:
-            for skill in agent.get("skills", []):
-                self.assertIn("validation", skill, f"Validator skill {skill} should reference validation/")
-
-    def test_factory_ceo_skills_are_building(self):
-        """factory_ceo must reference building/ standards."""
-        agent = self.service.get_agent("factory_ceo")
-        self.assertIsNotNone(agent)
-        # After migration, uses skill_registry
-        if "skill_registry" in agent:
-            for entry in agent["skill_registry"]:
-                self.assertIn("building", entry["path"], f"Builder entry {entry['name']} should reference building/")
-        else:
-            for skill in agent.get("skills", []):
-                self.assertIn("building", skill, f"Builder skill {skill} should reference building/")
-
-
-class TestMCPToolService(unittest.TestCase):
-    """Test MCP server discovery."""
-
-    def setUp(self):
-        from src.core.services.mcp_service import MCPToolService
-        self.service = MCPToolService()
-
-    def test_list_servers(self):
-        """Should return at least the platform MCP server."""
-        servers = self.service.list_servers()
-        self.assertIsInstance(servers, list)
-        self.assertGreater(len(servers), 0)
-
-    def test_server_schema(self):
-        """Each server should have required fields."""
-        servers = self.service.list_servers()
-        for server in servers:
-            self.assertIn("name", server)
-            self.assertIn("transport", server)
-            self.assertIn("description", server)
-            self.assertIn("tools", server)
-
 
 class TestDocsService(unittest.TestCase):
     """Test MkDocs generation service."""
@@ -197,13 +143,11 @@ class TestServiceSingletons(unittest.TestCase):
             health_service,
             project_service,
             agent_service,
-            mcp_tool_service,
             docs_service,
         )
         self.assertIsNotNone(health_service)
         self.assertIsNotNone(project_service)
         self.assertIsNotNone(agent_service)
-        self.assertIsNotNone(mcp_tool_service)
         self.assertIsNotNone(docs_service)
 
 

@@ -150,30 +150,6 @@ async def get_execution_status(job_id: str) -> Dict[str, Any]:
 
 
 @mcp.tool()
-async def list_mcp_servers() -> Dict[str, Any]:
-    """List connected MCP servers and their tools."""
-    from src.core.services import mcp_tool_service
-    return {"servers": mcp_tool_service.list_servers()}
-
-
-@mcp.tool()
-async def execute_mcp_tool(
-    server_name: str,
-    tool_name: str,
-    arguments: Optional[Dict[str, Any]] = None,
-    session_id: str = "mcp-session",
-) -> Dict[str, Any]:
-    """Execute a tool on a connected MCP server."""
-    from src.core.services import mcp_tool_service
-    return await mcp_tool_service.execute_tool(
-        server_name=server_name,
-        tool_name=tool_name,
-        arguments=arguments or {},
-        session_id=session_id,
-    )
-
-
-@mcp.tool()
 async def generate_docs(
     workspace_path: str,
     site_name: str,
@@ -209,12 +185,7 @@ async def get_langgraph_trace(session_id: str) -> Dict[str, Any]:
     obs = ObservabilityService()
     return await obs.fetch_postgres_state(session_id)
 
-@mcp.tool()
-async def get_langfuse_trace(session_id: str) -> Dict[str, Any]:
-    """Retrieves LLM traces from the local Langfuse API."""
-    from src.core.services.observability_service import ObservabilityService
-    obs = ObservabilityService()
-    return await obs.fetch_langfuse_traces(session_id)
+
 
 @mcp.tool()
 async def inject_vault_secret(secret_path: str, data: Dict[str, Any]) -> Dict[str, Any]:

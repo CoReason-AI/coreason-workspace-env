@@ -7,12 +7,13 @@ from src.core.services.portability_service import portability_service
 from src.core.security.path_validation import validate_alphanumeric
 
 @pytest.mark.asyncio
+@patch('src.core.services.portability_service.uuid.uuid7', return_value="123", create=True)
 @patch('src.core.services.portability_service.PortabilityService._update_job', new_callable=AsyncMock)
 @patch('src.core.services.portability_service.project_service.get_project')
 @patch('src.core.services.portability_service.project_service.export_project')
 @patch('src.core.services.portability_service.ROCrate')
 @patch('src.core.services.portability_service.OrasClient')
-async def test_export_to_oci(mock_orasclient, mock_rocrate, mock_export_project, mock_get_project, mock_update_job):
+async def test_export_to_oci(mock_orasclient, mock_rocrate, mock_export_project, mock_get_project, mock_update_job, mock_uuid):
     mock_export_project.return_value = {"status": "success", "files_written": ["test.dump"]}
     mock_get_project.return_value = {"name": "Test Project"}
     
@@ -28,11 +29,12 @@ async def test_export_to_oci(mock_orasclient, mock_rocrate, mock_export_project,
     mock_update_job.assert_any_call("job_123", "COMPLETED")
 
 @pytest.mark.asyncio
+@patch('src.core.services.portability_service.uuid.uuid7', return_value="123", create=True)
 @patch('src.core.services.portability_service.PortabilityService._update_job', new_callable=AsyncMock)
 @patch('src.core.services.portability_service.health_service')
 @patch('src.core.services.portability_service.project_service.import_project')
 @patch('src.core.services.portability_service.OrasClient')
-async def test_import_from_oci(mock_orasclient, mock_import_project, mock_health_service, mock_update_job):
+async def test_import_from_oci(mock_orasclient, mock_import_project, mock_health_service, mock_update_job, mock_uuid):
     mock_import_project.return_value = {"status": "success", "project": {"id": "123"}}
     mock_health_service.get_version.return_value = {"version": "v2.0.0"}
 
@@ -61,12 +63,13 @@ async def test_import_from_oci(mock_orasclient, mock_import_project, mock_health
 # --- Security Testing Layer ---
 
 @pytest.mark.asyncio
+@patch('src.core.services.portability_service.uuid.uuid7', return_value="123", create=True)
 @patch('src.core.services.portability_service.PortabilityService._update_job', new_callable=AsyncMock)
 @patch('src.core.services.portability_service.project_service.export_project')
 @patch('src.core.services.portability_service.project_service.get_project')
 @patch('src.core.services.portability_service.ROCrate')
 @patch('src.core.services.portability_service.OrasClient')
-async def test_registry_authentication(mock_orasclient, mock_rocrate, mock_get_project, mock_export_project, mock_update_job):
+async def test_registry_authentication(mock_orasclient, mock_rocrate, mock_get_project, mock_export_project, mock_update_job, mock_uuid):
     """Verify that credentials from ENV are passed to oras-py login."""
     import os
     os.environ["ORAS_USER"] = "testuser"

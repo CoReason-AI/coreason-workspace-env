@@ -14,9 +14,9 @@ The validator receives a completed workflow specification containing:
 
 ## Validation Checklist
 
-### V1. Maker-Checker-Approver Separation
+### V1. Builder-Validator-Approver Separation
 - [ ] Does the workflow separate drafting, validation, and approval into distinct agents?
-- [ ] Is any single agent acting as both Maker AND Checker?
+- [ ] Is any single agent acting as both Builder AND Validator?
 - [ ] **FAIL** if the same agent drafts and validates its own output
 
 ### V2. Topology Type Declared
@@ -71,7 +71,7 @@ The validator receives a completed workflow specification containing:
   "checks": [
     {
       "id": "V1",
-      "name": "Maker-Checker-Approver Separation",
+      "name": "Builder-Validator-Approver Separation",
       "status": "PASS" | "FAIL" | "WARN",
       "detail": "string"
     }
