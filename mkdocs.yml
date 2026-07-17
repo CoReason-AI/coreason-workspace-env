@@ -45,6 +45,7 @@ nav:
     - Home: index.md
     - Getting Started: getting_started.md
     - User Guide: user_guide.md
+    - Mangalore News Vignette: vignette_mangalore_news.md
   - Architecture:
     - Core Architecture: core_architecture.md
   - Interaction Surfaces:

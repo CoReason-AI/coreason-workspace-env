@@ -9,7 +9,7 @@ from dotenv import load_dotenv
 from src.api.router import api_router
 from src.core.config import settings
 from src.core.db import get_db_pool, close_db_pool
-from src.core.services import health_service, project_service
+from src.core.services import health_service, project_service, portability_service
 from src.core.security.auth import get_current_user, UserIdentity
 
 
@@ -37,6 +37,8 @@ async def lifespan(app: FastAPI):
         logger.info("-> Global connection pool initialized.")
         await project_service.initialize()
         logger.info("-> Postgres: Projects table initialized.")
+        await portability_service.initialize()
+        logger.info("-> Postgres: Portability jobs table initialized.")
     except Exception as e:
         logger.warning(f"-> Postgres initialization skipped: {e}")
 
