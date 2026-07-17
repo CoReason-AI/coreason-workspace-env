@@ -112,4 +112,30 @@ If you need more information from the team to resolve ambiguities, use the `ask_
                 "configurable": {"thread_id": session_id or str(uuid.uuid7())}
             }
 
-            return await graph.ainvoke(context, config=config)
+            state = await graph.aget_state(config)
+            if state and getattr(state, "next", None):
+                from langgraph.types import Command
+                user_reply = context.get("raw_transcript", "")
+                
+                decisions = []
+                # Try to inspect tasks for the interrupt payload to get the number of action requests
+                if hasattr(state, "tasks") and state.tasks:
+                    for task in state.tasks:
+                        if task.interrupts:
+                            for interrupt in task.interrupts:
+                                val = interrupt.value if hasattr(interrupt, "value") else interrupt
+                                if isinstance(val, dict) and "action_requests" in val:
+                                    for req in val["action_requests"]:
+                                        decisions.append({
+                                            "type": "respond",
+                                            "message": user_reply
+                                        })
+                
+                # Fallback if we couldn't parse it
+                if not decisions:
+                    decisions = [{"type": "respond", "message": user_reply}]
+                    
+                resume_payload = {"decisions": decisions}
+                return await graph.ainvoke(Command(resume=resume_payload), config=config)
+            else:
+                return await graph.ainvoke(context, config=config)

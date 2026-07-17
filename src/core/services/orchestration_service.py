@@ -57,7 +57,6 @@ class OrchestrationService:
             "raw_transcript": input_data,
             "is_goal_mode": is_goal_mode
         }
-        
         result = await ceo.execute(context, session_id)
         
         # Check if the agent is asking a clarifying question (tool call)
@@ -65,7 +64,17 @@ class OrchestrationService:
         is_interactive = False
         interrogation_question = None
         
-        if messages and hasattr(messages[-1], "tool_calls") and messages[-1].tool_calls:
+        interrupts = result.get("__interrupt__", [])
+        for interrupt in interrupts:
+            val = interrupt.value if hasattr(interrupt, "value") else interrupt
+            if isinstance(val, dict) and "action_requests" in val:
+                for req in val["action_requests"]:
+                    if req.get("name") == "ask_clarifying_question":
+                        is_interactive = True
+                        interrogation_question = req.get("args", {}).get("question", "Agent needs clarification.")
+                        break
+        
+        if not is_interactive and messages and hasattr(messages[-1], "tool_calls") and messages[-1].tool_calls:
             for tool_call in messages[-1].tool_calls:
                 if tool_call["name"] == "ask_clarifying_question":
                     is_interactive = True
