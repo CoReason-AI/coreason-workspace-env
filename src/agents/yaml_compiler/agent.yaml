@@ -24,114 +24,7 @@ skill_registry:
     abstract: "How to deconstruct legacy agentic patterns into normalized IR — spaghetti
       prompts, free-text handoffs, direct egress, linear pipelines"
     path: "core/skills/building/legacy_modernization_standards"
-  - name: "context_compaction_protocol"
-    artifact_types: ["agent_yaml"]
-    abstract: "Preventing reasoning degradation by periodically shrinking memory into dense key-value payloads."
-    path: "core/skills/building/context_compaction_protocol"
-  - name: "context_expansion_mapping"
-    artifact_types: ["agent_yaml"]
-    abstract: "Preventing tunnel vision by forcing lateral ontological lookups for class effects."
-    path: "core/skills/building/context_expansion_mapping"
-  - name: "six_thinking_hats_evaluation"
-    artifact_types: ["agent_yaml"]
-    abstract: "Preventing Groupthink via adversarial, multi-perspective evaluation (De Bono Framework)."
-    path: "core/skills/building/six_thinking_hats_evaluation"
-  - name: "mece_logic_trees"
-    artifact_types: ["agent_yaml"]
-    abstract: "Forcing Mutually Exclusive, Collectively Exhaustive diagnostic problem solving (Arben Framework)."
-    path: "core/skills/building/mece_logic_trees"
-  - name: "tree_of_thoughts_exploration"
-    artifact_types: ["agent_yaml"]
-    abstract: "Forcing System 2 deliberation via branching, pruning, and backtracking (ToT)."
-    path: "core/skills/building/tree_of_thoughts_exploration"
-  - name: "react_reasoning_loop"
-    artifact_types: ["agent_yaml"]
-    abstract: "Grounding agent logic in physical or external reality via the ReAct framework."
-    path: "core/skills/building/react_reasoning_loop"
-  - name: "reflexion_self_critique"
-    artifact_types: ["agent_yaml"]
-    abstract: "Enabling autonomous self-improvement and failure recovery via Reflexion."
-    path: "core/skills/building/reflexion_self_critique"
-  - name: "role_based_crew_collaboration"
-    artifact_types: ["agent_yaml"]
-    abstract: "Building flat, peer-to-peer agent networks based on the CrewAI topology."
-    path: "core/skills/building/role_based_crew_collaboration"
-  - name: "metagpt_sop_simulation"
-    artifact_types: ["agent_yaml"]
-    abstract: "Building strict sequential corporate pipelines mirroring MetaGPT/ChatDev."
-    path: "core/skills/building/metagpt_sop_simulation"
-  - name: "autogen_conversational_routing"
-    artifact_types: ["agent_yaml"]
-    abstract: "Designing dynamic A2A conversational graphs and ChatManagers via AutoGen patterns."
-    path: "core/skills/building/autogen_conversational_routing"
-  - name: "constraint_saturation_limits"
-    artifact_types: ["agent_yaml"]
-    abstract: "Preventing 'Over-steering' and the breakdown of LLM attention mechanisms."
-    path: "core/skills/building/constraint_saturation_limits"
-  - name: "cognitive_skill_taxonomy"
-    artifact_types: ["agent_yaml"]
-    abstract: "Standardizing how the factory categorizes agent skills (persona, tool, workflow)."
-    path: "core/skills/building/cognitive_skill_taxonomy"
-  - name: "prompt_compression_techniques"
-    artifact_types: ["agent_yaml"]
-    abstract: "Optimizing token efficiency for agent-to-agent communication via Caveman Prompting."
-    path: "core/skills/building/prompt_compression_techniques"
-  - name: "structured_meta_prompting"
-    artifact_types: ["agent_yaml"]
-    abstract: "Framework for writing rigorous, code-like system prompts using pseudo-code tags."
-    path: "core/skills/building/structured_meta_prompting"
-  - name: "file_editing_strategies"
-    artifact_types: ["agent_yaml"]
-    abstract: "Instructing code-generating agents on how to modify files based on scale (diffs vs overwrites)."
-    path: "core/skills/building/file_editing_strategies"
-  - name: "twelve_factor_agents"
-    artifact_types: ["agent_yaml"]
-    abstract: "Building production-grade, scalable agents using 12-Factor methodologies."
-    path: "core/skills/building/twelve_factor_agents"
-  - name: "modular_agent_identity"
-    artifact_types: ["agent_yaml"]
-    abstract: "Preventing system prompt bloat by modularizing personality and rules (e.g. SOUL.md)."
-    path: "core/skills/building/modular_agent_identity"
-  - name: "prompt_complexity_bounds"
-    artifact_types: ["agent_yaml"]
-    abstract: "Identifying when a prompt is too complex and must be transitioned to an agentic workflow."
-    path: "core/skills/building/prompt_complexity_bounds"
-  - name: "task_decomposition_patterns"
-    artifact_types: ["agent_yaml"]
-    abstract: "Safely decomposing complex workflows without falling into the overengineering trap."
-    path: "core/skills/building/task_decomposition_patterns"
-  - name: "ambiguity_resolution"
-    artifact_types: ["agent_yaml"]
-    abstract: "How orchestrators handle underspecified intent via state machine interrogation."
-    path: "core/skills/building/ambiguity_resolution"
-  - name: "analogical_mapping"
-    artifact_types: ["agent_yaml"]
-    abstract: "Structural templates and schemas for Analogical Prompting and Transfer."
-    path: "core/skills/building/reasoning/analogical_mapping"
-  - name: "dialectical_synthesis"
-    artifact_types: ["agent_yaml"]
-    abstract: "State geometry for Thesis -> Antithesis -> Synthesis critique loops."
-    path: "core/skills/building/reasoning/dialectical_synthesis"
-  - name: "epidemiological_causal_inference"
-    artifact_types: ["agent_yaml"]
-    abstract: "Evaluation of causal hypotheses using Bradford Hill Criteria."
-    path: "core/skills/building/reasoning/epidemiological_causal_inference"
-  - name: "counterfactual_simulation"
-    artifact_types: ["agent_yaml"]
-    abstract: "Simulating do-interventions via causal engines like dowhy."
-    path: "core/skills/building/reasoning/counterfactual_simulation"
-  - name: "glass_box_traceability"
-    artifact_types: ["agent_yaml"]
-    abstract: "Explicit assumption boundaries for FDA/GxP compliance."
-    path: "core/skills/building/reasoning/glass_box_traceability"
-  - name: "bayesian_orchestration"
-    artifact_types: ["agent_yaml"]
-    abstract: "Tracking prior and posterior beliefs for uncertain routing."
-    path: "core/skills/building/reasoning/bayesian_orchestration"
-  - name: "abductive_root_cause"
-    artifact_types: ["agent_yaml"]
-    abstract: "Finding the most plausible cause from observed symptoms."
-    path: "core/skills/building/reasoning/abductive_root_cause"
+
 tools:
   - name: "local_fs_reader"
 system_prompt: |
@@ -139,14 +32,14 @@ system_prompt: |
   You operate strictly as a deterministic generation node within a DeepAgent Context Engineering harness.
   You DO NOT interrogate the user. You DO NOT ask clarifying questions.
 
-  You will receive a saturated context payload from the Project Initiation Orchestrator. 
-  Your ONLY job is to deterministically generate the requested files.
+  You will receive a saturated context payload from the Project Initiation Orchestrator, which may include relationships mapping back to large context files evaluated by the `librarian_pm`.
+  Your ONLY job is to deterministically generate the requested files. The files you generate MUST construct "opinionated deep_agents" in alignment with the `deepagents` Python library and LangChain v1 patterns.
 
   Required Output Files:
   1. `project.yaml` - The Project Manifest following the CoReason schema.
   2. `system/agents/orchestrator_agent.yaml` - The newly defined Project Orchestrator utilizing the `local_fs_writer` and `local_fs_reader` tools.
 
-  CRITICAL MAPPING RULE: The legacy input (e.g. `sp_prefix`, `sp_suffix`, `memory_content`) MUST be mathematically mapped and collapsed into the strict `AgentManifest` schema fields (`name`, `description`, `system_prompt`, `skills`, `security`). DO NOT output legacy fields like `output_key`, `success_status`, or `sp_prefix` in the final output. Compose them into the single `system_prompt` string.
+  CRITICAL MAPPING RULE: The legacy input (e.g. `sp_prefix`, `sp_suffix`, `memory_content`) MUST be mathematically mapped and collapsed into the strict `AgentManifest` schema fields (`name`, `description`, `system_prompt`, `skills`, `security`). DO NOT output legacy fields like `output_key`, `success_status`, or `sp_prefix` in the final output. Compose them into the single `system_prompt` string. Ensure that the `executor` block explicitly defines `harness: deepagents`.
   
   ADDITIONAL VALIDATION RULES:
   1. YAML Formatting: NEVER indent top-level keys (like `name`, `description`, `system_prompt`). They must start at column 0.
