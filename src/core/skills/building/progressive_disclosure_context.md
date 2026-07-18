@@ -5,12 +5,6 @@
 
 When an agent must reason over massive datasets (e.g., entire codebases, 1000-page regulatory filings, or raw database dumps), you must explicitly forbid loading the full dataset into the initial context window. LLMs suffer from the "lost in the middle" phenomenon and massive latency spikes when contexts become saturated.
 
-
-
-### Integration Contract
-- **Compute Constraints**: Stateless
-- **Side-Effect Risk**: Read-Only
-
 ### The Progressive Disclosure Framework
 Inject the following strict rules into the agent's `<Workflow>`:
 
@@ -20,19 +14,3 @@ Inject the following strict rules into the agent's `<Workflow>`:
 
 ### Example Prompt Injection
 *"You are strictly forbidden from dumping entire files into your context window. You must use progressive disclosure: list the directory first, identify the target file, fetch its abstract, and only read the specific line numbers that pertain to the anomaly."*
-
-
-### Output Schema
-```json
-{
-  "action_result": {
-    "status": "success",
-    "details": "string"
-  }
-}
-```
-
-
-### Refusal Predicate & Negative Constraints
-- **When to Halt**: If the required context is missing, immediately halt execution and return a failure state. Do not attempt to guess or hallucinate parameters.
-- **Negative Constraints**: You are strictly forbidden from executing operations outside this defined scope.

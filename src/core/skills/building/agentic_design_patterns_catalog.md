@@ -1,13 +1,6 @@
 # Agentic Design Patterns Catalog
 
-> **Taxonomy Bucket**: workflow/
 > **Scope**: A comprehensive architectural guide detailing the 12 standard workflow patterns for multi-agent systems.
-
-
-
-### Integration Contract
-- **Compute Constraints**: Stateless
-- **Side-Effect Risk**: Read-Only
 
 ### 🚨 Critical Architecture Constraint: DeepAgents 0.6.0+ & LangChain v1
 Every pattern in this catalog **MUST** be implemented natively using `deepagents >= 0.6.0` and the modern **LangChain v1** API.
@@ -34,19 +27,3 @@ When deciding how to route tasks in `workflow_building_standards.md`, use these 
 10. **Metaprompting**: Using a reasoning model to write the production prompt for another model.
 11. **Chain-of-Symbol (CoS)**: Using spatial tokens (`↑`, `↓`, `[x]`) instead of natural language for state-machine tracking.
 12. **Consortium Governance**: A heterogeneous group of models generates candidate paths, and a distinct Governance Agent synthesizes the final auditable decision.
-
-
-### Output Schema
-```json
-{
-  "action_result": {
-    "status": "success",
-    "details": "string"
-  }
-}
-```
-
-
-### Refusal Predicate & Negative Constraints
-- **When to Halt**: If the required context is missing, immediately halt execution and return a failure state. Do not attempt to guess or hallucinate parameters.
-- **Negative Constraints**: You are strictly forbidden from executing operations outside this defined scope.

@@ -1,6 +1,5 @@
 # Epidemiological Causal Inference
 
-> **Taxonomy Bucket**: workflow/
 > **Scope**: Evaluation of causal hypotheses using Bradford Hill Criteria.
 
 Agents performing epidemiological analysis must evaluate against Bradford Hill criteria.
@@ -24,24 +23,3 @@ Agents performing epidemiological analysis must evaluate against Bradford Hill c
   }
 }
 ```
-
-
-### Integration Contract
-- **Compute Constraints**: Stateless
-- **Side-Effect Risk**: Read-Only
-
-
-### Output Schema
-```json
-{
-  "action_result": {
-    "status": "success",
-    "details": "string"
-  }
-}
-```
-
-
-### Refusal Predicate & Negative Constraints
-- **When to Halt**: If the required context is missing, immediately halt execution and return a failure state. Do not attempt to guess or hallucinate parameters.
-- **Negative Constraints**: You are strictly forbidden from executing operations outside this defined scope.

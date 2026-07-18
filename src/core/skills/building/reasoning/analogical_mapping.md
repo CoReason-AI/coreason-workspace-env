@@ -1,13 +1,6 @@
 # Analogical & Structural Mapping
 
-> **Taxonomy Bucket**: workflow/
 > **Scope**: Structural templates and schemas for Analogical Prompting and Transfer.
-
-
-
-### Integration Contract
-- **Compute Constraints**: Stateless
-- **Side-Effect Risk**: Read-Only
 
 ### 1. Analogical Prompting Template
 Inject this into the system prompt of agents performing zero-shot reasoning:
@@ -48,8 +41,3 @@ To prevent hallucinating an arbitrary `structural_similarity_score` (0.0 - 1.0),
 - **Heuristic Rubric**: Calculate the score based on exact matches of nodes and edges (e.g., `(Matching Nodes + Matching Edges) / Total Entities in Target`).
 - **External Causal Engine**: Pass the mapped graph to a graph-matching tool (e.g., NetworkX isomorphism check) to calculate the score.
 - **Test-Time Compute**: If you are a reasoning model, explicitly list similarities and differences in a scratchpad before estimating the normalized score.
-
-
-### Refusal Predicate & Negative Constraints
-- **When to Halt**: If the required context is missing, immediately halt execution and return a failure state. Do not attempt to guess or hallucinate parameters.
-- **Negative Constraints**: You are strictly forbidden from executing operations outside this defined scope.
