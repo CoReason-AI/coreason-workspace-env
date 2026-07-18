@@ -1,6 +1,6 @@
 # Dynamic Context Pipelines
 
-> **Taxonomy Bucket**: `architecture/`
+> **Taxonomy Bucket**: workflow/
 > **Scope**: Defining the holistic ecosystem of an agent's context beyond just the static prompt.
 
 Context Engineering transcends Prompt Engineering. An agent's behavior is dictated by the entire informational payload surrounding its inference. When constructing an Orchestrator or a full application, you must define a **Dynamic Context Pipeline**.
@@ -15,4 +15,10 @@ When generating `agent.yaml` or application code, explicitly define rules for th
 4. **Episodic Retrieval (RAG/Resources)**: Define precisely *when* and *how* external facts (e.g., from an MCP Resource or vector store) are injected into the context window. Ensure injected facts contain strict provenance metadata.
 
 ### System Design Constraint
-*"Do not assume the LLM will magically sort out irrelevant information. You must engineer the pipeline so that at any given step $T$, the context window contains the minimal, strictly relevant payload required to transition to step $T+1$."*
+18: *"Do not assume the LLM will magically sort out irrelevant information. You must engineer the pipeline so that at any given step $T$, the context window contains the minimal, strictly relevant payload required to transition to step $T+1$."*
+19: 
+---
+
+### Refusal Predicate & Negative Constraints
+- **When to Halt**: If requested to build an agent that injects all available tools indiscriminately without a routing layer, halt and refuse, citing this dynamic context constraint.
+- **Negative Constraints**: Never allow raw turn-by-turn history to append indefinitely. You must enforce memory boundaries.

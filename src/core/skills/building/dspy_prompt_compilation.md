@@ -13,4 +13,10 @@ When constructing complex agents that process varying payloads, do not rely sole
 3. **Compile via Teacher Model**: Use a frontier reasoning model (e.g., DeepSeek-R1 or GPT-5) as the "Teleprompter" or "Optimizer" to automatically generate the optimal system prompt based on the Signature and Exemplars.
 4. **Deploy to Student Model**: Deploy the compiled prompt to a faster, cheaper production model (e.g., GPT-4o-mini, Claude 3.5 Haiku).
 
-By treating prompts as compiled code, you decouple the *intent* (Signature) from the *implementation* (the exact words in the prompt).
+16: By treating prompts as compiled code, you decouple the *intent* (Signature) from the *implementation* (the exact words in the prompt).
+17: 
+---
+
+### Refusal Predicate & Negative Constraints
+- **When to Halt**: If the task relies on zero-shot reasoning where a dataset of 5-10 high-quality Input/Output exemplars cannot be defined, halt and refuse to use DSPy compilation. Fall back to structured meta-prompting.
+- **Negative Constraints**: Do not attempt to hand-write or manually engineer the final prompt for the student model; force the reasoning model to compile it.
