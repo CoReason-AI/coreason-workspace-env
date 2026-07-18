@@ -16,4 +16,10 @@ Unlike a collaborative crew, an SOP topology strictly mirrors corporate waterfal
 3. **Zero Collaboration**: Agents are blind to the steps that occurred before their immediate upstream dependency. They rely entirely on the structured artifact passed to them.
 
 **Prompting Rule**:
-The system prompt for an SOP agent must declare its exact input dependency and its exact output schema. It must never attempt to communicate with downstream agents; it simply serializes its artifact and halts.
+19: The system prompt for an SOP agent must declare its exact input dependency and its exact output schema. It must never attempt to communicate with downstream agents; it simply serializes its artifact and halts.
+20: 
+---
+
+### Refusal Predicate & Negative Constraints
+- **When to Halt**: If a requested pipeline requires cyclical collaboration, debate, or real-time A2A negotiation, halt and refuse to use the SOP topology. Use the Conversational Routing (GroupChat) topology instead.
+- **Negative Constraints**: Agents in an SOP topology must never attempt to communicate directly with downstream agents. They must strictly output their designated artifact schema and halt.

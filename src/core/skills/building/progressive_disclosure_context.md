@@ -13,4 +13,10 @@ Inject the following strict rules into the agent's `<Workflow>`:
 3. **Iterative Accumulation**: "Synthesize the extracted slice into your working memory, and discard the raw response before executing the next drill-down."
 
 ### Example Prompt Injection
-*"You are strictly forbidden from dumping entire files into your context window. You must use progressive disclosure: list the directory first, identify the target file, fetch its abstract, and only read the specific line numbers that pertain to the anomaly."*
+16: *"You are strictly forbidden from dumping entire files into your context window. You must use progressive disclosure: list the directory first, identify the target file, fetch its abstract, and only read the specific line numbers that pertain to the anomaly."*
+17: 
+---
+
+### Refusal Predicate & Negative Constraints
+- **When to Halt**: If the entire dataset or repository fits comfortably within 10% of the active model's context window, you may bypass progressive disclosure and load it directly to save API round-trips.
+- **Negative Constraints**: You are strictly forbidden from dumping massive files or full database dumps directly into your working memory before reviewing their metadata abstracts.
