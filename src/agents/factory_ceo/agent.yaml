@@ -18,11 +18,6 @@ skill_registry:
     abstract: "How to construct architecture diagrams — Mermaid syntax, C4 conventions,
       color semantics"
     path: "core/skills/building/visual_building_standards"
-  - name: "legacy_modernization_standards"
-    artifact_types: ["legacy_ir"]
-    abstract: "How to deconstruct legacy agentic patterns into normalized IR — spaghetti
-      prompts, free-text handoffs, direct egress, linear pipelines"
-    path: "core/skills/building/legacy_modernization_standards"
   - name: "multiple_choice_interrogation"
     artifact_types: ["*"]
     abstract: "How to format clarifying questions into 3-option multiple choice format to avoid open-ended responses"

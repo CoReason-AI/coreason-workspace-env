@@ -5,7 +5,6 @@ description: "Supervisor for Knowledge Management. Orchestrates the Epistemic Fi
 dependencies:
   - "knowledge_archivist"
   - "knowledge_consultant"
-  - "causal_inference_consultant"
 skill_registry:
   - name: "progressive_disclosure_context"
     artifact_types: ["*"]

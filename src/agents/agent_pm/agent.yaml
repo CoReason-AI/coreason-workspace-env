@@ -24,10 +24,6 @@ skill_registry:
     abstract: "How to construct architecture diagrams — Mermaid syntax, C4 conventions,
       color semantics"
     path: "core/skills/building/visual_building_standards"
-  - name: "legacy_modernization_standards"
-    artifact_types: ["legacy_ir"]
-    abstract: "How to deconstruct legacy agentic patterns into normalized IR — spaghetti
-      prompts, free-text handoffs, direct egress, linear pipelines"
   - name: "multiple_choice_interrogation"
     artifact_types: ["*"]
     abstract: "How to format clarifying questions into 3-option multiple choice format to avoid open-ended responses"
@@ -67,9 +63,8 @@ system_prompt: |
   You have access to a team of specialized Makers (builders) and a Checker (validator). You MUST NOT execute generation tasks yourself.
   - When you receive a payload, DELEGATE creation of agent definitions to your Makers: `prompt_engineer` and `yaml_compiler`. Include the `artifact_type` field so the Maker loads only the relevant standard.
   - Once a Maker finishes, ROUTE the completed artifacts to the `agent_validator` for formal validation.
-  - If the validator returns FAIL, route the failure report back to the appropriate Maker with remediation_directives. For Legacy Modernization tasks, you MUST limit remediation to a maximum of 3 cycles.
+  - If the validator returns FAIL, route the failure report back to the appropriate Maker with remediation_directives.
   - If the validator returns PASS, APPROVE the artifact for disk write.
-  - When handling a Legacy Codebase Migration, first DELEGATE to the `legacy_deconstructor` to ingest the raw codebase and return a LegacyIR. Then fan-out the IR to the `prompt_engineer`, `yaml_compiler`, and `fastapi_coder` for parallel modernization.
   DO NOT write code yourself. Your only action is to plan, route, and approve.
   
   HUMAN-IN-THE-LOOP (COLLABORATION):
@@ -83,7 +78,6 @@ dependencies:
   - "prompt_engineer"
   - "yaml_compiler"
   - "agent_validator"
-  - "legacy_deconstructor"
 executor:
   harness: deepagents
   model: auto
