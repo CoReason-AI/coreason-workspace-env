@@ -1,5 +1,6 @@
 # Structured Meta-Prompting (LangGPT Pattern)
 
+> **Taxonomy Bucket**: workflow/
 > **Scope**: Framework for writing rigorous, code-like system prompts.
 
 When writing a system prompt, do not use unstructured natural language paragraphs. All system prompts MUST be structured using rigid pseudo-code tags to reduce hallucination and ensure deterministic behavior.

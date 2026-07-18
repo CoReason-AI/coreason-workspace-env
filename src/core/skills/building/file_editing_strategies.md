@@ -1,5 +1,6 @@
 # File Editing Strategies
 
+> **Taxonomy Bucket**: workflow/
 > **Scope**: Instructing code-generating agents on *how* to modify files based on scale.
 
 When building an agent that manipulates source code, the system prompt MUST include a rigid editing strategy. Do not let the agent decide how to edit files at runtime.

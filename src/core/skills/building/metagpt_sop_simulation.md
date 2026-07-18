@@ -1,5 +1,6 @@
 # SOP Simulation Hierarchy
 
+> **Taxonomy Bucket**: workflow/
 > **Scope**: Building strict sequential corporate pipelines (MetaGPT / ChatDev topology).
 
 When the user requests a software engineering or highly regulated manufacturing pipeline, Builders must construct an SOP Simulation hierarchy.

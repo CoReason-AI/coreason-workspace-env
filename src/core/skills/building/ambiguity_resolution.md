@@ -1,5 +1,6 @@
 # Ambiguity Resolution & Poorly Defined Prompts
 
+> **Taxonomy Bucket**: workflow/
 > **Scope**: How orchestrators handle underspecified intent.
 
 LLMs are prone to guessing user intent when provided with a poorly defined prompt. In a rigorous factory environment, this is unacceptable.

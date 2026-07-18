@@ -1,5 +1,6 @@
 # 12-Factor Agents
 
+> **Taxonomy Bucket**: workflow/
 > **Scope**: Building production-grade, scalable agents.
 
 When constructing DeepAgent YAML manifests, enforce the 12-Factor Agent methodology:

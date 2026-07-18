@@ -1,5 +1,6 @@
 # Counterfactual Simulation (Do-Calculus)
 
+> **Taxonomy Bucket**: workflow/
 > **Scope**: Simulating do-interventions via causal engines like dowhy.
 
 When proposing interventions, the agent must output a causal graph definition.

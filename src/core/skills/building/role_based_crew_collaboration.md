@@ -1,5 +1,6 @@
 # Role-Based Crew Collaboration
 
+> **Taxonomy Bucket**: persona/
 > **Scope**: Building flat, peer-to-peer agent networks (CrewAI topology).
 
 When the user requests an agent network designed for collaborative brainstorming, creative generation, or open-ended research, Builders must construct a Role-Based Crew topology rather than a rigid Orchestrator-Worker tree.

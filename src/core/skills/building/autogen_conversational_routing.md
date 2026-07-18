@@ -1,5 +1,6 @@
 # Conversational Routing (GroupChat)
 
+> **Taxonomy Bucket**: workflow/
 > **Scope**: Designing dynamic A2A (Agent-to-Agent) conversational graphs (AutoGen topology).
 
 When the user requests a multi-agent system where agents need to share tools, argue, or deliberate in real-time, Builders must use the Conversational Routing topology.

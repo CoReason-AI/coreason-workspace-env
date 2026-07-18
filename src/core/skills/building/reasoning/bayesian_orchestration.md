@@ -1,5 +1,6 @@
 # Bayesian Belief Updating (Orchestrators)
 
+> **Taxonomy Bucket**: workflow/
 > **Scope**: Tracking prior and posterior beliefs for uncertain routing.
 
 ### 1. Schema

@@ -1,5 +1,6 @@
 # Multiple Choice Interrogation
 
+> **Taxonomy Bucket**: workflow/
 > **Scope**: How orchestrators clarify ambiguous intent and prompt the user.
 
 When the Orchestrator identifies that the user's intent is underspecified and requires clarification, it must NOT ask open-ended questions. Humans prefer to select from curated options rather than writing extensive open-ended requirements.

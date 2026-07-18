@@ -1,5 +1,6 @@
 # Modular Agent Identity
 
+> **Taxonomy Bucket**: persona/
 > **Scope**: Preventing system prompt bloat by modularizing personality and rules.
 
 Do not cram every behavioral rule, safety guideline, and tone instruction into a single massive `system_prompt` block. 

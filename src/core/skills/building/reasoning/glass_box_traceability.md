@@ -1,5 +1,6 @@
 # Glass Box Traceability
 
+> **Taxonomy Bucket**: workflow/
 > **Scope**: Explicit assumption boundaries for FDA/GxP compliance.
 
 ### 1. Schema

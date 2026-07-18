@@ -1,5 +1,6 @@
 # Abductive Root-Cause Isolation
 
+> **Taxonomy Bucket**: workflow/
 > **Scope**: Finding the most plausible cause from observed symptoms.
 
 ### 1. Schema

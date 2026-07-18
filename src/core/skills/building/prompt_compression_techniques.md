@@ -1,5 +1,6 @@
 # Prompt Compression Techniques
 
+> **Taxonomy Bucket**: workflow/
 > **Scope**: Optimizing token efficiency for agent-to-agent communication.
 
 When writing internal prompts (prompts used by Orchestrators to speak to Sub-Agents), use agent-side prompt compression to save tokens.

@@ -1,5 +1,6 @@
 # Task Decomposition Patterns
 
+> **Taxonomy Bucket**: workflow/
 > **Scope**: Safely decomposing complex workflows without falling into the "overengineering trap."
 
 When decomposing a monolithic prompt into an agentic workflow, apply the following design patterns safely.

@@ -1,5 +1,6 @@
 # Dialectical Synthesis
 
+> **Taxonomy Bucket**: workflow/
 > **Scope**: State geometry for Thesis -> Antithesis -> Synthesis critique loops.
 
 ### State Geometry

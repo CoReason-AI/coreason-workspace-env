@@ -1,5 +1,6 @@
 # Epidemiological Causal Inference
 
+> **Taxonomy Bucket**: workflow/
 > **Scope**: Evaluation of causal hypotheses using Bradford Hill Criteria.
 
 Agents performing epidemiological analysis must evaluate against Bradford Hill criteria.

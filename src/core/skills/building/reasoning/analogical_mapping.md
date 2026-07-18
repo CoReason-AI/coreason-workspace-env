@@ -1,5 +1,6 @@
 # Analogical & Structural Mapping
 
+> **Taxonomy Bucket**: workflow/
 > **Scope**: Structural templates and schemas for Analogical Prompting and Transfer.
 
 ### 1. Analogical Prompting Template

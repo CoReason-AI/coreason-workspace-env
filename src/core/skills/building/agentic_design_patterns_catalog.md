@@ -1,5 +1,6 @@
 # Agentic Design Patterns Catalog
 
+> **Taxonomy Bucket**: workflow/
 > **Scope**: A comprehensive architectural guide detailing the 12 standard workflow patterns for multi-agent systems.
 
 ### 🚨 Critical Architecture Constraint: DeepAgents 0.6.0+ & LangChain v1

@@ -1,5 +1,6 @@
 # DSPy Prompt Compilation Pattern
 
+> **Taxonomy Bucket**: workflow/
 > **Scope**: Moving from manual prompt engineering to programmatic prompt compilation.
 
 When constructing complex agents that process varying payloads, do not rely solely on static hand-written system prompts. Instead, implement the DSPy 3.0 Prompt Compilation pattern where possible.

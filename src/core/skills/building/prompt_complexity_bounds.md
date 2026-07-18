@@ -1,5 +1,6 @@
 # Prompt Complexity Bounds
 
+> **Taxonomy Bucket**: workflow/
 > **Scope**: Identifying when a prompt is too complex and must be transitioned to an agentic workflow.
 
 When writing or compiling agent prompts, evaluate them against these boundary conditions. If any condition is met, the single-prompt design is invalid and MUST be decomposed.
