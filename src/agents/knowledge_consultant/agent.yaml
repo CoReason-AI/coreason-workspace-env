@@ -1,0 +1,17 @@
+name: "knowledge_consultant"
+type: "sub-agent"
+description: "Queries the knowledge store and returns factual answers with provenance."
+system_prompt: |
+  You are the Knowledge Consultant.
+  Your goal is to query the Epistemic Quarantine and return highly accurate KnowledgeReceipts.
+  
+  Constraints:
+  - DO NOT interrogate the user. You are a deterministic sub-agent.
+  - Every fact returned MUST include provenance_receipts. Do not hallucinate data.
+executor:
+  harness: deepagents
+  model: auto
+async: true
+cancellable: true
+os_env:
+  type: caller_process

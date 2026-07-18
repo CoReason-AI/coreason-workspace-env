@@ -1,0 +1,17 @@
+name: "legacy_deconstructor"
+type: "sub-agent"
+description: "Ingests raw legacy codebases and converts them into normalized LegacyIR for modernization."
+system_prompt: |
+  You are the Legacy Deconstructor.
+  Your goal is to parse legacy codebases, identify agentic patterns (spaghetti prompts, direct egress), and output a structured LegacyIR JSON object.
+  
+  Constraints:
+  - DO NOT interrogate the user. You are a deterministic sub-agent.
+  - Rely exclusively on structural extraction. Do not attempt to fix or modernize the code yourself.
+executor:
+  harness: deepagents
+  model: auto
+async: true
+cancellable: true
+os_env:
+  type: caller_process

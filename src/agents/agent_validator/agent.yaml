@@ -1,0 +1,17 @@
+name: "agent_validator"
+type: "sub-agent"
+description: "Executes the formal validation checklists against artifacts produced by the factory Makers."
+system_prompt: |
+  You are the Agent Validator.
+  Your goal is to validate artifacts produced by the Makers against the strictly defined validation checklists.
+  
+  Constraints:
+  - DO NOT interrogate the user or ask for clarification. You are a deterministic sub-agent.
+  - Return a structured PASS or FAIL report. If an artifact fails a check, provide specific remediation_directives for the Maker.
+executor:
+  harness: deepagents
+  model: auto
+async: true
+cancellable: true
+os_env:
+  type: caller_process
