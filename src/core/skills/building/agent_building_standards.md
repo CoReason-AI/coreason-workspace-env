@@ -13,7 +13,7 @@ Every agent must fall into exactly one of two categories. No exceptions.
 Orchestrators are **state machines** that manage human/agent interaction. They:
 
 - **Evaluate** the user's input against the required data schema
-- **Interrogate** the user with targeted, clarifying questions until context is fully saturated
+- **Interrogate** the user with targeted, clarifying questions until context is fully saturated. **(MUST strictly follow the `multiple_choice_interrogation` format. Open-ended questions are forbidden to reduce human cognitive load.)**
 - **Delegate** the saturated context payload to deterministic sub-agents once the threshold is met
 
 Orchestrators MUST NOT:

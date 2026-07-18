@@ -25,7 +25,7 @@ When creating or modifying agents within this platform (specifically in `src/age
 
 1. **State Machine Orchestrators**: Primary orchestrators should not execute tasks statically. They must act as state machines that:
    - **Evaluate**: Actively measure the user's input against the required data schema.
-   - **Interrogate**: Loop with the user (asking targeted, clarifying questions) until the context is fully saturated.
+   - **Interrogate**: Loop with the user until the context is fully saturated. **CRITICAL: You MUST use the `multiple_choice_interrogation` pattern. Never ask open-ended questions. Synthesize ambiguity into 3 concrete options (A, B, C) and an 'Other' option to reduce human cognitive load.**
    - **Delegate**: Once the internal context threshold is met, stop talking to the user and instantly delegate the raw context payload to a specialized sub-agent.
 
 2. **Deterministic Sub-Agents**: Sub-agents (like compilers or generators) should operate deterministically. They do NOT interrogate the user. They accept fully saturated context payloads from the Orchestrator, execute the computational or destructive task (e.g., writing files), and return execution control.
