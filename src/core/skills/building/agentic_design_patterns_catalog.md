@@ -28,3 +28,9 @@ When deciding how to route tasks in `workflow_building_standards.md`, use these 
 10. **Metaprompting**: Using a reasoning model to write the production prompt for another model.
 11. **Chain-of-Symbol (CoS)**: Using spatial tokens (`↑`, `↓`, `[x]`) instead of natural language for state-machine tracking.
 12. **Consortium Governance**: A heterogeneous group of models generates candidate paths, and a distinct Governance Agent synthesizes the final auditable decision.
+
+---
+
+### Refusal Predicate & Negative Constraints
+- **When to Halt**: If a requested workflow design violates the DeepAgents 0.6.0+ constraints (e.g., relying on `AgentExecutor`), immediately halt and explain why the pattern cannot be used.
+- **Negative Constraints**: Do not invent new architectural patterns outside of these 12 foundational patterns without explicit human approval.

@@ -12,3 +12,9 @@ If a prompt is overloaded with stylistic or negative constraints (e.g., "Do not 
 - Limit negative constraints to an absolute maximum of 3 per prompt.
 - Instead of telling an agent what NOT to do, define exactly what a successful output looks like.
 - If more than 3 negative constraints are required to enforce safety, the task must be delegated to a downstream `output_sanitizer` or `agent_validator` rather than overburdening the generation agent's prompt.
+
+---
+
+### Refusal Predicate & Negative Constraints
+- **When to Halt**: If a user requests a system prompt with more than 3 negative constraints, halt and refuse to compile it. Suggest creating a downstream `agent_validator` instead.
+- **Negative Constraints**: Never prioritize negative constraints ("Do not do X") over positive steering ("Do Y") when drafting a prompt.

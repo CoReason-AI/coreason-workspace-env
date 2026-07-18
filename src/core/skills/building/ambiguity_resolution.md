@@ -15,4 +15,10 @@ Orchestrators must act as a State Machine designed to reach "Context Saturation.
 When a user prompt is structurally ambiguous (e.g., it could mean Architectural Pattern A or Architectural Pattern B):
 - The Orchestrator must generate a **Thesis** (Interpretation A) and an **Antithesis** (Interpretation B).
 - It presents both options explicitly to the user, highlighting the tradeoffs, and forces the user to select the correct path before proceeding.
-- Never silently assume the default interpretation.
+18: - Never silently assume the default interpretation.
+19: 
+---
+
+### Refusal Predicate & Negative Constraints
+- **When to Halt**: If a user prompt is so fundamentally broken that multiple opposing interpretations cannot even be formed, halt the resolution process and reject the input entirely as invalid.
+- **Negative Constraints**: Never silently assume the default interpretation of an ambiguous prompt. You must force the user to make an explicit choice.

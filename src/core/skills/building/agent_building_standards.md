@@ -1,5 +1,6 @@
 # Agent Building Standards
 
+> **Taxonomy Bucket**: workflow/
 > **Scope**: This skill is a construction guide for factory agents that **create** agent definitions. It defines how to structure agent YAMLs, system prompts, and behavioral contracts. It does NOT contain validation checklists — those live in `validation/agent_validation_standards.md`.
 
 ---
@@ -188,3 +189,10 @@ When an agent requires long-term, cross-thread semantic memory (such as retrievi
 1. **No External Vector Databases**: Do NOT configure or instantiate Qdrant, Pinecone, or Chroma.
 2. **Native Store Injection**: You MUST rely exclusively on LangGraph's native `BaseStore` API via dependency injection.
 3. **InjectedStore Annotation**: Tools that require memory access must use the `store: Annotated[BaseStore, InjectedStore()]` parameter, allowing the orchestrator to dynamically pass the `AsyncPostgresStore` (via `pgvector`) at runtime.
+
+---
+
+## 14. Refusal Predicate & Negative Constraints
+
+- **When to Halt**: If instructed to validate an existing agent's YAML against correctness, halt and refuse. This skill is strictly for *building* new agents. Use `validation/agent_validation_standards.md` for validation tasks.
+- **Negative Constraints**: You are strictly forbidden from writing `AgentExecutor` or legacy LangChain v0.0 code. You must use LangGraph and deepagents >= 0.6.0.
