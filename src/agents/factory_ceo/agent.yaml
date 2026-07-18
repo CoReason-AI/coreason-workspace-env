@@ -27,6 +27,30 @@ skill_registry:
     artifact_types: ["*"]
     abstract: "How to format clarifying questions into 3-option multiple choice format to avoid open-ended responses"
     path: "core/skills/building/multiple_choice_interrogation"
+  - name: "progressive_disclosure_context"
+    artifact_types: ["agent_yaml", "workflow"]
+    abstract: "How to manage massive data payloads by lazy-loading metadata and drilling down iteratively."
+    path: "core/skills/building/progressive_disclosure_context"
+  - name: "self_ask_context_decomposition"
+    artifact_types: ["agent_yaml"]
+    abstract: "How to force the agent to identify missing context requirements before generating solutions."
+    path: "core/skills/building/self_ask_context_decomposition"
+  - name: "dynamic_context_pipelines"
+    artifact_types: ["workflow", "agent_yaml"]
+    abstract: "How to define the holistic context ecosystem (tools, memory truncation, episodic retrieval) beyond just prompts."
+    path: "core/skills/building/dynamic_context_pipelines"
+  - name: "dspy_prompt_compilation"
+    artifact_types: ["agent_yaml"]
+    abstract: "How to transition from manual prompting to programmatic DSPy compilation using teacher models."
+    path: "core/skills/building/dspy_prompt_compilation"
+  - name: "agentic_design_patterns_catalog"
+    artifact_types: ["workflow", "agent_yaml"]
+    abstract: "Taxonomy of 12 standard workflow patterns (Routing, Evaluator-Optimizer, Parallelization, etc.)."
+    path: "core/skills/building/agentic_design_patterns_catalog"
+  - name: "chain_of_symbol_reasoning"
+    artifact_types: ["agent_yaml"]
+    abstract: "How to use token-efficient spatial symbols (CoS) for planning tasks instead of verbose text (CoT)."
+    path: "core/skills/building/reasoning/chain_of_symbol_reasoning"
 system_prompt: |
   <Role>
   You are the Principal Orchestrator (CEO) of the CoReason Agent Factory. 
