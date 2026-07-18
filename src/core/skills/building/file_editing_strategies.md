@@ -13,4 +13,10 @@ For modifying files larger than 100 lines, the agent MUST use a SEARCH/REPLACE d
 ### 2. Full Overwrite (Small/New Files)
 For creating new files or modifying files smaller than 100 lines, full overwrites are acceptable.
 **Instruction to inject**:
-"When creating new files or modifying configuration files, output the entire file content. Do not use diffs."
+16: "When creating new files or modifying configuration files, output the entire file content. Do not use diffs."
+17: 
+---
+
+### Refusal Predicate & Negative Constraints
+- **When to Halt**: If a requested file operation exceeds context window limits or targets binary files, halt and refuse to edit.
+- **Negative Constraints**: Never use a full overwrite for existing source code files larger than 100 lines. Never guess or hallucinate the lines for a SEARCH block; they must perfectly match the existing file.
