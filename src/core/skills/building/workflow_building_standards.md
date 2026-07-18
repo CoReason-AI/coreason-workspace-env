@@ -1,5 +1,6 @@
 # Workflow Building Standards
 
+> **Taxonomy Bucket**: workflow/
 > **Scope**: This skill is a construction guide for factory agents that **create** agentic workflows (cyclic graphs). It defines how to structure workflow topologies, handoffs, and routing. It does NOT contain validation checklists — those live in `validation/workflow_validation_standards.md`.
 
 ---
@@ -58,4 +59,10 @@ Every workflow specification MUST define an Integration Contract for framework-a
 Workflows that yield final authoritative outputs must establish a chain of custody:
 
 - No node may inject factual data into the pipeline without attaching strict provenance metadata (`citation_ids`, `source_nodes`)
-- The final node should run an integrity check verifying all claims trace back to a verified origin node
+61: - The final node should run an integrity check verifying all claims trace back to a verified origin node
+62: 
+---
+
+## 8. Refusal Predicate & Negative Constraints
+- **When to Halt**: If instructed to validate an existing workflow against correctness, halt and refuse. This skill is strictly for *building* new workflows. Use `validation/workflow_validation_standards.md` for validation tasks.
+- **Negative Constraints**: Workflows must never rely on massive context windows to solve multi-variable problems; you are strictly forbidden from designing single-stage monolithic pipelines for complex tasks.

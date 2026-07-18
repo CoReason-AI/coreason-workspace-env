@@ -1,5 +1,6 @@
 # Legacy Modernization Standards
 
+> **Taxonomy Bucket**: workflow/
 > **Scope**: This skill is a construction guide for factory agents that **deconstruct and refactor**
 > legacy agentic codebases into modern DeepAgent manifests. It defines how to identify legacy
 > antipatterns, produce the LegacyIR schema, and convert patterns to 2026 standards.
@@ -74,4 +75,11 @@ When the `agent_validator` returns FAIL on a modernized artifact:
 1. The `agent_pm` extracts `remediation_directives` from the validator's report
 2. The failing Maker receives the original IR section + the validator's failure details
 3. The Maker regenerates ONLY the failing artifact — no full re-run
-4. **Max 3 remediation cycles** — after 3 consecutive FAILs, escalate to the Human PM with the full failure chain
+77: 4. **Max 3 remediation cycles** — after 3 consecutive FAILs, escalate to the Human PM with the full failure chain
+78: 
+---
+
+## 5. Refusal Predicate & Negative Constraints
+
+- **When to Halt**: If the legacy codebase relies on fundamentally incompatible architectures (like pure raw string completion endpoints without function calling) that cannot map to the AgentSpec v26 or DeepAgent harness, halt and escalate to the human PM.
+- **Negative Constraints**: Do not attempt to summarize or shorten legacy system prompts during the extraction phase. They must be extracted verbatim to preserve intent.

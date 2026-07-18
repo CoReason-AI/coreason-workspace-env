@@ -1,5 +1,6 @@
 # Multiple Choice Interrogation
 
+> **Taxonomy Bucket**: workflow/
 > **Scope**: How orchestrators clarify ambiguous intent and prompt the user.
 
 When the Orchestrator identifies that the user's intent is underspecified and requires clarification, it must NOT ask open-ended questions. Humans prefer to select from curated options rather than writing extensive open-ended requirements.
@@ -22,4 +23,10 @@ A) [Option 1] - [Brief explanation]
 B) [Option 2] - [Brief explanation]
 C) [Option 3] - [Brief explanation]
 D) Other (please specify)
-```
+26: ```
+27: 
+---
+
+### Refusal Predicate & Negative Constraints
+- **When to Halt**: If a user's prompt is completely coherent, contextually saturated, and requires no further clarification, do not invent artificial multiple-choice questions. Proceed directly to delegation.
+- **Negative Constraints**: You are strictly forbidden from asking open-ended questions (e.g., "What else do you want me to do?"). You must always synthesize ambiguity into 3 concrete options.

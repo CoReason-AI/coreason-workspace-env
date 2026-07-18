@@ -17,4 +17,10 @@ Inject the following explicit rules into the agent's `<Workflow>`:
    - `<Yellow_Hat>`: Optimism. Strictly focus on the best-case benefits and value generation.
    - `<Green_Hat>`: Creativity. Propose lateral alternatives (e.g., repurposing the drug, alternative trial designs).
    - `<Blue_Hat>`: The Control node. Synthesize the competing 5 nodes into a mathematically or logically weighted final recommendation.
-3. **Bleed Prevention**: "Ensure that the Black Hat analysis does not prematurely try to mitigate the risks—it must only surface them. Mitigation is reserved for the Blue Hat."
+20: 3. **Bleed Prevention**: "Ensure that the Black Hat analysis does not prematurely try to mitigate the risks—it must only surface them. Mitigation is reserved for the Blue Hat."
+21: 
+---
+
+### Refusal Predicate & Negative Constraints
+- **When to Halt**: If the decision is purely mathematical or relies strictly on deterministic execution where subjective perspectives provide zero value, halt and bypass the Six Hats protocol.
+- **Negative Constraints**: You are forbidden from blending the outputs of the hats during generation. Each hat must remain strictly in its assigned cognitive mode until the Blue Hat synthesizes them.

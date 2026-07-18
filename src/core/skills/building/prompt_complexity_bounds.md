@@ -1,5 +1,6 @@
 # Prompt Complexity Bounds
 
+> **Taxonomy Bucket**: workflow/
 > **Scope**: Identifying when a prompt is too complex and must be transitioned to an agentic workflow.
 
 When writing or compiling agent prompts, evaluate them against these boundary conditions. If any condition is met, the single-prompt design is invalid and MUST be decomposed.
@@ -15,4 +16,10 @@ An LLM performs poorly when forced to rapidly switch contexts or cognitive modes
 
 ### 3. Cascading Error Brittleness
 If adjusting one instruction in a prompt reliably breaks the output of another unrelated instruction within the same prompt, the prompt is too brittle.
-**Action**: Decompose the workflow. Adding a new task to a workflow graph is a linear complexity increase (`O(n)`), whereas adding instructions to a monolithic prompt scales complexity exponentially.
+19: **Action**: Decompose the workflow. Adding a new task to a workflow graph is a linear complexity increase (`O(n)`), whereas adding instructions to a monolithic prompt scales complexity exponentially.
+20: 
+---
+
+### Refusal Predicate & Negative Constraints
+- **When to Halt**: If a prompt is explicitly categorized as a single-turn, zero-shot script and operates entirely within a single cognitive mode (e.g., pure extraction), you do not need to decompose it.
+- **Negative Constraints**: Never attempt to fix a brittle, overly complex prompt by simply adding more negative constraints. You must decompose the architecture instead.

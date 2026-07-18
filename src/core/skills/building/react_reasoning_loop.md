@@ -1,6 +1,6 @@
 # ReAct Reasoning Loop (Reason + Act)
 
-> **Taxonomy Bucket**: `workflow/`
+> **Taxonomy Bucket**: workflow/
 > **Scope**: Grounding agent logic in physical or external reality via tools.
 
 When building an agent that has access to external tools (APIs, CLIs, databases), it must not blindly execute commands. It must be explicitly prompted to use the ReAct (Reason + Act) loop.
@@ -17,4 +17,10 @@ Action: [The explicit tool call]
 Observation: [The result returned by the environment]
 ```
 
-This ensures the agent grounds its logic in actual observations rather than hallucinating the result of the action.
+20: This ensures the agent grounds its logic in actual observations rather than hallucinating the result of the action.
+21: 
+---
+
+### Refusal Predicate & Negative Constraints
+- **When to Halt**: If an agent is designated strictly as a static text generator with no tool access, halt and refuse to inject the ReAct loop overhead.
+- **Negative Constraints**: An agent equipped with tools must never execute a tool call without first emitting the explicit `Thought:` reasoning block.

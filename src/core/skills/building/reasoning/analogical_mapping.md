@@ -1,5 +1,6 @@
 # Analogical & Structural Mapping
 
+> **Taxonomy Bucket**: workflow/
 > **Scope**: Structural templates and schemas for Analogical Prompting and Transfer.
 
 ### 1. Analogical Prompting Template
@@ -40,4 +41,10 @@ Agents must output this JSON artifact before transferring knowledge:
 To prevent hallucinating an arbitrary `structural_similarity_score` (0.0 - 1.0), you MUST calculate it using the method defined in your system prompt:
 - **Heuristic Rubric**: Calculate the score based on exact matches of nodes and edges (e.g., `(Matching Nodes + Matching Edges) / Total Entities in Target`).
 - **External Causal Engine**: Pass the mapped graph to a graph-matching tool (e.g., NetworkX isomorphism check) to calculate the score.
-- **Test-Time Compute**: If you are a reasoning model, explicitly list similarities and differences in a scratchpad before estimating the normalized score.
+44: - **Test-Time Compute**: If you are a reasoning model, explicitly list similarities and differences in a scratchpad before estimating the normalized score.
+45: 
+---
+
+### Refusal Predicate & Negative Constraints
+- **When to Halt**: If a task relies entirely on a well-documented, deterministic implementation path (e.g., standard API usage), halt and refuse to use Analogical Prompting. Do not invent analogies for straightforward tasks.
+- **Negative Constraints**: You are strictly forbidden from executing analogical transfer without first outputting the explicit JSON `mapping_artifact`.

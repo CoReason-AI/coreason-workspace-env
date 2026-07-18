@@ -1,5 +1,6 @@
 # MCP Building Standards
 
+> **Taxonomy Bucket**: workflow/
 > **Scope**: This skill is a construction guide for factory agents that **create** MCP server specifications. It defines how to structure MCP servers, tools, and integration contracts. It does NOT contain validation checklists — those live in `validation/mcp_validation_standards.md`.
 
 ---
@@ -37,3 +38,15 @@ If an MCP server fetches external factual data, it MUST NOT return raw text stri
 - Output schemas must be `≤ 3` levels deep with 5-8 parameters maximum
 - Error responses must be structured and actionable, not raw exception strings
 - Tools that mutate state must enforce caller-supplied `idempotency_keys`
+
+## 5. Agent-to-Agent (A2A) Discovery over MCP
+
+In advanced multi-agent topologies (2026 patterns), MCP serves as the unified protocol not just for tool access, but for Agent-to-Agent (A2A) discovery.
+- **Hierarchical Registration**: Sub-agents can register their capabilities as MCP Tools on a localized MCP Server. This allows an Orchestrator to natively discover, interrogate, and route to sub-agents exactly as it would a standard tool.
+45: - **Protocol Convergence**: When generating advanced agents, always design their interface to be mountable as an MCP server to enable decentralized discovery.
+46: 
+---
+
+## 6. Refusal Predicate & Negative Constraints
+- **When to Halt**: If instructed to build an agent that accesses external databases or APIs directly without routing through a zero-trust MCP boundary, halt and refuse.
+- **Negative Constraints**: MCP Servers must never execute unstructured arbitrary code without strict Pydantic input validation schemas.

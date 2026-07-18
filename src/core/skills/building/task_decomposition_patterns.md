@@ -1,5 +1,6 @@
 # Task Decomposition Patterns
 
+> **Taxonomy Bucket**: workflow/
 > **Scope**: Safely decomposing complex workflows without falling into the "overengineering trap."
 
 When decomposing a monolithic prompt into an agentic workflow, apply the following design patterns safely.
@@ -15,4 +16,10 @@ The dominant decomposition architecture:
 
 ### 3. State Geometry (Information Passing)
 Decomposed agents must not communicate via unstructured free-text. 
-When writing the prompts for a decomposed workflow, enforce a strict JSON State Geometry artifact that is passed from Worker A to Worker B, ensuring no critical context is dropped between hops.
+19: When writing the prompts for a decomposed workflow, enforce a strict JSON State Geometry artifact that is passed from Worker A to Worker B, ensuring no critical context is dropped between hops.
+20: 
+---
+
+### Refusal Predicate & Negative Constraints
+- **When to Halt**: If subtasks share 90% of the same context window or require constant cyclical communication, halt and refuse to decompose them. Keep them coupled and use a higher-tier reasoning model instead.
+- **Negative Constraints**: Decomposed sub-agents must never communicate via unstructured free-text; they must exclusively pass strict JSON State Geometry artifacts.

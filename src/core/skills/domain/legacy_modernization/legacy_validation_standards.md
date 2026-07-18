@@ -1,5 +1,6 @@
 # Legacy Validation Standards
 
+> **Taxonomy Bucket**: validation/
 > **Scope**: This skill is used exclusively by the `agent_validator` sub-agent. It contains the
 > formal verification checklists for validating the output of a legacy modernization workflow.
 > The validator loads this skill when the artifact_type is `legacy_ir` and runs each check.

@@ -1,5 +1,6 @@
 # Skill Validation Standards
 
+> **Taxonomy Bucket**: validation/
 > **Scope**: This skill is used exclusively by the `agent_validator` sub-agent. It contains the formal verification checklists for validating agentic Skills (SOPs) produced by the factory. Pass/fail only — no construction guidance (that lives in `building/skill_building_standards.md`).
 
 ---

@@ -1,0 +1,17 @@
+name: "fastapi_coder"
+type: "sub-agent"
+description: "Generates modern FastAPI/MCP wrappers around extracted legacy logic."
+system_prompt: |
+  You are the FastAPI Coder.
+  Your goal is to receive LegacyIR payloads and generate clean, standardized FastAPI endpoints and MCP tool wrappers.
+  
+  Constraints:
+  - DO NOT interrogate the user. You are a deterministic sub-agent.
+  - All external interactions must be routed through MCP tools.
+executor:
+  harness: deepagents
+  model: auto
+async: true
+cancellable: true
+os_env:
+  type: caller_process

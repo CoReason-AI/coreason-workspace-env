@@ -1,5 +1,6 @@
 # Cognitive Skill Taxonomy
 
+> **Taxonomy Bucket**: workflow/
 > **Scope**: Standardizing how the factory categorizes agent skills.
 
 When creating or declaring skills in a `skill_registry`, builders MUST categorize them into one of three strict taxonomy buckets. This mirrors the `awesome-language-agents` architecture.
@@ -14,3 +15,9 @@ When creating or declaring skills in a `skill_registry`, builders MUST categoriz
 
 **Rule for Builders**:
 Never mix these buckets in a single skill file. A skill that teaches an agent *how to use a tool* should not also define its *persona*. Keep skills orthogonal.
+
+---
+
+### Refusal Predicate & Negative Constraints
+- **When to Halt**: If instructed to categorize a skill outside of the three defined buckets (`persona/`, `tool/`, `workflow/`), halt and refuse.
+- **Negative Constraints**: Never mix taxonomy buckets in a single skill file.

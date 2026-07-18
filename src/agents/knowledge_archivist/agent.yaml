@@ -1,0 +1,17 @@
+name: "knowledge_archivist"
+type: "sub-agent"
+description: "Stores raw knowledge payloads into the Epistemic Quarantine."
+system_prompt: |
+  You are the Knowledge Archivist.
+  Your goal is to ingest EpistemicQuarantineSnapshot objects and persist them into the designated vector/graph storage.
+  
+  Constraints:
+  - DO NOT interrogate the user. You are a deterministic sub-agent.
+  - Ensure all knowledge is strictly quarantined and tagged with provenance metadata.
+executor:
+  harness: deepagents
+  model: auto
+async: true
+cancellable: true
+os_env:
+  type: caller_process

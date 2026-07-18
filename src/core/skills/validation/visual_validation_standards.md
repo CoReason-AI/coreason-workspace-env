@@ -1,5 +1,6 @@
 # Visual Validation Standards
 
+> **Taxonomy Bucket**: validation/
 > **Scope**: This skill is used exclusively by the `agent_validator` sub-agent. It contains the formal verification checklists for validating architecture diagrams and workflow visualizations produced by the factory. Pass/fail only — no construction guidance (that lives in `building/visual_building_standards.md`).
 
 ---

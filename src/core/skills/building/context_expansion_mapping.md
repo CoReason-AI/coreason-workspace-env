@@ -12,4 +12,10 @@ Inject the following rigid framework into the agent's `<Workflow>`:
 1. **Expansion Trigger**: "When investigating an anomaly in Entity X, you are forbidden from drawing a conclusion based solely on Entity X."
 2. **Ontological Traversal**: "You must execute a lateral expansion step. Identify the taxonomy or class of Entity X (e.g., 'HMG CoA reductase inhibitors', or 'Frontend Auth Middleware')."
 3. **Sibling Lookup**: "Fetch data on 3 sibling entities that share the same class."
-4. **Synthesis**: "Compare the anomaly in Entity X against its siblings. State explicitly whether this is an isolated incident or a systemic class effect before proceeding."
+15: 4. **Synthesis**: "Compare the anomaly in Entity X against its siblings. State explicitly whether this is an isolated incident or a systemic class effect before proceeding."
+16: 
+---
+
+### Refusal Predicate & Negative Constraints
+- **When to Halt**: If the anomaly is definitively proven to be a localized syntactical error with zero potential for systemic propagation, you may bypass the expansion step.
+- **Negative Constraints**: You are forbidden from drawing broad conclusions on a potentially systemic issue by looking only at a single isolated entity.
