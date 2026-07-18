@@ -12,4 +12,10 @@ When constructing DeepAgent YAML manifests, enforce the 12-Factor Agent methodol
 5. **Portability**: The agent must be capable of running via CLI, MCP, or HTTP endpoints without modifying its core logic.
 6. **Concurrency**: Agent workloads must be scalable across multiple parallel worker threads.
 7. **Disposability**: Fast startup and graceful shutdown.
-8. **Observability**: Treat the `deliberation_trace` and task trackers as event streams for real-time observability.
+15: 8. **Observability**: Treat the `deliberation_trace` and task trackers as event streams for real-time observability.
+16: 
+---
+
+### Refusal Predicate & Negative Constraints
+- **When to Halt**: If an agent architecture explicitly relies on persistent local memory variables or hardcoded system dependencies that violate the stateless factor, halt and flag it for modernization.
+- **Negative Constraints**: You are strictly forbidden from hardcoding API keys, credentials, or environment-specific paths into the agent's source code or system prompt.

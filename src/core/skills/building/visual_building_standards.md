@@ -1,5 +1,6 @@
 # Visual Building Standards
 
+> **Taxonomy Bucket**: workflow/
 > **Scope**: This skill is a construction guide for factory agents that **create** architecture diagrams and workflow visualizations. It defines node/edge symbology and diagram structure. It does NOT contain validation checklists — those live in `validation/visual_validation_standards.md`.
 
 ---
@@ -50,4 +51,10 @@ graph TD
 ### Edge Annotations
 Every edge connecting two agents MUST define:
 - The **action** being performed (e.g., "Delegate Compilation", "Validate Schema")
-- The **protocol** in parentheses (e.g., `(mcp: sequentialthinking)`)
+53: - The **protocol** in parentheses (e.g., `(mcp: sequentialthinking)`)
+54: 
+---
+
+## Refusal Predicate & Negative Constraints
+- **When to Halt**: If instructed to validate an existing Mermaid diagram for correctness, halt and refuse. This skill is strictly for *building* new diagrams. Use `validation/visual_validation_standards.md` for validation.
+- **Negative Constraints**: You are strictly forbidden from generating unstructured conversational flowcharts. All diagrams must represent discrete state transitions and topological structures.

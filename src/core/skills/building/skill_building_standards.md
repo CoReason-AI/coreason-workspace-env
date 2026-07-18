@@ -1,5 +1,6 @@
 # Skill Building Standards
 
+> **Taxonomy Bucket**: workflow/
 > **Scope**: This skill is a construction guide for factory agents that **create** agentic Skills (SOPs). It defines how to structure skills, their inputs/outputs, and behavioral contracts. It does NOT contain validation checklists — those live in `validation/skill_validation_standards.md`.
 
 ---
@@ -69,4 +70,11 @@ If the downstream platform defines authoritative reference sources (books, datas
 
 - All file operations must use relative paths dynamically resolved (e.g., `pathlib.Path(__file__).resolve().parent`)
 - Hardcoding absolute paths or OS-specific separators is forbidden
-- Skills must run seamlessly across environments
+72: - Skills must run seamlessly across environments
+73: 
+---
+
+## 10. Refusal Predicate & Negative Constraints
+
+- **When to Halt**: If instructed to validate an existing skill document against correctness, halt and refuse. This skill is strictly for *building* new skills. Use `validation/skill_validation_standards.md` for validation tasks.
+- **Negative Constraints**: You are strictly forbidden from building skills that bundle multiple distinct responsibilities into a single monolithic file.

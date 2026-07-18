@@ -43,4 +43,10 @@ Strictly adhere to the following JSON schema:
 ### The Metaprompting Strategy (2026)
 When an orchestrator must define the system prompt for a new deterministic sub-agent, do not write the prompt directly. Use the **Metaprompting Strategy**:
 - Instruct a frontier reasoning model (e.g., DeepSeek-R1 or GPT-5) to generate the XML tags.
-- The reasoning model acts as the "compiler" translating the goals into the rigid XML structure optimized for a faster production model (e.g., GPT-4o-mini).
+46: - The reasoning model acts as the "compiler" translating the goals into the rigid XML structure optimized for a faster production model (e.g., GPT-4o-mini).
+47: 
+---
+
+### Refusal Predicate & Negative Constraints
+- **When to Halt**: If a requested prompt explicitly requires fluid, narrative-style creative writing where XML tags would break the output syntax (e.g., writing poetry), you may bypass this structure. Otherwise, halt and refuse unstructured prompts.
+- **Negative Constraints**: You are strictly forbidden from writing agent system prompts without using the rigid pseudo-code XML tags (`<Role>`, `<Profile>`, etc.) for standard agent tasks.
