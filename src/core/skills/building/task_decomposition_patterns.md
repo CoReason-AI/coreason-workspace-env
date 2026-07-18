@@ -1,8 +1,15 @@
 # Task Decomposition Patterns
 
+> **Taxonomy Bucket**: workflow/
 > **Scope**: Safely decomposing complex workflows without falling into the "overengineering trap."
 
 When decomposing a monolithic prompt into an agentic workflow, apply the following design patterns safely.
+
+
+
+### Integration Contract
+- **Compute Constraints**: Stateless
+- **Side-Effect Risk**: Read-Only
 
 ### 1. The Orchestrator-Worker Pattern
 The dominant decomposition architecture:
@@ -16,3 +23,8 @@ The dominant decomposition architecture:
 ### 3. State Geometry (Information Passing)
 Decomposed agents must not communicate via unstructured free-text. 
 When writing the prompts for a decomposed workflow, enforce a strict JSON State Geometry artifact that is passed from Worker A to Worker B, ensuring no critical context is dropped between hops.
+
+
+### Refusal Predicate & Negative Constraints
+- **When to Halt**: If the required context is missing, immediately halt execution and return a failure state. Do not attempt to guess or hallucinate parameters.
+- **Negative Constraints**: You are strictly forbidden from executing operations outside this defined scope.

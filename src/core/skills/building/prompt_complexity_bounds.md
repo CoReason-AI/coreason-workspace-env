@@ -1,8 +1,15 @@
 # Prompt Complexity Bounds
 
+> **Taxonomy Bucket**: workflow/
 > **Scope**: Identifying when a prompt is too complex and must be transitioned to an agentic workflow.
 
 When writing or compiling agent prompts, evaluate them against these boundary conditions. If any condition is met, the single-prompt design is invalid and MUST be decomposed.
+
+
+
+### Integration Contract
+- **Compute Constraints**: Stateless
+- **Side-Effect Risk**: Read-Only
 
 ### 1. The Partial Completion Threshold
 If a prompt contains more than 3 distinct procedural steps (e.g., "1. Extract X, 2. Validate Y, 3. Generate Z"), it crosses the Partial Completion Threshold. LLMs routinely skip steps in monolithic prompts as complexity scales linearly. 
@@ -16,3 +23,19 @@ An LLM performs poorly when forced to rapidly switch contexts or cognitive modes
 ### 3. Cascading Error Brittleness
 If adjusting one instruction in a prompt reliably breaks the output of another unrelated instruction within the same prompt, the prompt is too brittle.
 **Action**: Decompose the workflow. Adding a new task to a workflow graph is a linear complexity increase (`O(n)`), whereas adding instructions to a monolithic prompt scales complexity exponentially.
+
+
+### Output Schema
+```json
+{
+  "action_result": {
+    "status": "success",
+    "details": "string"
+  }
+}
+```
+
+
+### Refusal Predicate & Negative Constraints
+- **When to Halt**: If the required context is missing, immediately halt execution and return a failure state. Do not attempt to guess or hallucinate parameters.
+- **Negative Constraints**: You are strictly forbidden from executing operations outside this defined scope.

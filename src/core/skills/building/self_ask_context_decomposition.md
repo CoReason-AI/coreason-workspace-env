@@ -5,6 +5,12 @@
 
 Often, an agent attempts to answer a complex or ambiguous user prompt immediately, leading to hallucinations because it lacks the necessary environmental context. You must instruct the agent to build its own context first.
 
+
+
+### Integration Contract
+- **Compute Constraints**: Stateless
+- **Side-Effect Risk**: Read-Only
+
 ### The Self-Ask Framework
 Inject the following rigid constraints into the agent's `<Workflow>`:
 
@@ -14,3 +20,19 @@ Inject the following rigid constraints into the agent's `<Workflow>`:
 
 ### Why This Works
 This forces the LLM to spend "test-time compute" explicitly recognizing its own epistemic gaps. By generating the sub-questions, it effectively prompts its future self to seek out the correct context via MCP tools before attempting a zero-shot hallucination.
+
+
+### Output Schema
+```json
+{
+  "action_result": {
+    "status": "success",
+    "details": "string"
+  }
+}
+```
+
+
+### Refusal Predicate & Negative Constraints
+- **When to Halt**: If the required context is missing, immediately halt execution and return a failure state. Do not attempt to guess or hallucinate parameters.
+- **Negative Constraints**: You are strictly forbidden from executing operations outside this defined scope.

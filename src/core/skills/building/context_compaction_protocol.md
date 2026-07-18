@@ -6,6 +6,12 @@
 
 When building an Orchestrator or a Data Processing agent that must ingest massive payloads (e.g., 200-page clinical study reports, raw server logs), you must protect the agent's context window. LLMs suffer from the "lost in the middle" phenomenon if transient memory is not actively managed.
 
+
+
+### Integration Contract
+- **Compute Constraints**: Stateless
+- **Side-Effect Risk**: Read-Only
+
 ### The Compaction Prompting Structure
 Inject the following explicit rules into the agent's `<Workflow>`:
 
@@ -13,3 +19,19 @@ Inject the following explicit rules into the agent's `<Workflow>`:
 2. **Periodic Serialization**: "After reading a chunk of data, you must output a `<Compacted_State>` block. This block must aggressively strip all boilerplate, conversational filler, and non-essential narrative."
 3. **Data Loss Prevention**: "While stripping narrative, you MUST perfectly preserve exact numerical values, formulas, and schema keys related to the objective. Convert the verbose text into highly dense Key-Value pairs."
 4. **State Passing**: "Pass only the `<Compacted_State>` to the next reasoning node, discarding the raw payload."
+
+
+### Output Schema
+```json
+{
+  "action_result": {
+    "status": "success",
+    "details": "string"
+  }
+}
+```
+
+
+### Refusal Predicate & Negative Constraints
+- **When to Halt**: If the required context is missing, immediately halt execution and return a failure state. Do not attempt to guess or hallucinate parameters.
+- **Negative Constraints**: You are strictly forbidden from executing operations outside this defined scope.

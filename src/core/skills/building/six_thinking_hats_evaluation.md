@@ -6,6 +6,12 @@
 
 When building an Orchestrator or a decision-making agent tasked with evaluating a critical strategic dilemma (e.g., "Should we acquire this biotech?" or "Is this safety signal a risk?"), you must prevent premature consensus by forcing adversarial, multi-perspective evaluation.
 
+
+
+### Integration Contract
+- **Compute Constraints**: Stateless
+- **Side-Effect Risk**: Read-Only
+
 ### The Six Hats Prompting Structure
 Inject the following explicit rules into the agent's `<Workflow>`:
 
@@ -18,3 +24,19 @@ Inject the following explicit rules into the agent's `<Workflow>`:
    - `<Green_Hat>`: Creativity. Propose lateral alternatives (e.g., repurposing the drug, alternative trial designs).
    - `<Blue_Hat>`: The Control node. Synthesize the competing 5 nodes into a mathematically or logically weighted final recommendation.
 3. **Bleed Prevention**: "Ensure that the Black Hat analysis does not prematurely try to mitigate the risks—it must only surface them. Mitigation is reserved for the Blue Hat."
+
+
+### Output Schema
+```json
+{
+  "action_result": {
+    "status": "success",
+    "details": "string"
+  }
+}
+```
+
+
+### Refusal Predicate & Negative Constraints
+- **When to Halt**: If the required context is missing, immediately halt execution and return a failure state. Do not attempt to guess or hallucinate parameters.
+- **Negative Constraints**: You are strictly forbidden from executing operations outside this defined scope.

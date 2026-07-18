@@ -1,8 +1,15 @@
 # Structured Meta-Prompting (LangGPT Pattern)
 
+> **Taxonomy Bucket**: workflow/
 > **Scope**: Framework for writing rigorous, code-like system prompts.
 
 When writing a system prompt, do not use unstructured natural language paragraphs. All system prompts MUST be structured using rigid pseudo-code tags to reduce hallucination and ensure deterministic behavior.
+
+
+
+### Integration Contract
+- **Compute Constraints**: Stateless
+- **Side-Effect Risk**: Read-Only
 
 ### The Template
 Enforce the following structure for all agent prompts:
@@ -43,3 +50,8 @@ Strictly adhere to the following JSON schema:
 When an orchestrator must define the system prompt for a new deterministic sub-agent, do not write the prompt directly. Use the **Metaprompting Strategy**:
 - Instruct a frontier reasoning model (e.g., DeepSeek-R1 or GPT-5) to generate the XML tags.
 - The reasoning model acts as the "compiler" translating the goals into the rigid XML structure optimized for a faster production model (e.g., GPT-4o-mini).
+
+
+### Refusal Predicate & Negative Constraints
+- **When to Halt**: If the required context is missing, immediately halt execution and return a failure state. Do not attempt to guess or hallucinate parameters.
+- **Negative Constraints**: You are strictly forbidden from executing operations outside this defined scope.

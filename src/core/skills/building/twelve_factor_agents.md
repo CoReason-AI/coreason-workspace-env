@@ -1,5 +1,6 @@
 # 12-Factor Agents
 
+> **Taxonomy Bucket**: workflow/
 > **Scope**: Building production-grade, scalable agents.
 
 When constructing DeepAgent YAML manifests, enforce the 12-Factor Agent methodology:
@@ -12,3 +13,24 @@ When constructing DeepAgent YAML manifests, enforce the 12-Factor Agent methodol
 6. **Concurrency**: Agent workloads must be scalable across multiple parallel worker threads.
 7. **Disposability**: Fast startup and graceful shutdown.
 8. **Observability**: Treat the `deliberation_trace` and task trackers as event streams for real-time observability.
+
+
+### Integration Contract
+- **Compute Constraints**: Stateless
+- **Side-Effect Risk**: Read-Only
+
+
+### Output Schema
+```json
+{
+  "action_result": {
+    "status": "success",
+    "details": "string"
+  }
+}
+```
+
+
+### Refusal Predicate & Negative Constraints
+- **When to Halt**: If the required context is missing, immediately halt execution and return a failure state. Do not attempt to guess or hallucinate parameters.
+- **Negative Constraints**: You are strictly forbidden from executing operations outside this defined scope.

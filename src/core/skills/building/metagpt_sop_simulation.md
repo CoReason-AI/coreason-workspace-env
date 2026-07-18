@@ -1,8 +1,15 @@
 # SOP Simulation Hierarchy
 
+> **Taxonomy Bucket**: workflow/
 > **Scope**: Building strict sequential corporate pipelines (MetaGPT / ChatDev topology).
 
 When the user requests a software engineering or highly regulated manufacturing pipeline, Builders must construct an SOP Simulation hierarchy.
+
+
+
+### Integration Contract
+- **Compute Constraints**: Stateless
+- **Side-Effect Risk**: Read-Only
 
 ### The SOP Topology
 Unlike a collaborative crew, an SOP topology strictly mirrors corporate waterfall methodologies. Agents do not collaborate freely; they pass serialized artifacts downstream.
@@ -16,3 +23,19 @@ Unlike a collaborative crew, an SOP topology strictly mirrors corporate waterfal
 
 **Prompting Rule**:
 The system prompt for an SOP agent must declare its exact input dependency and its exact output schema. It must never attempt to communicate with downstream agents; it simply serializes its artifact and halts.
+
+
+### Output Schema
+```json
+{
+  "action_result": {
+    "status": "success",
+    "details": "string"
+  }
+}
+```
+
+
+### Refusal Predicate & Negative Constraints
+- **When to Halt**: If the required context is missing, immediately halt execution and return a failure state. Do not attempt to guess or hallucinate parameters.
+- **Negative Constraints**: You are strictly forbidden from executing operations outside this defined scope.
