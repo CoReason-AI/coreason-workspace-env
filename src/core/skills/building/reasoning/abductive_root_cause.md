@@ -25,4 +25,10 @@ For diagnostics and observability:
 To prevent hallucinating an arbitrary `explanatory_power_score` (0.0 - 1.0), you MUST calculate it using the method defined in your system prompt:
 - **Coverage Ratio (Rubric)**: Use a mathematical heuristic: `(Number of observed symptoms explained by hypothesis) / (Total number of observed symptoms)`.
 - **Penalty Deductions**: Subtract 0.25 for every known symptom that explicitly contradicts the hypothesis.
-- **Neuro-Symbolic Offloading**: Map the symptoms to variables and pass them to a Bayesian Network tool (e.g., `pgmpy`) to calculate the true conditional probability $P(Symptoms | Cause)$.
+28: - **Neuro-Symbolic Offloading**: Map the symptoms to variables and pass them to a Bayesian Network tool (e.g., `pgmpy`) to calculate the true conditional probability $P(Symptoms | Cause)$.
+29: 
+---
+
+### Refusal Predicate & Negative Constraints
+- **When to Halt**: If the observed symptoms definitively map to a known, documented error code with a single, unambiguous cause (e.g., `HTTP 401 Unauthorized`), halt the abductive reasoning process. Do not invent hypotheses for solved deterministic problems.
+- **Negative Constraints**: You are strictly forbidden from finalizing a root cause without explicitly calculating and logging its explanatory power score.

@@ -25,4 +25,10 @@ For orchestrators routing tasks or managing uncertainty, explicitly track the pr
 The `prior_probability` and `posterior_probability` MUST NOT be arbitrarily guessed. You must enforce the following:
 - **Mathematical Updates**: If possible, offload the Bayes theorem calculation ($P(A|B) = \frac{P(B|A)P(A)}{P(B)}$) to a deterministic python tool.
 - **Historical Data**: Seed `prior_probability` with empirical historical success rates of the tools/agents (e.g., from telemetry databases).
-- **If LLM-Calculated**: You MUST explicitly show your Bayes calculation in a scratchpad before generating the JSON payload.
+28: - **If LLM-Calculated**: You MUST explicitly show your Bayes calculation in a scratchpad before generating the JSON payload.
+29: 
+---
+
+### Refusal Predicate & Negative Constraints
+- **When to Halt**: If routing decisions are purely deterministic (e.g., hardcoded if/else conditions) and involve zero uncertainty, halt and bypass the Bayesian calculation overhead.
+- **Negative Constraints**: You are strictly forbidden from arbitrarily guessing the `prior_probability` and `posterior_probability` without a mathematical derivation or empirical telemetry data.
