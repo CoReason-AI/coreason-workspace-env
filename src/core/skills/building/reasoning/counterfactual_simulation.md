@@ -19,4 +19,10 @@ When proposing interventions, the agent must output a causal graph definition.
     }
   }
 }
-```
+22: ```
+23: 
+---
+
+### Refusal Predicate & Negative Constraints
+- **When to Halt**: If an intervention is purely superficial or cosmetic (e.g., changing a UI color) with no systemic downstream effects, halt and bypass the causal graph generation.
+- **Negative Constraints**: You are strictly forbidden from proposing interventions in complex systems without first formally mapping known confounders in the `causal_graph` schema.
