@@ -88,6 +88,17 @@ SCHEMA_DICT = {
                                 "required": ["component_type", "id", "name", "description", "metadata", "model_id", "provider", "api_type"]
                             }
                         },
+                        "additionalProperties": {
+                            "type": "object",
+                            "properties": {
+                                "component_type": { "type": "string", "enum": ["Tool"] },
+                                "id": { "type": "string" },
+                                "name": { "type": "string" },
+                                "description": { "type": "string" }
+                            },
+                            "required": ["component_type", "id", "name", "description"]
+                        },
+                        "description": "Must contain 'default_gpt4' AND any Tool components referenced in the 'tools' array. DO NOT put tool definitions in metadata.tools.",
                         "required": ["default_gpt4"]
                     }
                 },
