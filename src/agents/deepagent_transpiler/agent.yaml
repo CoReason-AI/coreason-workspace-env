@@ -10,7 +10,10 @@ system_prompt: |
   2. Oracle `metadata.description` (or component description) -> DeepAgent `description`
   3. Oracle `$referenced_components` (LlmConfig) -> DeepAgent `model` (e.g. "openai:gpt-4o")
   4. Oracle `toolboxes` -> DeepAgent `tools` array (extract the $component_ref as the tool name)
-  5. Any Oracle PromptComponent or system_prompt references -> DeepAgent `system_prompt`
+  5. Oracle `system_prompt` -> MUST be split into TWO fields in the DeepAgent YAML:
+     - `sp_prefix`: The main role definition and core capabilities.
+     - `sp_suffix`: The behavioral constraints and output formatting rules (placed at the end of the context).
+  6. Oracle `outputs` -> DeepAgent `response_format` (Include the raw JSON Schema block).
   
   You MUST output ONLY the final transpiled DeepAgent YAML wrapped in a ```yaml code block. Do not include conversational text before or after.
 executor:

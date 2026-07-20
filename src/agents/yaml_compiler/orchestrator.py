@@ -31,9 +31,10 @@ SCHEMA_DICT = {
                     "id": { "type": "string" },
                     "name": { "type": "string" },
                     "description": { "type": "string" },
-                    "metadata": { "type": "object" },
+                    "metadata": { "type": "object", "minProperties": 1 },
                     "llm_config": {
                         "type": "object",
+                        "minProperties": 1,
                         "properties": { "$component_ref": { "type": "string", "enum": ["default_gpt4"] } },
                         "required": ["$component_ref"]
                     },
@@ -43,11 +44,13 @@ SCHEMA_DICT = {
                     },
                     "inputs": {
                         "type": "object",
-                        "description": "Extract the 'Required Inputs'. MUST be strict fully expanded JSON Schema objects."
+                        "minProperties": 1,
+                        "description": "Extract the 'Required Inputs'. If none specified, you MUST invent at least one reasonable input parameter based on the agent's purpose. Empty objects are forbidden."
                     },
                     "outputs": {
                         "type": "object",
-                        "description": "Extract the 'Output Schema'. MUST be strict fully expanded JSON Schema objects."
+                        "minProperties": 1,
+                        "description": "Extract the 'Output Schema'. If none specified, you MUST invent a highly detailed JSON schema matching the agent's goal. Empty objects are forbidden."
                     },
                     "tools": {
                         "type": "array",
@@ -67,6 +70,7 @@ SCHEMA_DICT = {
                     },
                     "$referenced_components": {
                         "type": "object",
+                        "minProperties": 1,
                         "properties": {
                             "default_gpt4": {
                                 "type": "object",
@@ -75,7 +79,7 @@ SCHEMA_DICT = {
                                     "id": { "type": "string", "enum": ["default_gpt4"] },
                                     "name": { "type": "string" },
                                     "description": { "type": "string" },
-                                    "metadata": { "type": "object" },
+                                    "metadata": { "type": "object", "minProperties": 1 },
                                     "model_id": { "type": "string", "enum": ["gpt-4o"] },
                                     "provider": { "type": "string", "enum": ["openai"] },
                                     "api_type": { "type": "string", "enum": ["chat_completions"] },
