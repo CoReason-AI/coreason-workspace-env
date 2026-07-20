@@ -73,22 +73,30 @@ If you need more information from the team to resolve ambiguities, use the `ask_
         from src.agents.research_agent.orchestrator import ResearchAgent
         
         from langchain_core.messages import AIMessage
+        from pydantic import BaseModel, Field
+        class LibrarianPmInput(BaseModel):
+            query: str = Field(description="The request or file paths to index.")
+        class AgentPmInput(BaseModel):
+            context: str = Field(description="The saturated context, architectural plan, and requirements to pass to the agent_pm for building.")
+        class ResearchInput(BaseModel):
+            query: str = Field(description="The search query.")
+
         # Subagents exposed to the CEO
         subagents = [
             {
                 "name": "librarian_pm",
                 "description": "Delegates codebase extraction and indexing. Must be called if a file path is provided.",
-                "runnable": RunnableLambda(lambda inputs, config: {"messages": [AIMessage(content=LibrarianPmAgent().execute(inputs, session_id=config["configurable"]["thread_id"]))]})
+                "runnable": RunnableLambda(lambda inputs, config: {"messages": [AIMessage(content=LibrarianPmAgent().execute(inputs, session_id=config["configurable"]["thread_id"]))]}).with_types(input_type=LibrarianPmInput)
             },
             {
                 "name": "agent_pm",
                 "description": "Delegates saturated context to build the agent architecture.",
-                "runnable": RunnableLambda(lambda inputs, config: {"messages": [AIMessage(content=AgentPmAgent().execute(inputs, session_id=config["configurable"]["thread_id"], config=config))]})
+                "runnable": RunnableLambda(lambda inputs, config: {"messages": [AIMessage(content=AgentPmAgent().execute(inputs, session_id=config["configurable"]["thread_id"], config=config))]}).with_types(input_type=AgentPmInput)
             },
             {
                 "name": "research_agent",
                 "description": "Searches the internet for required factual context, news, or domain-specific information.",
-                "runnable": RunnableLambda(lambda inputs, config: {"messages": [AIMessage(content=ResearchAgent().execute(inputs, session_id=config["configurable"]["thread_id"], config=config))]})
+                "runnable": RunnableLambda(lambda inputs, config: {"messages": [AIMessage(content=ResearchAgent().execute(inputs, session_id=config["configurable"]["thread_id"], config=config))]}).with_types(input_type=ResearchInput)
             }
         ]
 
@@ -119,11 +127,14 @@ If you need more information from the team to resolve ambiguities, use the `ask_
             }
             
             try:
-                from langfuse.callback import CallbackHandler
+                try:
+                    from langfuse.langchain import CallbackHandler
+                except ImportError:
+                    from langfuse.callback import CallbackHandler
                 langfuse_handler = CallbackHandler()
                 config["callbacks"] = [langfuse_handler]
-            except ImportError:
-                pass
+            except Exception as e:
+                logger.warning(f"Failed to initialize Langfuse (skipping): {e}")
 
             state = await graph.aget_state(config)
             if state and getattr(state, "next", None):

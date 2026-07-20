@@ -43,4 +43,12 @@ COPY --chown=coreason:coreason . /home/coreason/project
 ENV PATH="/home/coreason/project/.venv/bin:$PATH"
 ENV PYTHONPATH=/home/coreason/project
 
+# Build-time arguments
+ARG AGENT_ENTRYPOINT_MODULE
+ARG AGENT_ENTRYPOINT_CLASS
+
+# Bake them as default environment variables inside the image
+ENV AGENT_ENTRYPOINT_MODULE=${AGENT_ENTRYPOINT_MODULE}
+ENV AGENT_ENTRYPOINT_CLASS=${AGENT_ENTRYPOINT_CLASS}
+
 CMD ["python", "-m", "system.run_pipeline"]

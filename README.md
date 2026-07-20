@@ -46,9 +46,45 @@ uv run mkdocs serve
 For guidelines on how AI agents must modify this repository, see `AGENTS.md`.
 
 ## Observability
-We strictly use Langfuse for local LLM tracing via Harbor.
-- **Linux/Mac**: Run `harbor up langfuse`.
-- **Windows**: Harbor is built for WSL2. You can spin up the stack natively from PowerShell using our bridge script:
+
+We strictly use **Langfuse** for local LLM tracing and agent performance evaluations via the Harbor container stack.
+
+### 1. Spin up the Telemetry Infrastructure
+Start the containerized stack:
+* **Linux/macOS:**
+  ```bash
+  harbor up langfuse
+  ```
+* **Windows (via WSL2):** Run the PowerShell bridge script:
   ```powershell
   .\scripts\start_observability.ps1
   ```
+
+> [!TIP]
+> If the `harbor.langfuse-clickhouse` container fails to start with a permission error, run the following command to fix host directory ownership:
+> ```bash
+> sudo chown -R 101:101 ~/.harbor/services/langfuse/data/clickhouse-data
+> sudo chown -R 101:101 ~/.harbor/services/langfuse/data/clickhouse-logs
+> ```
+
+### 2. Configure Credentials
+1. Open the local dashboard: **http://localhost:33881**
+2. Click **Sign up** to create a local account.
+3. Go to **Settings > API Keys** and click **Generate API Keys**.
+4. Add these keys to your `.env` file:
+   ```env
+   LANGFUSE_SECRET_KEY="sk-lf-..."
+   LANGFUSE_PUBLIC_KEY="pk-lf-..."
+   LANGFUSE_HOST="http://localhost:33881"
+   ```
+
+### 3. Run and Verify Tracing
+Install the required packages in your virtual environment and execute the orchestrator:
+```bash
+# Install Langfuse SDK in the project virtual environment
+uv pip install langfuse
+
+# Run an agent to generate traces
+uv run coreason agents execute "factory_ceo" "Write a clinical trial platform agent manifest"
+```
+Refresh your Langfuse UI to view the live execution tree, latency metrics, and LLM input/outputs.

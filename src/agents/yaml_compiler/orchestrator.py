@@ -31,9 +31,10 @@ SCHEMA_DICT = {
                     "id": { "type": "string" },
                     "name": { "type": "string" },
                     "description": { "type": "string" },
-                    "metadata": { "type": "object" },
+                    "metadata": { "type": "object", "minProperties": 1 },
                     "llm_config": {
                         "type": "object",
+                        "minProperties": 1,
                         "properties": { "$component_ref": { "type": "string", "enum": ["default_gpt4"] } },
                         "required": ["$component_ref"]
                     },
@@ -43,11 +44,13 @@ SCHEMA_DICT = {
                     },
                     "inputs": {
                         "type": "object",
-                        "description": "Extract the 'Required Inputs'. MUST be strict fully expanded JSON Schema objects."
+                        "minProperties": 1,
+                        "description": "Extract the 'Required Inputs'. If none specified, you MUST invent at least one reasonable input parameter based on the agent's purpose. Empty objects are forbidden."
                     },
                     "outputs": {
                         "type": "object",
-                        "description": "Extract the 'Output Schema'. MUST be strict fully expanded JSON Schema objects."
+                        "minProperties": 1,
+                        "description": "Extract the 'Output Schema'. If none specified, you MUST invent a highly detailed JSON schema matching the agent's goal. Empty objects are forbidden."
                     },
                     "tools": {
                         "type": "array",
@@ -67,6 +70,7 @@ SCHEMA_DICT = {
                     },
                     "$referenced_components": {
                         "type": "object",
+                        "minProperties": 1,
                         "properties": {
                             "default_gpt4": {
                                 "type": "object",
@@ -75,7 +79,7 @@ SCHEMA_DICT = {
                                     "id": { "type": "string", "enum": ["default_gpt4"] },
                                     "name": { "type": "string" },
                                     "description": { "type": "string" },
-                                    "metadata": { "type": "object" },
+                                    "metadata": { "type": "object", "minProperties": 1 },
                                     "model_id": { "type": "string", "enum": ["gpt-4o"] },
                                     "provider": { "type": "string", "enum": ["openai"] },
                                     "api_type": { "type": "string", "enum": ["chat_completions"] },
@@ -84,6 +88,17 @@ SCHEMA_DICT = {
                                 "required": ["component_type", "id", "name", "description", "metadata", "model_id", "provider", "api_type"]
                             }
                         },
+                        "additionalProperties": {
+                            "type": "object",
+                            "properties": {
+                                "component_type": { "type": "string", "enum": ["Tool"] },
+                                "id": { "type": "string" },
+                                "name": { "type": "string" },
+                                "description": { "type": "string" }
+                            },
+                            "required": ["component_type", "id", "name", "description"]
+                        },
+                        "description": "Must contain 'default_gpt4' AND any Tool components referenced in the 'tools' array. DO NOT put tool definitions in metadata.tools.",
                         "required": ["default_gpt4"]
                     }
                 },
@@ -118,10 +133,13 @@ class YamlCompilerAgent(DeepAgent):
         """
         logger.info(f"[{session_id}] YamlCompiler executing via DeepAgent with Strict JSON Dictionary Output.")
         
+        # Force strict JSON dictionary output matching SCHEMA_DICT
+        response_format = {"type": "json_schema", "json_schema": {"name": "OracleSpec", "schema": SCHEMA_DICT}}
+        
         graph = self.build_standard_deep_agent(
             system_prompt=self.system_prompt,
             state_schema=DeepAgentState,
-            response_format=SCHEMA_DICT
+            response_format=response_format
         )
         
         initial_state = {"messages": [HumanMessage(content=f"Requirements: {context}")]}
@@ -129,24 +147,8 @@ class YamlCompilerAgent(DeepAgent):
         
         final_message = "FAILURE: No output produced."
         
-        # DeepAgents passes the structured output in the final message tool calls
         if result.get("messages"):
             last_msg = result["messages"][-1]
-            if getattr(last_msg, "tool_calls", None) and len(last_msg.tool_calls) > 0:
-                args = last_msg.tool_calls[0].get("args", {})
-                
-                # Extract and format the YAMLs
-                proj_yaml_str = args.get("project_yaml", "")
-                agent_dict = args.get("orchestrator_agent", {})
-                
-                # Convert the dictionary back to a YAML string for downstream parsing
-                agent_yaml_str = yaml.dump(agent_dict, sort_keys=False, default_flow_style=False)
-                
-                final_message = (
-                    f"```yaml\n# project.yaml\n{proj_yaml_str}\n```\n\n"
-                    f"```yaml\n# system/agents/orchestrator_agent.yaml\n{agent_yaml_str}\n```"
-                )
-            else:
-                final_message = getattr(last_msg, "content", str(last_msg))
+            final_message = getattr(last_msg, "content", str(last_msg))
                 
         return final_message

@@ -4,6 +4,7 @@ Project Service — CRUD operations for projects.
 import json
 import logging
 import os
+import shutil
 import subprocess
 import tarfile
 from pathlib import Path
@@ -53,6 +54,7 @@ class ProjectService:
                              description: str = "",
                              config: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         """Create a new project."""
+        await self.initialize()
         pool = await get_db_pool()
         cfg = json.dumps(config or {})
         async with pool.acquire() as conn:
@@ -115,7 +117,6 @@ class ProjectService:
             if ".." in pg_dump_path:
                 raise ValueError("Path traversal check failed: pg_dump_path contains traversal segments.")
 
-            import shutil
             pg_dump_exe = shutil.which("pg_dump") or "/usr/bin/pg_dump"
             schema_name = f"project_{safe_project_id.replace('-', '_')}"
             if not re.match(r"^[a-zA-Z0-9_]+$", schema_name):
@@ -248,7 +249,6 @@ class ProjectService:
             if pg_dump_path.startswith("-"):
                 raise ValueError("pg_dump_path cannot start with -")
 
-            import shutil
             if os.path.exists(pg_dump_path):
                 pg_restore_exe = shutil.which("pg_restore") or "/usr/bin/pg_restore"
                 

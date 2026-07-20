@@ -144,16 +144,60 @@ class AgentService:
         """
         obs = ObservabilityService()
         state = await obs.fetch_postgres_state(job_id)
-        if "error" in state:
+        if "error" not in state:
             return {
                 "job_id": job_id,
-                "status": "running",
-                "detail": state["error"],
+                "status": "success",
+                "detail": state,
             }
+
+        # Fallback: Query AsyncPostgresSaver directly for generic agent executions
+        try:
+            from langgraph.checkpoint.postgres.aio import AsyncPostgresSaver
+            from langgraph.graph import StateGraph
+            from deepagents.graph import DeepAgentState
+            from langchain_core.messages import AIMessage
+            
+            async with AsyncPostgresSaver.from_conn_string(obs.pg_dsn) as saver:
+                builder = StateGraph(DeepAgentState)
+                builder.add_node("dummy", lambda state: state)
+                builder.set_entry_point("dummy")
+                builder.set_finish_point("dummy")
+                graph = builder.compile(checkpointer=saver)
+                
+                state_obj = await graph.aget_state({"configurable": {"thread_id": job_id}})
+                if state_obj and state_obj.values and "messages" in state_obj.values and state_obj.values["messages"]:
+                    messages = state_obj.values["messages"]
+                    last_msg = messages[-1]
+                    status = "success" if isinstance(last_msg, AIMessage) else "running"
+                    
+                    # Convert messages to serializable dictionaries
+                    serialized_messages = []
+                    for msg in messages:
+                        serialized_messages.append({
+                            "type": msg.__class__.__name__,
+                            "content": msg.content,
+                            "additional_kwargs": getattr(msg, "additional_kwargs", {})
+                        })
+                        
+                    return {
+                        "job_id": job_id,
+                        "status": status,
+                        "detail": {
+                            "thread_id": job_id,
+                            "state": {
+                                "messages": serialized_messages,
+                                "structured_response": state_obj.values.get("structured_response")
+                            }
+                        }
+                    }
+        except Exception as e:
+            logger.error(f"Failed to fetch checkpointer fallback state: {e}")
+
         return {
             "job_id": job_id,
-            "status": "success",
-            "detail": state,
+            "status": "running",
+            "detail": state["error"],
         }
 
     def rewind_checkpoint(self, checkpoint_id: str) -> Dict[str, Any]:

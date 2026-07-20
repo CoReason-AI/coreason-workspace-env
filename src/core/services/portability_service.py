@@ -132,7 +132,8 @@ class PortabilityService:
 
             # 3. Push to OCI Registry
             logger.info(f"Pushing bundle to {registry_url}...")
-            client = OrasClient()
+            is_insecure = "localhost" in registry_url or "127.0.0.1" in registry_url or os.environ.get("ORAS_INSECURE", "").lower() == "true"
+            client = OrasClient(insecure=is_insecure)
             
             if "ORAS_USER" in os.environ and "ORAS_PASS" in os.environ:
                 client.login(
@@ -189,7 +190,8 @@ class PortabilityService:
         try:
             # 1. Pull OCI Artifact
             logger.info(f"Pulling OCI artifact from {oci_uri}...")
-            client = OrasClient()
+            is_insecure = "localhost" in oci_uri or "127.0.0.1" in oci_uri or os.environ.get("ORAS_INSECURE", "").lower() == "true"
+            client = OrasClient(insecure=is_insecure)
             
             if "ORAS_USER" in os.environ and "ORAS_PASS" in os.environ:
                 client.login(
