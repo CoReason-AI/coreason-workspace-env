@@ -142,8 +142,53 @@ Once complete, return the final Markdown response.
                     with open(new_agent_dir / "agent.yaml", "w", encoding="utf-8") as f:
                         f.write(agent_yaml_str)
                         
+                    class_name = "".join(part.capitalize() for part in agent_name.split("_")) + "Agent"
+                    orchestrator_template = f"""import os
+import yaml
+import logging
+from typing import Any
+from src.core.base_agent import DeepAgent
+
+logger = logging.getLogger(__name__)
+
+class {class_name}(DeepAgent):
+    \"\"\"
+    Auto-generated Orchestrator for {agent_name}
+    \"\"\"
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        
+        yaml_path = os.path.join(os.path.dirname(__file__), "agent.yaml")
+        self.agent_spec = {{}}
+        if os.path.exists(yaml_path):
+            with open(yaml_path, "r", encoding="utf-8") as f:
+                self.agent_spec = yaml.safe_load(f)
+                
+        self.system_prompt = self.agent_spec.get("system_prompt", "You are an autonomous agent.")
+
+    async def execute(self, context: dict, session_id: str = None) -> Any:
+        logger.info("Executing {class_name}")
+        
+        from langgraph.checkpoint.postgres.aio import AsyncPostgresSaver
+        from src.core.services.observability_service import ObservabilityService
+        
+        obs = ObservabilityService()
+        async with AsyncPostgresSaver.from_conn_string(obs.pg_dsn) as checkpointer:
+            await checkpointer.setup()
+            
+            # Compile standard DeepAgent LangGraph with checkpointer
+            graph = self.build_standard_deep_agent(
+                system_prompt=self.system_prompt,
+                state_schema=None,
+                tools=[],
+                checkpointer=checkpointer
+            )
+            
+            config = {{"configurable": {{"thread_id": session_id}}}} if session_id else {{}}
+            return await graph.ainvoke(context, config=config)
+"""
                     with open(new_agent_dir / "orchestrator.py", "w", encoding="utf-8") as f:
-                        f.write(f"\"\"\"Orchestrator for {agent_name}\"\"\"\n")
+                        f.write(orchestrator_template)
                         
                     success_msg = f"{last_msg}\n\n**SUCCESS**: Agent '{agent_name}' written to `{new_agent_dir}`!"
                     return {"messages": [AIMessage(content=success_msg)]}

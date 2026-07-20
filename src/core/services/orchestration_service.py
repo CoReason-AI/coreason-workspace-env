@@ -59,6 +59,14 @@ class OrchestrationService:
         }
         result = await ceo.execute(context, session_id)
         
+        if class_name != "FactoryCeoAgent":
+            final_content = ""
+            if isinstance(result, dict) and "messages" in result and result["messages"]:
+                final_content = result["messages"][-1].content
+            else:
+                final_content = str(result)
+            return {"status": "success", "result": final_content}
+        
         # Check if the agent is asking a clarifying question (tool call)
         messages = result.get("messages", [])
         is_interactive = False

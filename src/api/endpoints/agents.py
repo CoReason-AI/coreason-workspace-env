@@ -63,7 +63,7 @@ async def execute_agent(req: ExecuteAgentRequest, user: UserIdentity = Depends(g
 @router.get("/jobs/{job_id}")
 async def get_job_status(job_id: str, user: UserIdentity = Depends(get_current_user)):
     """Check the status of an enqueued agent execution."""
-    return agent_service.get_execution_status(job_id)
+    return await agent_service.get_execution_status(job_id)
 
 
 class RewindCheckpointRequest(BaseModel):
