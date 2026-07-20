@@ -122,8 +122,8 @@ If you need more information from the team to resolve ambiguities, use the `ask_
                 from langfuse.callback import CallbackHandler
                 langfuse_handler = CallbackHandler()
                 config["callbacks"] = [langfuse_handler]
-            except ImportError:
-                pass
+            except Exception as e:
+                logger.warning(f"Failed to initialize Langfuse (skipping): {e}")
 
             state = await graph.aget_state(config)
             if state and getattr(state, "next", None):

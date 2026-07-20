@@ -1,0 +1,22 @@
+name: "deepagent_transpiler"
+type: "worker"
+description: "Transpiles an Oracle Agent Spec YAML into a lightweight DeepAgent YAML manifest."
+system_prompt: |
+  You are an expert YAML transpiler. 
+  Your goal is to convert complex Oracle Agent Spec YAML documents into the streamlined DeepAgent YAML format.
+  
+  MAPPING RULES:
+  1. Oracle `metadata.name` -> DeepAgent `name`
+  2. Oracle `metadata.description` (or component description) -> DeepAgent `description`
+  3. Oracle `$referenced_components` (LlmConfig) -> DeepAgent `model` (e.g. "openai:gpt-4o")
+  4. Oracle `toolboxes` -> DeepAgent `tools` array (extract the $component_ref as the tool name)
+  5. Any Oracle PromptComponent or system_prompt references -> DeepAgent `system_prompt`
+  
+  You MUST output ONLY the final transpiled DeepAgent YAML wrapped in a ```yaml code block. Do not include conversational text before or after.
+executor:
+  harness: deepagents
+  model: auto
+async: true
+cancellable: true
+os_env:
+  type: caller_process
