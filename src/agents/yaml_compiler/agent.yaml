@@ -39,56 +39,12 @@ system_prompt: |
   1. `project.yaml` - The Project Manifest following the CoReason schema.
   2. `system/agents/orchestrator_agent.yaml` - The newly defined Project Orchestrator following the AgentSpec v26 schema.
 
-  CRITICAL MAPPING RULE: The agent YAML (`system/agents/orchestrator_agent.yaml`) MUST strictly follow the AgentSpec v26 schema:
-  - agentspec_version: "26.1.2"
-  - component_type: "Agent"
-  - id: "<namespace>/<agent_name>" (e.g. news/mangalore_news_agent)
-  - name: "Human Readable Name"
-  - description: "Detailed description of the agent"
-  - metadata:
-      domain: "<e.g., Natural Language Processing or Local News>"
-      primary_user: "<e.g., Safety Scientist or User>"
-      associated_mcp_tools: [ <list of tools used, e.g., local_fs_reader, local_fs_writer> ]
-      eu_ai_act_risk_category: "High" (or "Low" for news apps)
-      human_oversight_modality: "HITL"
-      explainability_method: "Post-hoc"
-  - llm_config:
-      $component_ref: "default_gpt4"
-  - system_prompt: |
-      <system prompt string containing algorithmic workflow and negative constraints>
-  - inputs:
-      <dictionary specifying input argument types and descriptions, e.g. input_text: {type: string, description: "..."}>
-  - outputs:
-      <dictionary specifying typed output parameters schema>
-  - tools:
-      <list of component references, e.g., - $component_ref: sequentialthinking>
-  - toolboxes: []
-  - $referenced_components:
-      default_gpt4:
-        component_type: "LlmConfig"
-        id: "default_gpt4"
-        name: "Default GPT-4"
-        description: "Configuration for GPT-4 model usage."
-        metadata: {}
-        model_id: "gpt-4o"
-        provider: "openai"
-        api_type: "chat_completions"
-        api_key: null
+  CRITICAL INSTRUCTION: You are operating with Constrained Decoding (Structured Outputs). You MUST populate the provided JSON schema exactly as requested based on the input context.
   
-  ADDITIONAL VALIDATION RULES:
-  1. YAML Formatting: NEVER indent top-level keys (like `name`, `description`, `system_prompt`). They must start at column 0.
-  2. Multi-line Strings: ALWAYS use the block scalar `|-` for `system_prompt` and `description` instead of wrapping them in double quotes. Do not use `\n` inside the text, just write literal newlines.
-  3. Dependencies: In the `dependencies` section, the `name` field MUST exactly match the `snake_case` name of the agent.
-  4. Output Schemas: In `output_schema`, do NOT define a property named `type` inside the `properties` block. Example: instead of `properties: { type: { type: string } }`, you MUST use `properties: { entity_type: { type: string } }`.
-  5. Paths: Always use forward slashes (`/`) for directory and file paths. CRITICAL: Even if the input context contains Windows-style backslashes (`\`), you MUST explicitly convert them to forward slashes (`/`) before outputting them.
+  Since the orchestrator backend executes `yaml.dump()` on your JSON output, you NO LONGER need to worry about YAML syntax, block scalars, or indentation. Focus entirely on accurately extracting the structural components, tools, and verbatim system prompt from the context into the provided JSON schema fields.
+  
+  Make sure to always convert Windows backslashes (`\`) into forward slashes (`/`) for any file paths you populate.
 
-  The relevant building standard for your current task will be JIT-loaded into your context based on the artifact type. Consult it for schema constraints and required fields.
-
-  Your output will be routed to the agent_validator for formal validation before being written to disk. You do not need to self-validate — focus on building correctly per the standards.
-
-  IMPORTANT ENVELOPE RULE: To eliminate the Semantic Tax during constrained decoding, you MUST output your response using the CognitiveDeliberativeEnvelopeState.
-  Use the `deliberation_trace` field to "think out loud" (weigh architectural patterns, map context against Builder-Validator standards).
-  Then output the final artifacts within the strict `payload` field.
 
   Once generation is complete, return the artifacts to the agent_pm for validation routing.
 dependencies: []
