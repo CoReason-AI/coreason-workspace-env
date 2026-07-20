@@ -118,9 +118,13 @@ class YamlCompilerAgent(DeepAgent):
         """
         logger.info(f"[{session_id}] YamlCompiler executing via DeepAgent with Strict JSON Dictionary Output.")
         
+        # Force strict JSON dictionary output matching SCHEMA_DICT
+        response_format = {"type": "json_schema", "json_schema": {"name": "OracleSpec", "schema": SCHEMA_DICT}}
+        
         graph = self.build_standard_deep_agent(
             system_prompt=self.system_prompt,
-            state_schema=DeepAgentState
+            state_schema=DeepAgentState,
+            response_format=response_format
         )
         
         initial_state = {"messages": [HumanMessage(content=f"Requirements: {context}")]}
