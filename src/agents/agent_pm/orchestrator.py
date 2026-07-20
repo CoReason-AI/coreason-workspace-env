@@ -126,7 +126,10 @@ Once complete, return the final Markdown response.
                         agent_yaml_str = blocks[1]
                     
                     agent_dict = yaml.safe_load(agent_yaml_str)
-                    agent_name = agent_dict.get("name", f"unnamed_agent_{str(uuid.uuid4())[:8]}")
+                    raw_agent_name = agent_dict.get("name", f"unnamed_agent_{str(uuid.uuid4())[:8]}")
+                    import re
+                    agent_name = re.sub(r'[^a-zA-Z0-9_]', '_', raw_agent_name)
+                    agent_name = re.sub(r'_+', '_', agent_name).strip('_').lower()
                     
                     agents_dir = pathlib.Path(__file__).resolve().parent.parent
                     new_agent_dir = agents_dir / agent_name
