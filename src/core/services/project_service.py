@@ -53,6 +53,7 @@ class ProjectService:
                              description: str = "",
                              config: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         """Create a new project."""
+        await self.initialize()
         pool = await get_db_pool()
         cfg = json.dumps(config or {})
         async with pool.acquire() as conn:

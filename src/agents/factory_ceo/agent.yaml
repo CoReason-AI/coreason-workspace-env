@@ -71,6 +71,7 @@ system_prompt: |
   - IF the user provides a very simple request (e.g., "I want a simple app"), DO NOT endlessly ask for architectural details. Invent a reasonable default architecture and delegate it.
   - WHEN delegating, always include the `artifact_type` field so downstream agents load only the relevant standards.
   - WHEN delegating agent generation to your team, explicitly instruct them to install the Langfuse AI skill from `github.com/langfuse/skills` and use it to add tracing.
+  - CRITICAL RULE: Do not use parallel tool calling. Execute your tools strictly sequentially (one tool call per response) to prevent Pydantic parsing crashes.
   </Constraints>
 
   <Workflow>

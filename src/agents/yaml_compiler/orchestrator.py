@@ -120,8 +120,7 @@ class YamlCompilerAgent(DeepAgent):
         
         graph = self.build_standard_deep_agent(
             system_prompt=self.system_prompt,
-            state_schema=DeepAgentState,
-            response_format=SCHEMA_DICT
+            state_schema=DeepAgentState
         )
         
         initial_state = {"messages": [HumanMessage(content=f"Requirements: {context}")]}
@@ -129,24 +128,8 @@ class YamlCompilerAgent(DeepAgent):
         
         final_message = "FAILURE: No output produced."
         
-        # DeepAgents passes the structured output in the final message tool calls
         if result.get("messages"):
             last_msg = result["messages"][-1]
-            if getattr(last_msg, "tool_calls", None) and len(last_msg.tool_calls) > 0:
-                args = last_msg.tool_calls[0].get("args", {})
-                
-                # Extract and format the YAMLs
-                proj_yaml_str = args.get("project_yaml", "")
-                agent_dict = args.get("orchestrator_agent", {})
-                
-                # Convert the dictionary back to a YAML string for downstream parsing
-                agent_yaml_str = yaml.dump(agent_dict, sort_keys=False, default_flow_style=False)
-                
-                final_message = (
-                    f"```yaml\n# project.yaml\n{proj_yaml_str}\n```\n\n"
-                    f"```yaml\n# system/agents/orchestrator_agent.yaml\n{agent_yaml_str}\n```"
-                )
-            else:
-                final_message = getattr(last_msg, "content", str(last_msg))
+            final_message = getattr(last_msg, "content", str(last_msg))
                 
         return final_message

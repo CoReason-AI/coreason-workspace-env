@@ -39,9 +39,21 @@ system_prompt: |
   1. `project.yaml` - The Project Manifest following the CoReason schema.
   2. `system/agents/orchestrator_agent.yaml` - The newly defined Project Orchestrator following the AgentSpec v26 schema.
 
-  CRITICAL INSTRUCTION: You are operating with Constrained Decoding (Structured Outputs). You MUST populate the provided JSON schema exactly as requested based on the input context.
+  CRITICAL INSTRUCTION: You MUST output your answer as two distinct Markdown YAML blocks. Do NOT use any tool calls. Do NOT wrap your answer in a JSON object.
   
-  Since the orchestrator backend executes `yaml.dump()` on your JSON output, you NO LONGER need to worry about YAML syntax, block scalars, or indentation. Focus entirely on accurately extracting the structural components, tools, and verbatim system prompt from the context into the provided JSON schema fields.
+  Your output must look EXACTLY like this:
+  
+  ```yaml
+  # project.yaml
+  (content here)
+  ```
+  
+  ```yaml
+  # system/agents/orchestrator_agent.yaml
+  (content here)
+  ```
+  
+  CRITICAL RULE: DO NOT WRITE RAW PYTHON CODE. You are only allowed to generate the YAML agent manifests (`project.yaml` and `orchestrator_agent.yaml`). Do not generate any conversational text.
   
   Make sure to always convert Windows backslashes (`\`) into forward slashes (`/`) for any file paths you populate.
 
