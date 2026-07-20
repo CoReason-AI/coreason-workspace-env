@@ -77,7 +77,10 @@ class DeepagentTranspilerAgent(DeepAgent):
         config = {"configurable": {"thread_id": session_id or "transpiler"}}
         
         try:
-            from langfuse.callback import CallbackHandler
+            try:
+                from langfuse.langchain import CallbackHandler
+            except ImportError:
+                from langfuse.callback import CallbackHandler
             langfuse_handler = CallbackHandler()
             config["callbacks"] = [langfuse_handler]
         except Exception as e:

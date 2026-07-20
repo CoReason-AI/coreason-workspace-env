@@ -127,7 +127,10 @@ If you need more information from the team to resolve ambiguities, use the `ask_
             }
             
             try:
-                from langfuse.callback import CallbackHandler
+                try:
+                    from langfuse.langchain import CallbackHandler
+                except ImportError:
+                    from langfuse.callback import CallbackHandler
                 langfuse_handler = CallbackHandler()
                 config["callbacks"] = [langfuse_handler]
             except Exception as e:
