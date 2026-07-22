@@ -12,17 +12,16 @@ setup_telemetry()
 logger = logging.getLogger(__name__)
 
 # Load environment variables
+from dotenv import load_dotenv
 load_dotenv()
 
 from contextlib import asynccontextmanager
-from src.core.services import agent_service
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Startup
     yield
     # Shutdown
-    await agent_service.shutdown()
 
 # Initialize FastAPI App
 app = FastAPI(

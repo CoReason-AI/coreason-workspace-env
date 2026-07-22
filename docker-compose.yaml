@@ -6,8 +6,26 @@ services:
       - "9005:8000"
     env_file:
       - .env
+    environment:
+      - CELERY_BROKER_URL=redis://dify-redis:6379/1
+      - CELERY_RESULT_BACKEND=redis://dify-redis:6379/1
     volumes:
       - ./src:/home/coreason/project/src
+    restart: always
+
+  # 1.1 CoReason Celery Worker
+  platform_worker:
+    image: ghcr.io/coreason-ai/coreason-workspace-env:develop
+    command: ["uv", "run", "celery", "-A", "src.core.celery_app", "worker", "-l", "INFO"]
+    env_file:
+      - .env
+    environment:
+      - CELERY_BROKER_URL=redis://dify-redis:6379/1
+      - CELERY_RESULT_BACKEND=redis://dify-redis:6379/1
+    volumes:
+      - ./src:/home/coreason/project/src
+    depends_on:
+      - dify-redis
     restart: always
 
   # 1.5 MCP Server for Dify routing over SSE

@@ -24,7 +24,6 @@ class AgentService:
     """
     _bundle_cache = None
     _bundle_loaded = False
-    _background_tasks: set[asyncio.Task] = set()
 
     @classmethod
     def _get_bundle(cls) -> Optional[Dict[str, str]]:
@@ -160,21 +159,6 @@ class AgentService:
 
         return result
 
-    async def _safe_execute(self, coro, job_id: str):
-        """
-        Wraps a background execution coroutine, ensuring exceptions are caught and logged,
-        and that the task is removed from the strong reference set upon completion.
-        """
-        try:
-            await coro
-        except Exception as e:
-            logger.error(f"Background task for job {job_id} crashed: {e}", exc_info=True)
-        finally:
-            # Self-remove from the tracking set once done (we do this inside a callback normally, 
-            # but since we wrap the coroutine, we can just let the callback do it, or do it here.
-            # We'll use the callback pattern down below for safety, so this is just for exception boundary)
-            pass
-
     async def execute_agent(
         self,
         agent_name: str,
@@ -194,28 +178,19 @@ class AgentService:
 
         job_id = session_id or str(uuid.uuid7())
 
-        import importlib
+        from src.core.tasks.agent_tasks import execute_agent_task
         try:
-            module_path = f"src.agents.{agent_name}.orchestrator"
-            module = importlib.import_module(module_path)
-            agent_class_name = "".join(word.capitalize() for word in agent_name.split("_")) + "Agent"
-            agent_class = getattr(module, agent_class_name)
-            agent = agent_class()
-            
-            # Prepare context for the agent
-            if hasattr(agent, "execute") and asyncio.iscoroutinefunction(agent.execute):
-                coro = agent.execute(context={"messages": [("user", json.dumps(payload))]}, session_id=job_id)
-            else:
-                coro = asyncio.to_thread(agent.execute, payload, session_id=job_id)
-                
-            task = asyncio.create_task(self._safe_execute(coro, job_id))
-            self._background_tasks.add(task)
-            task.add_done_callback(self._background_tasks.discard)
-            
-            logger.info(f"Native DeepAgent execution enqueued for thread_id {job_id}")
+            # Enqueue the Celery task
+            execute_agent_task.delay(
+                agent_name=agent_name,
+                payload=payload,
+                user_id=user_id,
+                tenant_id=tenant_id,
+                session_id=job_id
+            )
+            logger.info(f"Native DeepAgent execution enqueued to Celery for thread_id {job_id}")
         except Exception as e:
-            logger.error(f"Failed to instantiate agent {agent_name}: {e}")
-
+            logger.error(f"Failed to enqueue agent {agent_name} to Celery: {e}")
 
         return {
             "status": "accepted",
@@ -224,21 +199,6 @@ class AgentService:
             "message": f"Agent '{agent_name}' execution enqueued.",
             "poll_url": f"/api/v2/jobs/{job_id}",
         }
-
-    async def shutdown(self):
-        """
-        Gracefully cancel and await all background tasks to prevent mid-flight GC termination.
-        """
-        tasks = list(self._background_tasks)
-        if not tasks:
-            return
-            
-        logger.info(f"Shutting down AgentService: awaiting {len(tasks)} background tasks...")
-        for task in tasks:
-            task.cancel()
-            
-        await asyncio.gather(*tasks, return_exceptions=True)
-        logger.info("All background tasks have been successfully shut down.")
 
     async def get_execution_status(self, job_id: str) -> Dict[str, Any]:
         """
