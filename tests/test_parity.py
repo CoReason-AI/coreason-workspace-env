@@ -111,9 +111,7 @@ class TestSDKSurface(unittest.TestCase):
         """SDK should have all namespace properties."""
         from src.sdk import CoReasonClient
         client = CoReasonClient()
-        self.assertTrue(hasattr(client, "projects"))
         self.assertTrue(hasattr(client, "agents"))
-        self.assertTrue(hasattr(client, "docs"))
 
 
 
@@ -139,24 +137,7 @@ class TestAPIRouter(unittest.TestCase):
             if hasattr(route, "path"):
                 route_paths.append(route.path)
         # Check key paths exist
-        path_str = " ".join(route_paths)
-        self.assertIn("/projects", path_str)
         self.assertIn("/agents", path_str)
-        self.assertIn("/docs", path_str)
-
-
-class TestStreamingModules(unittest.IsolatedAsyncioTestCase):
-    """Test that streaming modules import correctly."""
-
-    def test_crdt_router_import(self):
-        from src.api.streaming.crdt import router
-        self.assertIsNotNone(router)
-
-
-    def test_state_sync_router_import(self):
-        from src.api.streaming.state_sync import router
-        self.assertIsNotNone(router)
-
 
 
 

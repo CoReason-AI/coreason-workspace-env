@@ -11,8 +11,6 @@ from typing import Dict, Any, List, Optional
 
 import yaml
 
-# from src.core.engine.deepagent_runtime import PlatformOrchestrator
-from src.core.services.observability_service import ObservabilityService
 
 logger = logging.getLogger(__name__)
 
@@ -60,10 +58,13 @@ class AgentService:
         """
         Reads a specific agent's YAML manifest and orchestrator source.
         """
-        from src.core.security.path_validation import validate_alphanumeric, validate_safe_path
+        import re
+        if not re.match(r"^[a-zA-Z0-9_-]+$", agent_name):
+            return None
+        agent_dir = _AGENTS_DIR / agent_name
         try:
-            validate_alphanumeric(agent_name)
-            agent_dir = validate_safe_path(agent_name, base_dir=_AGENTS_DIR)
+            if not agent_dir.resolve().is_relative_to(_AGENTS_DIR.resolve()):
+                return None
         except ValueError:
             return None
 
@@ -106,8 +107,9 @@ class AgentService:
         Traces the execution via the LangSmith/WORM bridge.
         Returns a job_id for polling.
         """
-        from src.core.security.path_validation import validate_alphanumeric, sanitize_log_input
-        validate_alphanumeric(agent_name)
+        import re
+        if not re.match(r"^[a-zA-Z0-9_-]+$", agent_name):
+            raise ValueError(f"Invalid agent name: {agent_name}")
 
         job_id = session_id or str(uuid.uuid7())
 
@@ -140,64 +142,12 @@ class AgentService:
     async def get_execution_status(self, job_id: str) -> Dict[str, Any]:
         """
         Check the status of a previously enqueued job.
-        Queries Postgres LangGraph checkpointer for actual thread state.
+        Since we moved to Dify, this delegates to Dify API (currently stubbed).
         """
-        obs = ObservabilityService()
-        state = await obs.fetch_postgres_state(job_id)
-        if "error" not in state:
-            return {
-                "job_id": job_id,
-                "status": "success",
-                "detail": state,
-            }
-
-        # Fallback: Query AsyncPostgresSaver directly for generic agent executions
-        try:
-            from langgraph.checkpoint.postgres.aio import AsyncPostgresSaver
-            from langgraph.graph import StateGraph
-            from deepagents.graph import DeepAgentState
-            from langchain_core.messages import AIMessage
-            
-            async with AsyncPostgresSaver.from_conn_string(obs.pg_dsn) as saver:
-                builder = StateGraph(DeepAgentState)
-                builder.add_node("dummy", lambda state: state)
-                builder.set_entry_point("dummy")
-                builder.set_finish_point("dummy")
-                graph = builder.compile(checkpointer=saver)
-                
-                state_obj = await graph.aget_state({"configurable": {"thread_id": job_id}})
-                if state_obj and state_obj.values and "messages" in state_obj.values and state_obj.values["messages"]:
-                    messages = state_obj.values["messages"]
-                    last_msg = messages[-1]
-                    status = "success" if isinstance(last_msg, AIMessage) else "running"
-                    
-                    # Convert messages to serializable dictionaries
-                    serialized_messages = []
-                    for msg in messages:
-                        serialized_messages.append({
-                            "type": msg.__class__.__name__,
-                            "content": msg.content,
-                            "additional_kwargs": getattr(msg, "additional_kwargs", {})
-                        })
-                        
-                    return {
-                        "job_id": job_id,
-                        "status": status,
-                        "detail": {
-                            "thread_id": job_id,
-                            "state": {
-                                "messages": serialized_messages,
-                                "structured_response": state_obj.values.get("structured_response")
-                            }
-                        }
-                    }
-        except Exception as e:
-            logger.error(f"Failed to fetch checkpointer fallback state: {e}")
-
         return {
             "job_id": job_id,
             "status": "running",
-            "detail": state["error"],
+            "detail": "Delegated to Dify",
         }
 
     def rewind_checkpoint(self, checkpoint_id: str) -> Dict[str, Any]:
@@ -211,8 +161,7 @@ class AgentService:
             from fastapi import HTTPException
             raise HTTPException(status_code=400, detail="Invalid checkpoint_id format. Must be a valid UUID.")
 
-        from src.core.security.path_validation import sanitize_log_input
-        logger.info(f"Rewinding session to checkpoint: {sanitize_log_input(checkpoint_id)}")
+        logger.info(f"Rewinding session to checkpoint: {checkpoint_id}")
         return {
             "status": "success",
             "checkpoint_id": checkpoint_id,

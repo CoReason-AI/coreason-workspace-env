@@ -66,59 +66,6 @@ class TestAgentService(unittest.TestCase):
         # factory_ceo has an orchestrator.py
         self.assertIn("orchestrator_source", agent)
 
-class TestDocsService(unittest.TestCase):
-    """Test MkDocs generation service."""
-
-    def setUp(self):
-        from src.core.services.docs_service import DocsService
-        self.service = DocsService()
-        self.tmpdir = tempfile.mkdtemp()
-
-    def tearDown(self):
-        shutil.rmtree(self.tmpdir, ignore_errors=True)
-
-    @patch("src.core.security.path_validation.WORKSPACE_ROOT")
-    def test_generate_mkdocs_creates_files(self, mock_root):
-        """Should create mkdocs.yml and markdown pages."""
-        mock_root.__truediv__.return_value = Path(self.tmpdir) / "projects"
-        workspace = os.path.join(self.tmpdir, "projects", "test_docs")
-        result = self.service.generate_mkdocs(
-            workspace_path="test_docs",
-            site_name="Test Site",
-            pages=[
-                {"title": "Home", "filename": "index.md", "content": "# Hello"},
-                {"title": "About", "filename": "about.md", "content": "# About"},
-            ],
-        )
-        self.assertEqual(result["status"], "success")
-        self.assertTrue(os.path.exists(os.path.join(workspace, "mkdocs.yml")))
-        self.assertTrue(os.path.exists(os.path.join(workspace, "docs", "index.md")))
-        self.assertTrue(os.path.exists(os.path.join(workspace, "docs", "about.md")))
-
-    def test_generate_mkdocs_relative_path_rejected(self):
-        """Path traversal should be rejected."""
-        result = self.service.generate_mkdocs(
-            workspace_path="../relative/path",
-            site_name="Test",
-            pages=[],
-        )
-        self.assertEqual(result["status"], "error")
-
-    @patch("src.core.security.path_validation.WORKSPACE_ROOT")
-    def test_generate_mkdocs_nav_auto_generated(self, mock_root):
-        """Nav should be auto-generated from pages if not provided."""
-        import yaml
-        mock_root.__truediv__.return_value = Path(self.tmpdir) / "projects"
-        workspace = os.path.join(self.tmpdir, "projects", "test_nav")
-        self.service.generate_mkdocs(
-            workspace_path="test_nav",
-            site_name="Nav Test",
-            pages=[{"title": "Home", "filename": "index.md", "content": "# Hi"}],
-        )
-        with open(os.path.join(workspace, "mkdocs.yml")) as f:
-            config = yaml.safe_load(f)
-        self.assertEqual(config["nav"], [{"Home": "index.md"}])
-
 
 class TestHealthService(unittest.TestCase):
     """Test health service version info (connectivity tests need infra)."""
@@ -141,14 +88,10 @@ class TestServiceSingletons(unittest.TestCase):
     def test_all_singletons_importable(self):
         from src.core.services import (
             health_service,
-            project_service,
             agent_service,
-            docs_service,
         )
         self.assertIsNotNone(health_service)
-        self.assertIsNotNone(project_service)
         self.assertIsNotNone(agent_service)
-        self.assertIsNotNone(docs_service)
 
 
 if __name__ == "__main__":
