@@ -22,7 +22,9 @@ We strictly enforce a **Full-Code** paradigm for building agents. Dify's low-cod
 - **Expose**: The logic is exposed dynamically via the CoReason **MCP Server**.
 - **Deploy**: Dify acts exclusively as the **Enterprise Shell**, connecting to the CoReason MCP Server as a tool provider. 
 
-**Critical Security Boundary**: To maintain Data Sovereignty and Zero-Trust, Dify must be **Self-Hosted** (e.g., via local Docker Compose or internal Kubernetes). The CoReason backend is hardcoded to expect an internal Docker network URL (`http://dify-api:5001/v1`). You must never route traffic to Dify's public SaaS cloud (`api.dify.ai`), as this would leak intellectual property across the air-gap boundary.
+**Critical Security Boundary**: To maintain Data Sovereignty and Zero-Trust, Dify must be **Self-Hosted** (e.g., via local Docker Compose or internal Kubernetes). The CoReason backend is hardcoded to expect an internal Docker network URL (`http://dify-api:5001/v1`). You must never route traffic to Dify's public SaaS cloud (`api.dify.ai`), as this would leak intellectual property across the air-gap boundary. 
+
+*Note on LLMs*: While the orchestration shell (Dify) and execution backend (CoReason) must be self-hosted within your secure perimeter, you may optionally tunnel out to remote Model-as-a-Service (MaaS) providers (e.g., Azure OpenAI, Anthropic, OpenRouter) for inference, provided your enterprise data agreements permit it.
 
 ## Context Engineering & Schema Saturation
 Context Engineering is the practice of treating context assembly as a disciplined, mathematical control plane *prior* to kinetic execution. Before any deterministic worker node is activated, a supervisory routing node actively interrogates the user's input or the incoming API payload against a predefined `Pydantic` schema. 

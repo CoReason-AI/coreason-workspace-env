@@ -13,7 +13,7 @@ To support asynchronous concurrency and horizontal scaling, the platform utilize
 ### Dify Enterprise Shell Integration (The Full-Code Air-Gapped Bridge)
 In production, the CoReason platform is deployed as a headless **MCP Server** and plugged into **Dify**. We strictly bypass Dify's low-code workflow builder in favor of a **Full-Code** paradigm. 
 
-**Data Sovereignty Mandate**: Dify must be **Self-Hosted** locally via Docker Compose or internally via Kubernetes. You must never tunnel the CoReason MCP server to Dify's public SaaS cloud (`api.dify.ai`).
+**Data Sovereignty Mandate**: Dify must be **Self-Hosted** locally via Docker Compose or internally via Kubernetes. You must never tunnel the CoReason MCP server to Dify's public SaaS cloud (`api.dify.ai`). *(Note: Tunneling out to remote Model-as-a-Service (MaaS) APIs for LLM inference is permitted, provided your enterprise data sharing agreements allow it).*
 
 - The Python backend (running `coreason-workspace-env`) is deployed independently (e.g., via Helm or ECS) but inside the same private network as your Dify cluster.
 - A production Self-Hosted Dify instance is configured to use the CoReason MCP Server internal URL (e.g., `http://coreason-mcp:8000`) as an external Tool Provider.
