@@ -10,7 +10,13 @@ To support asynchronous concurrency and horizontal scaling, the platform utilize
 
 ## 2. Deployment Architectures (Cloud Only)
 
-For production environments, the platform relies on Managed Cloud Services (like AWS RDS, Elasticache, managed Vault, and S3) rather than Docker containers for stateful infrastructure.
+### Dify Enterprise Shell Integration (The Full-Code Bridge)
+In production, the CoReason platform is deployed as a headless **MCP Server** and plugged into **Dify**. We strictly bypass Dify's low-code workflow builder in favor of a **Full-Code** paradigm. 
+- The Python backend (running `coreason-workspace-env`) is deployed independently (e.g., via Helm or ECS).
+- A production Dify instance is configured to use the CoReason MCP Server URL as an external Tool Provider.
+- This creates a powerful enterprise boundary: Dify handles RBAC, horizontal UI scaling, SSO, and user chat sessions, while delegating the execution of deterministic, high-stakes LangGraph autonomous pipelines to the CoReason backend via the `run_native_deepagent` MCP tool.
+
+For infrastructure provisioning, the platform relies on Managed Cloud Services (like AWS RDS, Elasticache, managed Vault, and S3) rather than Docker containers for stateful infrastructure.
 
 ### Marketplace & Infrastructure as Code (Terraform)
 Complete IaC templates for AWS (EKS/RDS) and Azure (AKS/PostgreSQL) are located in `deploy/terraform/`. To deploy the full Cloud Only stack on AWS:

@@ -14,7 +14,13 @@ The platform physically enforces a strict architectural boundary between **Inten
 - **The Body (`src/core/`)**: The universal runtime harness (PlatformOrchestrator, DB pools, HTTP routers) that mounts the Brain and wires it into the physical world.
 
 ## Headless-First Architecture & Dify Integration
-The CoReason Workspace Environment is strictly a **Headless Execution Engine**. All stateful conversational UI (chat memory, interactive interrogation, and RAG UI) is fully offloaded to upstream orchestration platforms like **Dify**. The workspace acts purely as a distributed worker factory, exposed entirely via its MCP server and REST endpoints.
+The CoReason Workspace Environment is strictly a **Headless Execution Engine**. All stateful conversational UI (chat memory, interactive interrogation, and RAG UI) is fully offloaded to upstream orchestration platforms like **Dify**. 
+
+### The Full-Code Paradigm
+We strictly enforce a **Full-Code** paradigm for building agents. Dify's low-code/no-code drag-and-drop workflow builder is explicitly bypassed. 
+- **Build**: All agents are written natively in Python using the `deepagents` SDK and LangGraph inside `src/agents/`.
+- **Expose**: The logic is exposed dynamically via the CoReason **MCP Server**.
+- **Deploy**: Dify acts exclusively as the **Enterprise Shell**, connecting to the CoReason MCP Server as a tool provider. Dify handles the enterprise deployment features (SSO, horizontal scaling, UI rendering) while delegating all autonomous agentic task execution over the MCP bridge back to the Python backend.
 
 ## Context Engineering & Schema Saturation
 Context Engineering is the practice of treating context assembly as a disciplined, mathematical control plane *prior* to kinetic execution. Before any deterministic worker node is activated, a supervisory routing node actively interrogates the user's input or the incoming API payload against a predefined `Pydantic` schema. 

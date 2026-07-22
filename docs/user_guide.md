@@ -1,6 +1,14 @@
-# User Guide: The Factory Workflow
+# User Guide
 
-As an operator of the CoReason Workspace Environment, your primary role is to act as the visionary and stakeholder. The heavy lifting of software engineering and agent orchestration is delegated to your internal hierarchy of factory agents.
+Welcome to the CoReason Workspace Environment. 
+
+## The Interaction Model (Full-Code vs Dify)
+
+The CoReason platform enforces a strict separation of concerns between agent development and user interaction:
+
+1. **Developers (Full-Code)**: You will not use drag-and-drop workflow builders. You will write deterministic, full-code agents natively in Python using the `deepagents` SDK. These agents live in `src/agents/`.
+2. **Users (Dify)**: End-users will never interact with the raw workspace APIs. They interact with the agents exclusively through the **Dify** enterprise chat UI.
+3. **The Bridge**: The platform exposes the Full-Code agents via an **MCP Server**, which Dify securely consumes as a tool provider. Dify handles the SSO, chat memory, and session management, while the heavy agentic lifting is offloaded back to your Python backend.
 
 This guide outlines the complete 10-step real-world workflow used to build, validate, and deploy a brand new agent platform natively with `deepagents`.
 
