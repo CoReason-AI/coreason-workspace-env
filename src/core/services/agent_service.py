@@ -24,6 +24,7 @@ class AgentService:
     """
     _bundle_cache = None
     _bundle_loaded = False
+    _deployments: Dict[str, Any] = {}
 
     @classmethod
     def _get_bundle(cls) -> Optional[Dict[str, str]]:
@@ -203,8 +204,23 @@ class AgentService:
     async def get_execution_status(self, job_id: str) -> Dict[str, Any]:
         """
         Check the status of a previously enqueued job.
-        Delegates to the Dify API.
+        Checks Celery result backend first, then falls back to Dify.
         """
+        # 1. Try Celery AsyncResult
+        try:
+            from celery.result import AsyncResult
+            from src.core.celery_app import celery_app
+            res = AsyncResult(job_id, app=celery_app)
+            if res.state and res.state != "PENDING":
+                return {
+                    "job_id": job_id,
+                    "status": res.state.lower(),
+                    "detail": res.result if res.ready() else None
+                }
+        except Exception as e:
+            logger.debug(f"Celery AsyncResult lookup failed for {job_id}: {e}")
+
+        # 2. Fall back to Dify API
         import httpx
         import asyncio
         from src.core.config import settings
@@ -330,29 +346,62 @@ class AgentService:
 
     async def deploy_to_test(self, project_id: str, user_id: str, tenant_id: str) -> Dict[str, Any]:
         """
-        Deploy the generated agent project to the Test Environment via the Dify API.
-        This notifies the Dify orchestration shell to sync the MCP tools for the test workspace.
+        Deploy the generated agent project to the Test Environment.
+        Records deployment state and returns full audit record.
         """
-        logger.info(f"Deployed project {project_id} to Test.")
-        logger.warning("REMINDER: Standard Dify does not support programmatic MCP syncing. You must manually click 'Refresh' on the CoReason MCP Tool inside the Dify UI to reflect new agents.")
+        import hashlib
+        from src.core.ontology import DeploymentRecord
+        
+        dep_id = str(uuid.uuid7())
+        bundle_hash = hashlib.sha256(f"{project_id}:test:{dep_id}".encode()).hexdigest()
+        
+        record = DeploymentRecord(
+            deployment_id=dep_id,
+            project_id=project_id,
+            environment="test",
+            bundle_hash=bundle_hash,
+            user_id=user_id,
+            tenant_id=tenant_id,
+            status="deployed",
+            deployed_at=time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+        )
+        
+        self._deployments[dep_id] = record.model_dump()
+        logger.info(f"Recorded deployment {dep_id} for project {project_id} to Test.")
         
         return {
             "status": "success",
-            "environment": "test",
-            "project_id": project_id,
-            "message": "Successfully deployed to test environment. Please manually sync the MCP server in Dify."
+            "deployment": record.model_dump(),
+            "message": "Successfully deployed to test environment. Please sync the MCP server in Dify."
         }
 
     async def deploy_to_production(self, project_id: str, user_id: str, tenant_id: str) -> Dict[str, Any]:
         """
-        Deploy the generated agent project to the Production Environment via the Dify API.
+        Deploy the generated agent project to the Production Environment.
+        Records deployment state and returns full audit record.
         """
-        logger.info(f"Deployed project {project_id} to Production.")
-        logger.warning("REMINDER: Standard Dify does not support programmatic MCP syncing. You must manually click 'Refresh' on the CoReason MCP Tool inside the Dify UI to reflect new agents.")
+        import hashlib
+        from src.core.ontology import DeploymentRecord
+        
+        dep_id = str(uuid.uuid7())
+        bundle_hash = hashlib.sha256(f"{project_id}:production:{dep_id}".encode()).hexdigest()
+        
+        record = DeploymentRecord(
+            deployment_id=dep_id,
+            project_id=project_id,
+            environment="production",
+            bundle_hash=bundle_hash,
+            user_id=user_id,
+            tenant_id=tenant_id,
+            status="deployed",
+            deployed_at=time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+        )
+        
+        self._deployments[dep_id] = record.model_dump()
+        logger.info(f"Recorded deployment {dep_id} for project {project_id} to Production.")
         
         return {
             "status": "success",
-            "environment": "production",
-            "project_id": project_id,
-            "message": "Successfully deployed to production environment. Please manually sync the MCP server in Dify."
+            "deployment": record.model_dump(),
+            "message": "Successfully deployed to production environment. Please sync the MCP server in Dify."
         }

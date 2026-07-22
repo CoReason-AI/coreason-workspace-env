@@ -1,75 +1,20 @@
 import logging
-from typing import Dict, Any, Optional
-from pathlib import Path
-import json
+from typing import Dict, Any, Optional, TypedDict, Annotated
+import operator
 
 from deepagents.graph import create_deep_agent
-from langchain_core.language_models.chat_models import BaseChatModel
-from langchain_core.messages import BaseMessage, AIMessage, SystemMessage, HumanMessage
-from langchain_core.outputs import ChatResult, ChatGeneration
-from pydantic import PrivateAttr
-import litellm
+from langchain_openai import ChatOpenAI
 
 from src.core.services.agent_service import AgentService
 from src.core.config import settings
 
 logger = logging.getLogger(__name__)
 
-class NativeLiteLLMModel(BaseChatModel):
-    model: str
-    temperature: float = 0.0
-    api_key: str = ""
-    api_base: str = ""
-
-    def _format_messages(self, messages: list[BaseMessage]) -> list[dict]:
-        litellm_messages = []
-        for m in messages:
-            if isinstance(m, HumanMessage) or m.type == "human":
-                litellm_messages.append({"role": "user", "content": str(m.content)})
-            elif isinstance(m, SystemMessage) or m.type == "system":
-                litellm_messages.append({"role": "system", "content": str(m.content)})
-            elif isinstance(m, AIMessage) or m.type == "ai":
-                litellm_messages.append({"role": "assistant", "content": str(m.content)})
-            else:
-                litellm_messages.append({"role": "user", "content": str(m.content)})
-        return litellm_messages
-
-    def _generate(self, messages: list[BaseMessage], stop: Optional[list[str]] = None, run_manager: Optional[Any] = None, **kwargs: Any) -> ChatResult:
-        litellm_messages = self._format_messages(messages)
-        response = litellm.completion(
-            model=self.model,
-            messages=litellm_messages,
-            temperature=self.temperature,
-            api_key=self.api_key if self.api_key else None,
-            api_base=self.api_base if self.api_base else None,
-            **kwargs
-        )
-        content = response.choices[0].message.content
-        return ChatResult(generations=[ChatGeneration(message=AIMessage(content=content))])
-
-    async def _agenerate(self, messages: list[BaseMessage], stop: Optional[list[str]] = None, run_manager: Optional[Any] = None, **kwargs: Any) -> ChatResult:
-        litellm_messages = self._format_messages(messages)
-        response = await litellm.acompletion(
-            model=self.model,
-            messages=litellm_messages,
-            temperature=self.temperature,
-            api_key=self.api_key if self.api_key else None,
-            api_base=self.api_base if self.api_base else None,
-            **kwargs
-        )
-        content = response.choices[0].message.content
-        return ChatResult(generations=[ChatGeneration(message=AIMessage(content=content))])
-
-    @property
-    def _llm_type(self) -> str:
-        return "native-litellm"
-
-from typing import TypedDict, Annotated
-import operator
 
 class DynamicAgentState(TypedDict):
     payload: dict
     messages: Annotated[list, operator.add]
+
 
 class DeepAgentService:
     """
@@ -101,11 +46,11 @@ class DeepAgentService:
                     skill_paths.append(f"/{p}")
 
         try:
-            model = NativeLiteLLMModel(
+            model = ChatOpenAI(
                 model=settings.LLM_MODEL_NAME,
                 api_key=settings.LLM_API_KEY,
-                api_base=settings.LLM_BASE_URL,
-                temperature=settings.LLM_TEMPERATURE
+                base_url=settings.LLM_BASE_URL,
+                temperature=settings.LLM_TEMPERATURE,
             )
 
             agent = create_deep_agent(
@@ -135,5 +80,6 @@ class DeepAgentService:
         except Exception as e:
             logger.error(f"DeepAgent execution failed: {e}")
             return {"error": str(e)}
+
 
 deepagent_service = DeepAgentService()

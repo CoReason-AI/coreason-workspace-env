@@ -17,7 +17,7 @@ load_dotenv()
 from src.core.services import agent_service
 from src.core.services.rbac_service import rbac_service
 
-logging.basicConfig(level=logging.INFO, stream=sys.stdout, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logging.basicConfig(level=logging.INFO, stream=sys.stderr, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
 app = typer.Typer()
 import langchain

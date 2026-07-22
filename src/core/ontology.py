@@ -1,9 +1,8 @@
-from typing import Any, Generic, TypeVar, Optional, TypedDict
+from typing import Any, Generic, TypeVar, Optional, TypedDict, Annotated
+from enum import StrEnum
+from pydantic import BaseModel, Field
 from langchain.agents import AgentState
 from deepagents.graph import DeepAgentState
-from deepagents.graph import DeepAgentState
-from pydantic import BaseModel, Field
-from enum import StrEnum
 
 T = TypeVar('T')
 
@@ -15,27 +14,18 @@ class EpistemicProxyState(BaseModel):
     proxy_cid: str
     structural_type: str
 
-
-
 class CoreasonBaseState(AgentState, total=False):
     pass
-
 
 class UserIdentity(BaseModel):
     user_id: str
     tenant_id: str
     roles: list[str]
 
-
-from langgraph.graph import add_messages
-from typing import Annotated
-
 class OrchestratorCeoState(DeepAgentState, total=False):
     raw_transcript: Optional[str]
     epistemic_proxy: Optional[EpistemicProxyState]
     is_saturated: bool
-
-
 
 class SemanticNodeState(BaseModel):
     node_id: str
@@ -105,3 +95,13 @@ class ManifestViolationReceipt(BaseModel):
 class ToolInvocationEvent(BaseModel):
     tool_name: str
     parameters: dict[str, Any]
+
+class DeploymentRecord(BaseModel):
+    deployment_id: str = Field(description="UUIDv7 identifier for the deployment.")
+    project_id: str
+    environment: str = Field(description="'test' or 'production'")
+    bundle_hash: str
+    user_id: str
+    tenant_id: str
+    status: str = Field(default="deployed")
+    deployed_at: str

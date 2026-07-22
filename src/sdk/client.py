@@ -55,9 +55,9 @@ class _AgentsNamespace:
             session_id=session_id,
         )
 
-    def get_status(self, job_id: str) -> Dict[str, Any]:
+    async def get_status(self, job_id: str) -> Dict[str, Any]:
         """Check the status of an enqueued job."""
-        return self._svc.get_execution_status(job_id)
+        return await self._svc.get_execution_status(job_id)
 
     def rewind_checkpoint(self, checkpoint_id: str) -> Dict[str, Any]:
         """Rewind a session to a specific UUIDv7 checkpoint ID."""
