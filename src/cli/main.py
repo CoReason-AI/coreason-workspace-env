@@ -203,5 +203,25 @@ def bundle_mcp_agents(source: str = "src/agents", output: str = "dist/coreason_m
         typer.secho(f"Failed to bundle MCP agents: {e}", fg=typer.colors.RED, bold=True)
         raise typer.Exit(code=1)
 
+skills_app = typer.Typer()
+app.add_typer(skills_app, name="skills")
+
+@skills_app.command("list")
+def list_skills(category: Optional[str] = typer.Option(None, '--category')):
+    """List all available skills in the registry."""
+    from src.core.services import skill_service
+    res = {"skills": skill_service.list_skills(category=category)}
+    typer.echo(json.dumps(res, default=str))
+
+@skills_app.command("get")
+def get_skill(name: str = typer.Option(..., '--name')):
+    """Get a specific skill's Markdown content and metadata."""
+    from src.core.services import skill_service
+    res = skill_service.get_skill(name)
+    if not res:
+        typer.echo("Not found")
+        sys.exit(1)
+    typer.echo(json.dumps({"skill": res}, default=str))
+
 if __name__ == "__main__":
     app()

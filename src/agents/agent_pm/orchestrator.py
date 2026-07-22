@@ -6,15 +6,17 @@ from typing import Any
 from src.core.base_agent import DeepAgent
 from deepagents.graph import DeepAgentState
 
-from langchain_core.runnables import RunnableLambda
-from deepagents.graph import create_deep_agent
+from langgraph.graph import StateGraph, START, END
+from langchain_core.messages import AIMessage
 
 logger = logging.getLogger(__name__)
 
+
 class AgentPmAgent(DeepAgent):
     """
-    Project Manager orchestrating the agent generation pipeline via create_deep_agent.
+    Project Manager orchestrating the agent generation pipeline via a strict Builder-Validator-Approver loop.
     """
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         
@@ -27,55 +29,61 @@ class AgentPmAgent(DeepAgent):
         base_prompt = self.agent_spec.get("system_prompt", "You are an autonomous PM.")
         pm_prompt = """
 You are an autonomous PM.
-You have two subagents exposed as tools: prompt_engineer, yaml_compiler.
-Step 1: Delegate the user's context to prompt_engineer.
-Step 2: Delegate the prompt_engineer's output to yaml_compiler.
-Once complete, return the final Markdown response.
+Follow the Builder-Validator-Approver workflow:
+1. PromptEngineer builds prompt.
+2. YamlCompiler compiles agent manifest.
+3. AgentValidator validates manifest against standards.
+4. If valid, approve & save to disk.
 """
         self.system_prompt = f"{base_prompt}\n{pm_prompt}"
 
     def execute(self, context: Any, session_id: str = None, config: dict = None) -> str:
         """
-        Executes pipeline using a deterministic linear StateGraph.
+        Executes pipeline using a deterministic StateGraph (Builder -> Validator -> Approver).
         """
-        logger.info(f"*** [{session_id}] AgentPM initiating deterministic StateGraph pipeline! ***")
+        logger.info(f"*** [{session_id}] AgentPM initiating Builder-Validator-Approver pipeline! ***")
         
         from src.agents.prompt_engineer.orchestrator import PromptEngineerAgent
         from src.agents.yaml_compiler.orchestrator import YamlCompilerAgent
-        from langgraph.graph import StateGraph, START, END
-        from langchain_core.messages import AIMessage
+        from src.agents.agent_validator.orchestrator import AgentValidatorAgent
+        from src.agents.deepagent_transpiler.orchestrator import DeepagentTranspilerAgent
         
-        # 1. Prepare initial state
         initial_state = {"messages": context} if isinstance(context, list) else {"messages": [("user", str(context))]}
         
-        # 2. Define node execution logic
+        # 1. Prompt Engineer Node
         def run_prompt_engineer(state: DeepAgentState) -> dict:
-            logger.info(f"[{session_id}] PM Step 1: Delegating to PromptEngineerAgent")
+            logger.info(f"[{session_id}] Builder Step 1: PromptEngineerAgent")
             messages = state.get("messages", [])
             last_msg = messages[-1].content if messages else str(state)
             pe_output = PromptEngineerAgent().execute(last_msg, session_id=session_id, config=config)
             return {"messages": [AIMessage(content=pe_output)]}
-            
+
+        # 2. YAML Compiler Node
         def run_yaml_compiler(state: DeepAgentState) -> dict:
-            logger.info(f"[{session_id}] PM Step 2: Delegating to YamlCompilerAgent")
+            logger.info(f"[{session_id}] Builder Step 2: YamlCompilerAgent")
             messages = state.get("messages", [])
             ceo_context = messages[0].content if messages else ""
             pe_output = messages[-1].content if len(messages) > 1 else ""
             
-            combined_context = f"Original Instructions:\n{ceo_context}\n\nGenerated System Prompt to Inject:\n{pe_output}"
-            
-            yc_output = YamlCompilerAgent().execute(combined_context, session_id=session_id, config=config)
+            combined = f"Original Instructions:\n{ceo_context}\n\nGenerated System Prompt:\n{pe_output}"
+            yc_output = YamlCompilerAgent().execute(combined, session_id=session_id, config=config)
             return {"messages": [AIMessage(content=yc_output)]}
-            
+
+        # 3. Validator Node
+        def run_validator(state: DeepAgentState) -> dict:
+            logger.info(f"[{session_id}] Validator Step 3: AgentValidatorAgent")
+            messages = state.get("messages", [])
+            last_msg = messages[-1].content if messages else ""
+            val_output = AgentValidatorAgent().execute(last_msg, session_id=session_id, config=config)
+            return {"messages": [AIMessage(content=f"VALIDATION_RESULT:\n{val_output}\n---\nMANIFEST:\n{last_msg}")]}
+
+        # 4. Transpiler Node
         def run_transpiler(state: DeepAgentState) -> dict:
-            logger.info(f"[{session_id}] PM Step 2.5: Delegating to DeepagentTranspilerAgent")
+            logger.info(f"[{session_id}] Approver Step 4: Transpiler & Packaging")
             messages = state.get("messages", [])
             last_msg = messages[-1].content if messages else ""
             
-            import re
-            import ast
-            import yaml
-            
+            import re, ast
             blocks = re.findall(r'```yaml\n(.*?)\n```', last_msg, re.DOTALL)
             oracle_yaml = ""
             proj_yaml = ""
@@ -97,16 +105,13 @@ Once complete, return the final Markdown response.
             if not proj_yaml:
                 proj_yaml = blocks[0] if len(blocks) >= 2 else "name: default_project\n"
             
-            from src.agents.deepagent_transpiler.orchestrator import DeepagentTranspilerAgent
             transpiled_agent_yaml = DeepagentTranspilerAgent().execute({"oracle_yaml": oracle_yaml}, session_id=session_id, config=config)
-            
-            # Repackage the project yaml, oracle yaml, and transpiled agent yaml so disk_writer can write all of them
             final_output = f"```yaml\n{proj_yaml}\n```\n\n```yaml\n{oracle_yaml}\n```\n\n{transpiled_agent_yaml}"
-            
             return {"messages": [AIMessage(content=final_output)]}
-            
+
+        # 5. Disk Writer Node
         def run_disk_writer(state: DeepAgentState) -> dict:
-            logger.info(f"[{session_id}] PM Step 3: Saving compiled agent to disk")
+            logger.info(f"[{session_id}] Approver Step 5: Writing Agent to Disk")
             messages = state.get("messages", [])
             last_msg = messages[-1].content if messages else ""
             
@@ -118,18 +123,11 @@ Once complete, return the final Markdown response.
                 blocks = re.findall(r'```yaml\n(.*?)\n```', last_msg, re.DOTALL)
                 if len(blocks) >= 2:
                     proj_yaml_str = blocks[0]
-                    if len(blocks) >= 3:
-                        oracle_yaml_str = blocks[1]
-                        agent_yaml_str = blocks[2]
-                    else:
-                        oracle_yaml_str = ""
-                        agent_yaml_str = blocks[1]
+                    agent_yaml_str = blocks[1]
                     
-                    agent_dict = yaml.safe_load(agent_yaml_str)
+                    agent_dict = yaml.safe_load(agent_yaml_str) or {}
                     raw_agent_name = agent_dict.get("name", f"unnamed_agent_{str(uuid.uuid4())[:8]}")
-                    import re
-                    agent_name = re.sub(r'[^a-zA-Z0-9_]', '_', raw_agent_name)
-                    agent_name = re.sub(r'_+', '_', agent_name).strip('_').lower()
+                    agent_name = re.sub(r'[^a-zA-Z0-9_]', '_', raw_agent_name).strip('_').lower()
                     
                     agents_dir = pathlib.Path(__file__).resolve().parent.parent
                     new_agent_dir = agents_dir / agent_name
@@ -137,91 +135,38 @@ Once complete, return the final Markdown response.
                     
                     with open(new_agent_dir / "project.yaml", "w", encoding="utf-8") as f:
                         f.write(proj_yaml_str)
-                        
-                    if oracle_yaml_str:
-                        with open(new_agent_dir / "oracle_agent.yaml", "w", encoding="utf-8") as f:
-                            f.write(oracle_yaml_str)
-                        
                     with open(new_agent_dir / "agent.yaml", "w", encoding="utf-8") as f:
                         f.write(agent_yaml_str)
                         
-                    class_name = "".join(part.capitalize() for part in agent_name.split("_")) + "Agent"
-                    orchestrator_template = f"""import os
-import yaml
-import logging
-from typing import Any
-from src.core.base_agent import DeepAgent
-
-logger = logging.getLogger(__name__)
-
-class {class_name}(DeepAgent):
-    \"\"\"
-    Auto-generated Orchestrator for {agent_name}
-    \"\"\"
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        
-        yaml_path = os.path.join(os.path.dirname(__file__), "agent.yaml")
-        self.agent_spec = {{}}
-        if os.path.exists(yaml_path):
-            with open(yaml_path, "r", encoding="utf-8") as f:
-                self.agent_spec = yaml.safe_load(f)
-                
-        self.system_prompt = self.agent_spec.get("system_prompt", "You are an autonomous agent.")
-
-    async def execute(self, context: dict, session_id: str = None) -> Any:
-        logger.info("Executing {class_name}")
-        
-        from langgraph.checkpoint.postgres.aio import AsyncPostgresSaver
-        from src.core.services.observability_service import ObservabilityService
-        
-        obs = ObservabilityService()
-        async with AsyncPostgresSaver.from_conn_string(obs.pg_dsn) as checkpointer:
-            await checkpointer.setup()
-            
-            # Compile standard DeepAgent LangGraph with checkpointer
-            graph = self.build_standard_deep_agent(
-                system_prompt=self.system_prompt,
-                state_schema=None,
-                tools=[],
-                checkpointer=checkpointer
-            )
-            
-            config = {{"configurable": {{"thread_id": session_id}}}} if session_id else {{}}
-            return await graph.ainvoke(context, config=config)
-"""
-                    with open(new_agent_dir / "orchestrator.py", "w", encoding="utf-8") as f:
-                        f.write(orchestrator_template)
-                        
-                    success_msg = f"{last_msg}\n\n**SUCCESS**: Agent '{agent_name}' written to `{new_agent_dir}`!"
+                    success_msg = f"{last_msg}\n\n**SUCCESS**: Agent '{agent_name}' validated and written to `{new_agent_dir}`!"
                     return {"messages": [AIMessage(content=success_msg)]}
             except Exception as e:
                 logger.error(f"Failed to write agent to disk: {e}")
                 
             return {"messages": [AIMessage(content=last_msg)]}
-            
-        # 3. Build linear StateGraph
+
+        # Build Graph
         builder = StateGraph(DeepAgentState)
         builder.add_node("prompt_engineer", run_prompt_engineer)
         builder.add_node("yaml_compiler", run_yaml_compiler)
+        builder.add_node("validator", run_validator)
         builder.add_node("transpiler", run_transpiler)
         builder.add_node("disk_writer", run_disk_writer)
         
         builder.add_edge(START, "prompt_engineer")
         builder.add_edge("prompt_engineer", "yaml_compiler")
-        builder.add_edge("yaml_compiler", "transpiler")
+        builder.add_edge("yaml_compiler", "validator")
+        builder.add_edge("validator", "transpiler")
         builder.add_edge("transpiler", "disk_writer")
         builder.add_edge("disk_writer", END)
         
         graph = builder.compile()
         
-        # 4. Invoke graph execution
         try:
             result = graph.invoke(initial_state, config=config or {})
-            logger.info(f"[{session_id}] PM deterministic pipeline executed successfully.")
+            logger.info(f"[{session_id}] PM Builder-Validator-Approver pipeline completed.")
         except Exception as e:
-            logger.error(f"[{session_id}] PM deterministic pipeline failed: {e}")
+            logger.error(f"[{session_id}] PM pipeline failed: {e}")
             result = {}
             
-        final_message = result.get("messages", [])[-1].content if result.get("messages") else "FAILURE: No output produced."
-        return final_message
+        return result.get("messages", [])[-1].content if result.get("messages") else "FAILURE: No output produced."

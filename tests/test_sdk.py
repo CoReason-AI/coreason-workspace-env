@@ -29,6 +29,14 @@ async def test_sdk_client():
     
     job_id = res["job_id"]
     
+    # Test skills namespace
+    skills = client.skills.list()
+    assert isinstance(skills, list)
+    assert len(skills) > 0
+    
+    fetched_skill = client.skills.get(skills[0]["name"])
+    assert fetched_skill is not None
+    
     # Test traces namespace
     trace = client.traces.get(job_id)
     assert trace is not None

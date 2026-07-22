@@ -96,6 +96,22 @@ class _TracesNamespace:
         return self._svc.list_traces(agent_name=agent_name)
 
 
+class _SkillsNamespace:
+    """SDK namespace for Markdown skills registry."""
+
+    def __init__(self):
+        from src.core.services import skill_service
+        self._svc = skill_service
+
+    def list(self, category: Optional[str] = None) -> List[Dict[str, Any]]:
+        """List available skills."""
+        return self._svc.list_skills(category=category)
+
+    def get(self, name: str) -> Optional[Dict[str, Any]]:
+        """Get skill metadata and Markdown content."""
+        return self._svc.get_skill(name)
+
+
 class CoReasonClient:
     """
     In-process Python SDK for the CoReason platform.
@@ -104,6 +120,7 @@ class CoReasonClient:
     Usage:
         client = CoReasonClient()
         agents = client.agents.list()
+        skills = client.skills.list()
         trace = client.traces.get(job_id)
         health = await client.health()
     """
@@ -111,6 +128,7 @@ class CoReasonClient:
     def __init__(self):
         self.agents = _AgentsNamespace()
         self.traces = _TracesNamespace()
+        self.skills = _SkillsNamespace()
 
     async def health(self) -> Dict[str, Any]:
         """Run platform health check."""

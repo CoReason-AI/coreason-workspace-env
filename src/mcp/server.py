@@ -162,6 +162,19 @@ async def evaluate_agent(
     )
     return report.model_dump()
 
+@mcp.tool()
+async def list_skills(category: Optional[str] = None) -> Dict[str, Any]:
+    """List all available skills in the registry."""
+    from src.core.services import skill_service
+    return {"skills": skill_service.list_skills(category=category)}
+
+@mcp.tool()
+async def get_skill(skill_name: str) -> Dict[str, Any]:
+    """Get a specific skill's Markdown content and metadata."""
+    from src.core.services import skill_service
+    skill = skill_service.get_skill(skill_name)
+    return {"skill": skill} if skill else {"error": f"Skill '{skill_name}' not found"}
+
 if __name__ == "__main__":
     import os
     import sys
