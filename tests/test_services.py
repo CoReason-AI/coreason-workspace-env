@@ -94,5 +94,21 @@ class TestServiceSingletons(unittest.TestCase):
         self.assertIsNotNone(agent_service)
 
 
+class TestBundlerService(unittest.TestCase):
+    def test_synthesize_project_template(self):
+        from src.core.services.bundler_service import bundler_service
+        res = bundler_service.synthesize_project_template(
+            project_id="test_self_similar_proj",
+            name="Self Similar Test Project",
+            description="A template synthesized by BundlerService",
+            orchestrator_yaml="agentspec_version: '26.1.2'",
+            tools=["search_catalog_tool"],
+            skills=["building/agent_building_standards.md"]
+        )
+        self.assertEqual(res["status"], "success")
+        self.assertEqual(res["project_id"], "test_self_similar_proj")
+        self.assertIn("urn:oid:1.3.6.1.4.1.66197:project:test_self_similar_proj", res["urn"])
+
+
 if __name__ == "__main__":
     unittest.main()
