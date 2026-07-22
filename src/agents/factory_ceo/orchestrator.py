@@ -51,7 +51,17 @@ Initial Interaction Protocol:
 If the architectural summary from the librarian is present and fully resolves the topology, proceed.
 If you need more information from the team to resolve ambiguities, use the `ask_clarifying_question` tool.
 """
-        full_system_prompt = f"{base_prompt}\n{multi_user_prompt}\n<SKILL: multiple_choice_interrogation>\n{skill_content}\n</SKILL>"
+        output_architectural_opinions = """
+FRACTAL ARCHITECTURAL OPINIONS FOR GENERATED AGENTIC APPLICATIONS:
+Every agentic application synthesized by this factory MUST mirror the platform's self-similar opinionated architecture:
+1. DeepAgent Manifests & StateGraphs: PyAgentSpec-compliant YAML manifests with strict TypedDict state schemas.
+2. 5-Surface Parity: Embedded REST API, CLI, MCP Server, WebSockets/SSE, and Python SDK transport adapters over a shared core service layer.
+3. Headless & Dify Enterprise Shell Integration: Exposed natively as an MCP server to allow Dify or external AI orchestrators to control the app natively.
+4. IANA PEN 66197 Identifiers: Assigned a canonical OID URN (`urn:oid:1.3.6.1.4.1.66197:<type>:<id>`) and Coreason URL (`https://urn.coreason.ai/1.3.6.1.4.1.66197/...`).
+5. Open-Source Observability: Embedded OpenTelemetry + Langfuse tracing without proprietary SaaS lock-in.
+6. Sandboxed Testing: Self-contained execution sandboxes for multi-tenant project spaces.
+"""
+        full_system_prompt = f"{base_prompt}\n{multi_user_prompt}\n{output_architectural_opinions}\n<SKILL: multiple_choice_interrogation>\n{skill_content}\n</SKILL>"
         self.system_prompt = full_system_prompt
 
     async def execute(self, context: dict, session_id: str = None) -> Any:
