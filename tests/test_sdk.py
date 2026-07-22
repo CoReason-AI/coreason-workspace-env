@@ -50,6 +50,16 @@ async def test_sdk_client():
     term_sbx = client.sandboxes.terminate(sbx["sandbox_id"])
     assert term_sbx["status"] == "success"
     
+    # Test catalog namespace
+    cat_results = client.catalog.search(query="causal")
+    assert isinstance(cat_results, list)
+    
+    resolved_cat = client.catalog.resolve("urn:oid:1.3.6.1.4.1.66197:project:epistemic_analyst_v1")
+    assert resolved_cat is not None
+    
+    imported_cat = client.catalog.import_module("urn:oid:1.3.6.1.4.1.66197:project:epistemic_analyst_v1", "proj_sdk_target")
+    assert imported_cat["status"] == "success"
+    
     # Test traces namespace
     trace = client.traces.get(job_id)
     assert trace is not None

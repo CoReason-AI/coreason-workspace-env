@@ -268,5 +268,38 @@ def terminate_sandbox(sandbox_id: str = typer.Option(..., '--sandbox-id')):
     res = sandbox_service.terminate_sandbox(sandbox_id)
     typer.echo(json.dumps(res, default=str))
 
+catalog_app = typer.Typer()
+app.add_typer(catalog_app, name="catalog")
+
+@catalog_app.command("search")
+def search_catalog(
+    query: Optional[str] = typer.Option(None, '--query'),
+    resource_type: Optional[str] = typer.Option(None, '--type'),
+):
+    """Search Project & Module Catalog (PEN 66197 Authority)."""
+    from src.core.services import catalog_service
+    res = {"results": catalog_service.search_catalog(query=query, resource_type=resource_type)}
+    typer.echo(json.dumps(res, default=str))
+
+@catalog_app.command("resolve")
+def resolve_urn(urn: str = typer.Option(..., '--urn')):
+    """Resolve an OID or Native PEN 66197 URN."""
+    from src.core.services import catalog_service
+    entry = catalog_service.resolve_urn(urn)
+    if not entry:
+        typer.echo("URN not found")
+        sys.exit(1)
+    typer.echo(json.dumps({"entry": entry}, default=str))
+
+@catalog_app.command("import")
+def import_catalog_module(
+    urn: str = typer.Option(..., '--urn'),
+    target_project_id: str = typer.Option(..., '--target-project-id'),
+):
+    """Import a catalog module into a project space."""
+    from src.core.services import catalog_service
+    res = catalog_service.import_module(urn, target_project_id)
+    typer.echo(json.dumps(res, default=str))
+
 if __name__ == "__main__":
     app()

@@ -209,18 +209,59 @@ async def execute_in_sandbox(sandbox_id: str, payload: Dict[str, Any]) -> Dict[s
     return sandbox_service.execute_in_sandbox(sandbox_id, payload)
 
 @mcp.tool()
-async def terminate_sandbox(
-    sandbox_id: str,
+async def search_catalog(
+    query: Optional[str] = None,
+    resource_type: Optional[str] = None,
+    tags: Optional[List[str]] = None,
+) -> Dict[str, Any]:
+    """Search the Project & Module Catalog (PEN 66197 Authority)."""
+    from src.core.services import catalog_service
+    results = catalog_service.search_catalog(query=query, resource_type=resource_type, tags=tags)
+    return {"results": results}
+
+@mcp.tool()
+async def resolve_urn(urn: str) -> Dict[str, Any]:
+    """Resolve an OID (urn:oid:1.3.6.1.4.1.66197:...) or Native URN (urn:coreason:...) to its metadata."""
+    from src.core.services import catalog_service
+    entry = catalog_service.resolve_urn(urn)
+    return {"entry": entry} if entry else {"error": f"URN '{urn}' not found in catalog"}
+
+@mcp.tool()
+async def register_catalog_entry(
+    urn: str,
+    name: str,
+    description: str,
+    resource_type: str,
     user_id: str,
     tenant_id: str,
+    version: str = "1.0.0",
+    tags: Optional[List[str]] = None,
+    metadata: Optional[Dict[str, Any]] = None,
+    source_code: Optional[str] = None,
     roles: Optional[List[str]] = None,
 ) -> Dict[str, Any]:
-    """Terminate and clean up a provisioned sandbox environment."""
+    """Register a new project or component under URN PEN 66197 authority."""
     identity = rbac_service.authenticate_human(user_id, tenant_id, provided_roles=roles)
     rbac_service.require_role(identity, "developer")
     
-    from src.core.services import sandbox_service
-    return sandbox_service.terminate_sandbox(sandbox_id)
+    from src.core.services import catalog_service
+    entry = catalog_service.register_entry(
+        urn=urn,
+        name=name,
+        description=description,
+        resource_type=resource_type,
+        version=version,
+        tags=tags,
+        metadata=metadata,
+        source_code=source_code,
+    )
+    return {"entry": entry.model_dump()}
+
+@mcp.tool()
+async def import_catalog_module(urn: str, target_project_id: str) -> Dict[str, Any]:
+    """Import a cataloged project/agent module as a component into a project space."""
+    from src.core.services import catalog_service
+    return catalog_service.import_module(urn, target_project_id)
 
 if __name__ == "__main__":
     import os

@@ -45,6 +45,9 @@ class FactoryCeoAgent(DeepAgent):
         multi_user_prompt = """
 You are collaborating with a team of humans. The `name` field on each human message identifies the speaker.
 Resolve conflicts organically by mediating and asking the team for consensus before taking destructive actions.
+Initial Interaction Protocol:
+1. Search the built-in Project Catalog (`catalog_service`) powered by IANA PEN 66197 (`urn:oid:1.3.6.1.4.1.66197:...`).
+2. Present relevant past project exemplars to the human team so they can review, learn, and import modular building blocks.
 If the architectural summary from the librarian is present and fully resolves the topology, proceed.
 If you need more information from the team to resolve ambiguities, use the `ask_clarifying_question` tool.
 """
@@ -53,14 +56,14 @@ If you need more information from the team to resolve ambiguities, use the `ask_
 
     async def execute(self, context: dict, session_id: str = None) -> Any:
         is_goal_mode = context.get("is_goal_mode", False)
-        
         prompt = self.system_prompt
-        agent_tools = [ask_clarifying_question]
+        from src.core.tools.catalog_tools import search_catalog_tool, resolve_urn_tool, import_catalog_module_tool
+        agent_tools = [ask_clarifying_question, search_catalog_tool, resolve_urn_tool, import_catalog_module_tool]
         agent_interrupt_on = {"ask_clarifying_question": True}
         
         if is_goal_mode:
             prompt += "\nGOAL MODE ACTIVE: You are running in fully autonomous mode. Do NOT ask for human clarification or consensus. Make the most reasonable architectural assumptions based on the context provided, be extra thorough, and delegate the final artifact compilation to `agent_pm`. Once `agent_pm` completes, you MUST repeat its output (the YAML blocks) exactly in your final response without any conversational summaries or extra explanation."
-            agent_tools = []
+            agent_tools = [search_catalog_tool, resolve_urn_tool, import_catalog_module_tool]
             agent_interrupt_on = {}
 
         from src.core.config import settings

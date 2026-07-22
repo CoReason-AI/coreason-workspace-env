@@ -158,6 +158,55 @@ class _SandboxesNamespace:
         return self._svc.terminate_sandbox(sandbox_id)
 
 
+class _CatalogNamespace:
+    """SDK namespace for URN Catalog Authority (PEN 66197)."""
+
+    def __init__(self):
+        from src.core.services import catalog_service
+        self._svc = catalog_service
+
+    def search(
+        self,
+        query: Optional[str] = None,
+        resource_type: Optional[str] = None,
+        tags: Optional[List[str]] = None,
+    ) -> List[Dict[str, Any]]:
+        """Search the Project & Module Catalog."""
+        return self._svc.search_catalog(query=query, resource_type=resource_type, tags=tags)
+
+    def resolve(self, urn: str) -> Optional[Dict[str, Any]]:
+        """Resolve an OID or Native URN."""
+        return self._svc.resolve_urn(urn)
+
+    def register(
+        self,
+        urn: str,
+        name: str,
+        description: str,
+        resource_type: str,
+        version: str = "1.0.0",
+        tags: Optional[List[str]] = None,
+        metadata: Optional[Dict[str, Any]] = None,
+        source_code: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        """Register a project or component in the catalog."""
+        entry = self._svc.register_entry(
+            urn=urn,
+            name=name,
+            description=description,
+            resource_type=resource_type,
+            version=version,
+            tags=tags,
+            metadata=metadata,
+            source_code=source_code,
+        )
+        return entry.model_dump()
+
+    def import_module(self, urn: str, target_project_id: str) -> Dict[str, Any]:
+        """Import a cataloged component into a target project space."""
+        return self._svc.import_module(urn, target_project_id)
+
+
 class CoReasonClient:
     """
     In-process Python SDK for the CoReason platform.
@@ -167,6 +216,7 @@ class CoReasonClient:
         client = CoReasonClient()
         agents = client.agents.list()
         skills = client.skills.list()
+        catalog = client.catalog.search(query="causal")
         sbx = client.sandboxes.provision(project_id="proj_1")
         trace = client.traces.get(job_id)
         health = await client.health()
@@ -177,6 +227,7 @@ class CoReasonClient:
         self.traces = _TracesNamespace()
         self.skills = _SkillsNamespace()
         self.sandboxes = _SandboxesNamespace()
+        self.catalog = _CatalogNamespace()
 
     async def health(self) -> Dict[str, Any]:
         """Run platform health check."""

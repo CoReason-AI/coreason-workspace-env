@@ -66,38 +66,22 @@ To empower upstream AI coding assistants (the "Agent Improvement System") to nat
 - **Agent Resumption**: Directly invokes the `PlatformOrchestrator` to seamlessly resume paused or failed agents natively using the LangGraph checkpointer.
 
 All observability logic is encapsulated within `src/core/services/observability_service.py` and strictly obeys the platform's SSOT (Single Source of Truth) configuration, allowing it to transition seamlessly from local development into enterprise Kubernetes clusters without hardcoded topology strings.
-# Core Architecture Principles
+## IANA Private Enterprise Number (PEN 66197) URN Authority & Module Catalog
 
-The CoReason Workspace Environment implements an opinionated variant of the DeepAgent pattern. While the industry frequently treats multi-agent systems as experimental scripts, this platform enforces a strict Infrastructure as Code (IaC) approach, leveraging deterministic mathematical boundaries rather than heuristic prompting.
+The platform operates an official URN Authority backed by Coreason AI's IANA PEN assignment **66197**:
+- **Official IANA OID URN**: `urn:oid:1.3.6.1.4.1.66197:<resource_type>:<resource_id>`
+- **Coreason URL Authority**: `https://urn.coreason.ai/1.3.6.1.4.1.66197/<resource_type>/<resource_id>`
 
-## DeepAgent Pattern & Declarative Manifests
-Agents within the platform are defined via strictly typed, `pyagentspec`-compatible **YAML manifests**. 
-This shift to declarative infrastructure treats agent definitions as portable, version-controlled configurations.
+Every project, agent, skill, workflow, and custom component synthesized by the factory is assigned a global, unique URN under PEN 66197. The platform provides a persistent, scalable `CatalogService` and LangGraph tools (`search_catalog_tool`, `resolve_urn_tool`, `import_catalog_module_tool`) allowing human operators and building agents (`factory_ceo`, `librarian_pm`) to:
+1. Search past projects and exemplars by query or tag.
+2. Resolve OID URNs or Coreason URLs to inspect full metadata and source specifications.
+3. Import complete project templates or individual agent modules directly into target project spaces.
 
-At runtime, a dynamically synthesized **LangGraph StateGraph** node enforces deterministic routing and eliminates deliberation cascades. The `factory_ceo` (instantiated via `create_deep_agent`) dynamically delegates to PMs and workers using standard tool calling and native `deepagents` middleware.
+## Sandboxed Environment Deployments (E2B / Isolated Containers)
 
-### Strict Version Boundary (deepagents >= 0.6.12)
-This platform strictly targets the modern `deepagents >= 0.6.12` API boundaries.
-- **Strict `TypedDict` State**: Agent state schemas MUST inherit from `langchain.agents.AgentState` (which is a `TypedDict`). Pydantic models (`BaseModel`) and standard python dataclasses are no longer supported.
-- **String-Based System Prompts**: The legacy `SystemPromptConfig` API has been removed. You must pass the system prompt directly as a string to the `system_prompt` argument in `create_deep_agent`.
-
-## The Brain / Body Dichotomy
-The platform physically enforces a strict architectural boundary between **Intent** and **Execution** by separating the repository into two primary domains:
-- **The Brain (`src/agents/`)**: Represents pure cognitive intent (personas, YAML, StateGraphs) with zero infrastructure code.
-- **The Body (`src/core/`)**: The universal runtime harness (PlatformOrchestrator, DB pools, HTTP routers) that mounts the Brain and wires it into the physical world.
-
-## Headless-First Architecture & Dify Integration
-The CoReason Workspace Environment is strictly a **Headless Execution Engine**. All stateful conversational UI (chat memory, interactive interrogation, and RAG UI) is fully offloaded to upstream orchestration platforms like **Dify**. 
-
-### The Full-Code Paradigm (Self-Hosted Air-Gapped)
-We strictly enforce a **Full-Code** paradigm for building agents. Dify's low-code/no-code drag-and-drop workflow builder is explicitly bypassed. 
-- **Build**: All agents are written natively in Python using the `deepagents` SDK and LangGraph inside `src/agents/`.
-- **Expose**: The logic is exposed dynamically via the CoReason **MCP Server**.
-- **Deploy**: Dify acts exclusively as the **Enterprise Shell**, connecting to the CoReason MCP Server as a tool provider. 
-
-**Critical Security Boundary**: To maintain Data Sovereignty and Zero-Trust, Dify must be **Self-Hosted** (e.g., via local Docker Compose or internal Kubernetes). The CoReason backend is hardcoded to expect an internal Docker network URL (`http://dify-api:5001/v1`). You must never route traffic to Dify's public SaaS cloud (`api.dify.ai`), as this would leak intellectual property across the air-gap boundary. 
-
-*Note on LLMs*: While the orchestration shell (Dify) and execution backend (CoReason) must be self-hosted within your secure perimeter, you may optionally tunnel out to remote Model-as-a-Service (MaaS) providers (e.g., Azure OpenAI, Anthropic, OpenRouter) for inference, provided your enterprise data agreements permit it.
+To allow building agents and human teams to test and execute agentic applications safely in multi-tenant project spaces, the platform provides `SandboxService`:
+- Provisions isolated execution sandboxes with pre-bound secrets, credentials, database connections, and MCP tool servers.
+- Fully exposed across all 5 interaction surfaces (`/sandboxes` REST API, `sandbox` CLI, MCP tools, Python SDK).
 
 ## Context Engineering & Schema Saturation
 Context Engineering is the practice of treating context assembly as a disciplined, mathematical control plane *prior* to kinetic execution. Before any deterministic worker node is activated, a supervisory routing node actively interrogates the user's input or the incoming API payload against a predefined `Pydantic` schema. 

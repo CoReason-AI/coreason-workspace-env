@@ -119,3 +119,49 @@ class SandboxRecord(BaseModel):
     mcp_servers: list[str] = Field(default_factory=list)
     workspace_path: str = Field(description="Path to isolated sandbox workspace.")
     created_at: str
+
+
+class CoreasonURN(BaseModel):
+    """
+    URN Authority using Coreason AI's IANA Private Enterprise Number (66197).
+    Supports OID URN: urn:oid:1.3.6.1.4.1.66197:<resource_type>:<resource_id>
+    and Coreason URL: https://urn.coreason.ai/1.3.6.1.4.1.66197/<resource_type>/<resource_id>
+    """
+    pen: int = 66197
+    resource_type: str = Field(description="project, agent, skill, workflow, component")
+    resource_id: str
+    tenant_id: Optional[str] = None
+
+    @classmethod
+    def parse(cls, urn_str: str) -> "CoreasonURN":
+        clean = urn_str.strip()
+        if clean.startswith("urn:oid:1.3.6.1.4.1.66197:"):
+            parts = clean.replace("urn:oid:1.3.6.1.4.1.66197:", "").split(":")
+            return cls(resource_type=parts[0], resource_id=":".join(parts[1:]))
+        elif "urn.coreason.ai/1.3.6.1.4.1.66197/" in clean:
+            path = clean.split("urn.coreason.ai/1.3.6.1.4.1.66197/", 1)[1]
+            parts = path.strip("/").split("/")
+            return cls(resource_type=parts[0], resource_id="/".join(parts[1:]))
+        elif clean.startswith("urn:coreason:"):
+            parts = clean.replace("urn:coreason:", "").split(":")
+            return cls(resource_type=parts[0], resource_id=":".join(parts[1:]))
+        else:
+            raise ValueError(f"Invalid Coreason URN/URL format: {urn_str}")
+
+    def to_oid_urn(self) -> str:
+        return f"urn:oid:1.3.6.1.4.1.66197:{self.resource_type}:{self.resource_id}"
+
+    def to_coreason_url(self) -> str:
+        return f"https://urn.coreason.ai/1.3.6.1.4.1.66197/{self.resource_type}/{self.resource_id}"
+
+
+class CatalogEntry(BaseModel):
+    urn: str = Field(description="Canonical Coreason URN (PEN 66197)")
+    name: str
+    description: str
+    resource_type: str = Field(description="project, agent, skill, workflow, component")
+    version: str = "1.0.0"
+    tags: list[str] = Field(default_factory=list)
+    metadata: dict[str, Any] = Field(default_factory=dict)
+    source_code: Optional[str] = None
+    created_at: str

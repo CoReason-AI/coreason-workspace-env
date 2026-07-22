@@ -7,6 +7,7 @@ from src.core.services.agent_service import AgentService
 from src.core.services.trace_service import trace_service
 from src.core.services.skill_service import skill_service
 from src.core.services.sandbox_service import sandbox_service
+from src.core.services.catalog_service import catalog_service
 
 # Singleton service instances — shared across all surfaces
 health_service = HealthService()
@@ -18,4 +19,5 @@ __all__ = [
     "trace_service",
     "skill_service",
     "sandbox_service",
+    "catalog_service",
 ]
