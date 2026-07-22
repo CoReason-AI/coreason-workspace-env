@@ -150,3 +150,15 @@ When communicating across distinct OpenShell sandboxes, physical containers, or 
 - **Security Boundary**: Governed by the caller and callee's OpenShell `openshell.policy.json` egress whitelist (`allowed_egress_domains`, `mcp_server_ports: [9005]`).
 - **URN Resolution**: Agents resolve remote targets using `CatalogService` via `urn:oid:1.3.6.1.4.1.66197:agent:<id>` or `https://urn.coreason.ai/...`.
 
+### Deep Context, Memory & State Transfer Mechanics
+The A2A protocol enforces 3 distinct state and memory transfer layers:
+1. **Checkpointed LangGraph State (`AsyncPostgresSaver`)**:
+   - Every agent execution graph is backed by PostgreSQL checkpointers.
+   - When Agent A delegates to Agent B, full step history, tool invocations, messages, and `DeepAgentState` dictionary keys are preserved with 100% loss-free state fidelity across thread checkpoints.
+2. **Progressive Disclosure Deep Context (Lazy Artifact Loading)**:
+   - To prevent context window saturation and prompt degradation during multi-hop delegation, heavy artifacts (large source codebases, database schemas, vector indices) are passed as URI references (`file:///...` or `urn:oid:1.3.6.1.4.1.66197:...`).
+   - The receiving subagent lazy-loads deep context on-demand using native `deepagents` `StateBackend` filesystem tools.
+3. **Persistent Episodic & Semantic Memory**:
+   - Cross-session memory is persisted in PostgreSQL and Qdrant vector indices via `src/core/services/memory_service.py`.
+   - Subagents automatically query relevant past project memories, architectural decisions, and error traces during delegated task execution.
+
