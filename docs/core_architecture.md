@@ -71,3 +71,10 @@ All observability logic is encapsulated within `src/core/services/observability_
 The orchestrator maintains rigorous Request-Scoped Telemetry across thousands of asynchronous nodes without leaking memory and without custom `weakref` boilerplate. It achieves this by strictly adopting the CNCF standard **OpenTelemetry Context** (`opentelemetry.context`) and **Structlog ContextVars** natively. 
 
 Standard `logging` instances (used by third parties like Langchain or FastAPI) are transparently hijacked and pipelined through `structlog`. At the entry point of any orchestrator execution, the unique `session_id` is bound to the ambient context. Every deeply nested API call, database query, and model invocation automatically inherits this tracing ID gracefully, providing 100% causal visibility in Langfuse (or any OTel backend) without manually polluting function signatures.
+
+## Developer Considerations & Known Issues
+
+When working on the integration layer between the CoReason backend and the Dify orchestration shell, developers should be aware of the following resolved architectural gotchas:
+
+- ❌ **Broken Dify Webhook (POST /mcp/sync)**: Code in `agent_service.py` previously attempted to call `{settings.DIFY_API_URL}/mcp/sync` to automatically sync tool providers upon deployment. **Standard Dify has no `/mcp/sync` endpoint (returns 404)**. We have deprecated this logic; developers must now manually click 'Refresh' on the CoReason MCP Tool inside the Dify UI to reflect new agents.
+- ❌ **Swallowing HTTP Errors**: `agent_service.py` previously caught exceptions on Dify API calls but did not call `response.raise_for_status()`, returning a fake `status: success` or `status: running` even when HTTP requests failed (e.g., 500 Internal Server Error). This has been patched to strictly enforce robust async exponential backoff for transient errors, while immediately bubbling deterministic errors as a sanitized `status: error` JSON payload to protect upstream clients from raw stack traces.
