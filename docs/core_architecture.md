@@ -8,6 +8,11 @@ This shift to declarative infrastructure treats agent definitions as portable, v
 
 At runtime, a dynamically synthesized **LangGraph StateGraph** node enforces deterministic routing and eliminates deliberation cascades. The `factory_ceo` (instantiated via `create_deep_agent`) dynamically delegates to PMs and workers using standard tool calling and native `deepagents` middleware.
 
+### Strict Version Boundary (deepagents >= 0.6.12)
+This platform strictly targets the modern `deepagents >= 0.6.12` API boundaries.
+- **Strict `TypedDict` State**: Agent state schemas MUST inherit from `langchain.agents.AgentState` (which is a `TypedDict`). Pydantic models (`BaseModel`) and standard python dataclasses are no longer supported.
+- **String-Based System Prompts**: The legacy `SystemPromptConfig` API has been removed. You must pass the system prompt directly as a string to the `system_prompt` argument in `create_deep_agent`.
+
 ## The Brain / Body Dichotomy
 The platform physically enforces a strict architectural boundary between **Intent** and **Execution** by separating the repository into two primary domains:
 - **The Brain (`src/agents/`)**: Represents pure cognitive intent (personas, YAML, StateGraphs) with zero infrastructure code.

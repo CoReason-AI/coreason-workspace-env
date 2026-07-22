@@ -4,17 +4,17 @@ This guide outlines how to deploy the CoReason MCP Agent Bundle and configure Di
 
 ## 1. Build the Encrypted MCP Bundle
 
-During CI/CD, run the bundler to encrypt all agent YAML manifests:
+During CI/CD, run the bundler CLI command to encrypt all agent YAML manifests:
 
 ```bash
 uv run coreason mcp bundle --source src/agents --output dist/coreason_mcp_bundle.enc
 ```
-This produces a monolithic AES-256 encrypted bundle.
+This produces a monolithic AES-256 encrypted bundle using the native `bundler_service.py` component.
 
 ## 2. Deploy the Karta Container (K3s)
 
 Deploy the `coreason-mcp-bundle` Docker image to your K3s cluster. 
-Ensure the Pod has the correct Cloud IAM / Workload Identity annotations to access the Cloud KMS.
+Ensure the Pod has the correct Cloud IAM / Workload Identity annotations to access the Cloud KMS. At runtime, the `AgentService` will lazily decrypt the bundle in-memory upon the first MCP request if the `MCP_BUNDLE_PATH` environment variable is set.
 
 ```yaml
 apiVersion: apps/v1
