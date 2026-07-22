@@ -7,6 +7,7 @@ Welcome to `coreason-workspace-env` — the opinionated, self-replicating AI age
 ## Documentation Index
 
 ### Core Architecture & Specifications
+- [Comprehensive System Capabilities Taxonomy (MECE Taxonomy)](system_capabilities_mece.md): Full MECE capability breakdown across synthesis, governance, sandboxing, transport, and observability.
 - [Core Architecture Principles](core_architecture.md): DeepAgent pattern, IANA PEN 66197 URN Authority, OpenShell Zero-Trust sandboxing, Quine project synthesis, and Epistemic Firewall.
 - [Interaction Surfaces](interaction_surfaces.md): 5-Surface Parity (REST API, CLI, MCP Server, WebSockets/SSE, Python SDK).
 - [Services Guide](services.md): Core platform services (`CatalogService`, `SandboxService`, `BundlerService`, `AgentService`, `RBACService`).
