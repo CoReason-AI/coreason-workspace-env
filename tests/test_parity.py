@@ -27,7 +27,7 @@ class TestCLISurface(unittest.TestCase):
         """CLI should show help without error."""
         result = self._run_cli("--help")
         self.assertEqual(result.returncode, 0)
-        self.assertIn("coreason", result.stdout.lower())
+        self.assertIn("agents", result.stdout.lower())
 
     def test_cli_agents_list(self):
         """CLI agents list should return valid JSON with agents."""
