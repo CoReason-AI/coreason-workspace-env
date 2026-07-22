@@ -30,13 +30,15 @@ class SandboxService:
         tenant_id: str,
         environment: str = "test",
         runtime_engine: str = "openshell",
+        agent_name: Optional[str] = None,
+        agent_permissions: Optional[Dict[str, Any]] = None,
         secrets: Optional[Dict[str, str]] = None,
         connections: Optional[Dict[str, str]] = None,
         mcp_servers: Optional[List[str]] = None,
     ) -> SandboxRecord:
         """
         Provisions a new isolated sandbox environment for a project deployment.
-        Supports OpenShell process sandboxing, Docker container isolation, and Kubernetes pods.
+        Constructs an agent-specific OpenShell Zero-Trust security boundary policy.
         """
         sandbox_id = str(uuid.uuid7())
         ws_path = self.base_dir / sandbox_id
@@ -51,11 +53,25 @@ class SandboxService:
         final_secrets = secrets or {"API_KEY": f"sbx_secret_{uuid.uuid4().hex[:12]}"}
         final_mcp = mcp_servers or ["coreason-filesystem", "coreason-postgres", "coreason-fetch"]
 
+        # Fetch agent-specific manifest permissions if agent_name provided
+        merged_perms = agent_permissions or {}
+        if agent_name:
+            try:
+                from src.core.services.agent_service import agent_service
+                agent_manifest = agent_service.get_agent(agent_name)
+                if agent_manifest:
+                    manifest_perms = agent_manifest.get("zero_trust_policy") or agent_manifest.get("permissions") or {}
+                    merged_perms = {**manifest_perms, **merged_perms}
+            except Exception as e:
+                logger.warning(f"Could not load manifest permissions for agent '{agent_name}': {e}")
+
         # 1. Write env configuration to sandbox workspace
         env_file = ws_path / ".env.sandbox"
         with open(env_file, "w", encoding="utf-8") as f:
             f.write(f"# Sandbox Environment: {sandbox_id}\n")
             f.write(f"PROJECT_ID={project_id}\n")
+            if agent_name:
+                f.write(f"AGENT_NAME={agent_name}\n")
             f.write(f"SANDBOX_ENV={environment}\n")
             f.write(f"RUNTIME_ENGINE={runtime_engine}\n")
             for k, v in final_secrets.items():
@@ -63,22 +79,36 @@ class SandboxService:
             for k, v in final_conns.items():
                 f.write(f"CONN_{k.upper()}={v}\n")
 
-        # 2. Write OpenShell Security & Boundary Policy Manifest
+        rel_ws_path = f"sandboxes/{sandbox_id}"
+
+        # 2. Write Agent-Specific OpenShell Security & Zero-Trust Policy Manifest
+        allowed_egress = merged_perms.get("allowed_egress_domains", ["api.dify.ai", "api.openai.com", "urn.coreason.ai"])
+        allowed_tools = merged_perms.get("allowed_tools", final_mcp)
+        read_only_paths = merged_perms.get("read_only_paths", ["/etc", "/usr", "/lib"])
+
         openshell_policy = {
             "sandbox_id": sandbox_id,
             "project_id": project_id,
+            "agent_name": agent_name or "generic_agent",
             "runtime_engine": runtime_engine,
+            "zero_trust": {
+                "strict_mode": True,
+                "agent_identity": f"urn:oid:1.3.6.1.4.1.66197:agent:{agent_name or 'generic'}",
+            },
             "filesystem": {
-                "read_only_paths": ["/etc", "/usr", "/lib"],
-                "writable_workspace": str(ws_path),
+                "read_only_paths": read_only_paths,
+                "writable_workspace": rel_ws_path,
             },
             "network": {
-                "allowed_egress_domains": ["api.dify.ai", "api.openai.com", "urn.coreason.ai"],
+                "allowed_egress_domains": allowed_egress,
                 "mcp_server_ports": [9005],
             },
+            "tools": {
+                "allowed_mcp_servers": allowed_tools,
+            },
             "capabilities": {
-                "allow_subprocess": False if environment == "production" else True,
-                "allow_raw_sockets": False,
+                "allow_subprocess": merged_perms.get("allow_subprocess", False if environment == "production" else True),
+                "allow_raw_sockets": merged_perms.get("allow_raw_sockets", False),
             }
         }
         policy_file = ws_path / "openshell.policy.json"
@@ -95,7 +125,7 @@ services:
       - PROJECT_ID={project_id}
       - RUNTIME_ENGINE={runtime_engine}
     volumes:
-      - {ws_path}:/app/sandbox
+      - ./{rel_ws_path}:/app/sandbox
     security_opt:
       - no-new-privileges:true
 """
@@ -135,7 +165,7 @@ spec:
             provisioned_secrets=final_secrets,
             connections=final_conns,
             mcp_servers=final_mcp,
-            workspace_path=str(ws_path),
+            workspace_path=rel_ws_path,
             created_at=time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
         )
 
@@ -179,7 +209,7 @@ spec:
         if not sbx:
             return {"status": "error", "message": f"Sandbox '{sandbox_id}' not found."}
 
-        ws_path = Path(sbx["workspace_path"])
+        ws_path = self.base_dir / sandbox_id
         if ws_path.is_dir():
             shutil.rmtree(ws_path, ignore_errors=True)
 

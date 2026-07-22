@@ -23,12 +23,14 @@ def test_sandbox_lifecycle():
     assert rec.provisioned_secrets["CUSTOM_KEY"] == "custom_val_123"
     assert "custom_db" in rec.connections
     
+    assert rec.workspace_path == f"sandboxes/{rec.sandbox_id}"
+    
     # Assert generated boundary manifests
     import os
-    ws = rec.workspace_path
-    assert os.path.exists(os.path.join(ws, "openshell.policy.json"))
-    assert os.path.exists(os.path.join(ws, "docker-compose.sandbox.yaml"))
-    assert os.path.exists(os.path.join(ws, "k8s-pod.yaml"))
+    ws_disk = sandbox_service.base_dir / rec.sandbox_id
+    assert os.path.exists(os.path.join(ws_disk, "openshell.policy.json"))
+    assert os.path.exists(os.path.join(ws_disk, "docker-compose.sandbox.yaml"))
+    assert os.path.exists(os.path.join(ws_disk, "k8s-pod.yaml"))
     
     # 2. Get Sandbox
     fetched = sandbox_service.get_sandbox(rec.sandbox_id)
@@ -54,3 +56,21 @@ def test_sandbox_lifecycle():
     # Verify terminated state
     after_term = sandbox_service.get_sandbox(rec.sandbox_id)
     assert after_term["status"] == "terminated"
+
+
+def test_agent_specific_openshell_policy():
+    rec = sandbox_service.provision_sandbox(
+        project_id="proj_agent_spec",
+        user_id="usr_1",
+        tenant_id="tnt_1",
+        agent_name="factory_ceo",
+        agent_permissions={
+            "allowed_egress_domains": ["custom.api.com"],
+            "allow_subprocess": False
+        }
+    )
+    policy = rec.openshell_policy
+    assert policy["agent_name"] == "factory_ceo"
+    assert policy["zero_trust"]["agent_identity"] == "urn:oid:1.3.6.1.4.1.66197:agent:factory_ceo"
+    assert "custom.api.com" in policy["network"]["allowed_egress_domains"]
+    assert policy["capabilities"]["allow_subprocess"] is False
