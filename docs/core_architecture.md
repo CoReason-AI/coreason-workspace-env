@@ -131,3 +131,22 @@ When working on the integration layer between the CoReason backend and the Dify 
 - ❌ **Broken Dify Webhook (POST /mcp/sync)**: Code in `agent_service.py` previously attempted to call `{settings.DIFY_API_URL}/mcp/sync` to automatically sync tool providers upon deployment. **Standard Dify has no `/mcp/sync` endpoint (returns 404)**. We have deprecated this logic; developers must now manually click 'Refresh' on the CoReason MCP Tool inside the Dify UI to reflect new agents.
 - ❌ **Swallowing HTTP Errors**: `agent_service.py` previously caught exceptions on Dify API calls but did not call `response.raise_for_status()`, returning a fake `status: success` or `status: running` even when HTTP requests failed (e.g., 500 Internal Server Error). This has been patched to strictly enforce robust async exponential backoff for transient errors, while immediately bubbling deterministic errors as a sanitized `status: error` JSON payload to protect upstream clients from raw stack traces.
 - ❌ **Unauthenticated SSE Transport**: Previously, `src/mcp/server.py` ran the FastMCP SSE endpoint without any authorization, leaving the MCP surface completely open on the internal network. We have patched this by adding a Starlette `BearerAuthMiddleware` that enforces Bearer token validation natively. Upstream clients (like Dify) must now inject `Authorization: Bearer <TOKEN>` where the token matches the `MCP_API_KEY` environment variable. If `MCP_API_KEY` is not set, the MCP server will proactively crash on startup in `sse` mode to prevent fail-open vulnerabilities.
+
+## Agent-to-Agent (A2A) Communication Protocol
+
+The platform implements a dual-tier **Agent-to-Agent (A2A)** communication protocol built natively on `deepagents`, `LangGraph`, and `LangChain`.
+
+### Tier 1: Intra-Sandbox A2A Protocol (In-Process LangGraph Subagent Tools)
+Within a single OpenShell sandbox container workspace (`sandboxes/<sandbox_id>`), parent orchestrators (`factory_ceo`) communicate with child agents (`agent_pm`, `librarian_pm`, `research_agent`) in-process:
+- **Harness**: Native `deepagents.graph.create_deep_agent` with subagent middleware (`deepagents.middleware.subagents`).
+- **State Model**: `DeepAgentState` (inheriting from `langchain.agents.AgentState` `TypedDict`).
+- **Control Flow**: Direct LangGraph `StateGraph` node traversal. Subagents return execution payloads via `Command(resume=...)` or direct state dictionaries.
+- **Identity**: Bound by local Python namespace and IANA PEN 66197 OID URN (`urn:oid:1.3.6.1.4.1.66197:agent:<name>`).
+
+### Tier 2: Inter-Sandbox A2A Protocol (Remote LangChain FastMCP JSON-RPC)
+When communicating across distinct OpenShell sandboxes, physical containers, or multi-tenant network boundaries:
+- **Transport**: `FastMCP` JSON-RPC over HTTP/stdio on port `9005`.
+- **LangChain Integration**: `langchain_mcp_adapters` dynamically binds remote MCP agent endpoints as native `LangChain` tool objects (`StructuredTool`).
+- **Security Boundary**: Governed by the caller and callee's OpenShell `openshell.policy.json` egress whitelist (`allowed_egress_domains`, `mcp_server_ports: [9005]`).
+- **URN Resolution**: Agents resolve remote targets using `CatalogService` via `urn:oid:1.3.6.1.4.1.66197:agent:<id>` or `https://urn.coreason.ai/...`.
+
