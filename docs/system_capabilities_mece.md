@@ -70,6 +70,11 @@ graph TD
 - **Tech Stack**: Markdown YAML frontmatter, `CatalogService` PEN 66197 OID URNs (`urn:oid:1.3.6.1.4.1.66197:skill:...`).
 - **Supporting Modules**: `src/core/services/skill_service.py`, `src/core/tools/catalog_tools.py`.
 
+### 1.7 Deterministic Audit, Sandboxed Testing & Autonomous Improvement Services
+- **Capability**: Enforces a strict Rule: Deterministic checks (arithmetic calculations, Python AST parsing, regex pattern matching, security credential scanning) must use deterministic Python tools instead of probabilistic LLM token outputs. Runs sandboxed pytest suites and autonomously refactors prompts, forges missing tools, or updates skills based on audit/test receipts.
+- **Tech Stack**: Python AST (`ast`), `AuditService`, `TestingService`, `ImprovementService`, Validation Skills (`src/core/skills/validation/`).
+- **Supporting Modules**: `src/core/services/audit_service.py`, `src/core/services/testing_service.py`, `src/core/services/improvement_service.py`.
+
 ---
 
 ## 2. Identity, Governance & Cataloging (The Knowledge & Identity Authority)
