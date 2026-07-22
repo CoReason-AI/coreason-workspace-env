@@ -7,11 +7,12 @@ The platform exposes a comprehensive **FastAPI-powered REST API**.
 - **Pydantic Schema Purity**: All API payloads and responses are strictly governed by the centralized `src.core.ontology` module. The router relies on strict Pydantic definitions to mathematically reject malformed payloads before execution.
 - **Security & Tenant Isolation**: The API uses Bearer Token authentication. When authenticated, the user's `tenant_id` ensures isolated Postgres querying.
 - **UUIDv7**: Utilizes UUIDv7 natively for all database primary keys to prevent index fragmentation and provide native chronological sorting.
+- **Catalog & Sandbox Endpoints**: Includes `/catalog/search`, `/catalog/resolve/{urn}`, `/catalog/register`, `/catalog/import`, `/sandboxes/provision`, `/sandboxes/execute`, `/sandboxes/terminate`.
 
 ## 2. Command Line Interface (CLI)
 The fully-featured headless CLI is built using **Typer** and maps user arguments to asynchronous background execution services via `asyncio.run()`.
-- **Core Operations**: Creating projects, triggering agent builds, managing OCI registry operations (push/pull), and air-gapped export/import.
-- **Headless Execution Path**: To support CI/CD pipelines and programmatic invocation, the CLI provides strictly headless commands such as `coreason agents execute`, `coreason agents status`, and `coreason agents rewind`. Interactive terminal chat commands have been explicitly removed to enforce the headless architecture.
+- **Core Operations**: Creating projects, triggering agent builds, managing catalog URNs/OIDs, provisioning execution sandboxes, and managing background tasks.
+- **Headless Execution Path**: To support CI/CD pipelines and programmatic invocation, the CLI provides strictly headless commands such as `coreason agents execute`, `coreason catalog search`, `coreason catalog resolve`, `coreason sandbox provision`, and `coreason sandbox execute`.
 - **Context Engineering Enforcement**: CLI commands are evaluated by the State Machine Orchestrator for schema saturation. If a payload is underspecified, the CLI will natively fail the execution or return a required schema structure for the upstream caller.
 
 ## 3. The MCP Server (`src/mcp/`)
@@ -19,8 +20,8 @@ The fully-featured headless CLI is built using **Typer** and maps user arguments
 Because this platform is fundamentally designed for Agent-to-Agent collaboration, the entire environment can be consumed natively by external AI coding assistants (like Claude Desktop or Cursor) via the Model Context Protocol.
 
 - **IDE Observability Loop**: Exposes internal telemetry via the `get_langfuse_trace` tool, empowering autonomous agents (like Claude Desktop or Cursor) to read exact orchestrator logs and self-debug complex hallucinations.
-- Upstream IDEs and agents can invoke the exact same core capabilities (e.g., `build_agent_platform`, `export_oci_bundle`) using JSON-RPC over `stdio` and `SSE`.
-- Tools are grouped logically: Causal Server Tools, Memory Server Tools, and Project Tools.
+- **Catalog & Sandboxing Tools**: Exposes `search_catalog`, `resolve_urn`, `register_catalog_entry`, `import_catalog_module`, `provision_sandbox`, `execute_in_sandbox`, and `terminate_sandbox` tools for upstream AI agents.
+- **IANA PEN 66197 Resolution**: Resolves official OID URNs (`urn:oid:1.3.6.1.4.1.66197:...`) and Coreason URLs (`https://urn.coreason.ai/1.3.6.1.4.1.66197/...`).
 
 ## 4. WebSockets & Server-Sent Events (SSE)
 Real-time streaming is heavily leveraged to provide interactive observability into the long-running agent execution processes, powering upstream UI integrations like Dify.
@@ -32,4 +33,5 @@ Real-time streaming is heavily leveraged to provide interactive observability in
 The pure-Python SDK (`from src.sdk import CoReasonClient`) provides programmatic embedding for external Python scripts, orchestrators, or DAGs.
 - It provides in-process access to all platform capabilities.
 - Delegates directly to `src.core.services` (no HTTP, no serialization overhead).
-- **Usage**: Requires `asyncio`. Methods must be `await`ed.
+- **Namespaces**: `client.agents.*`, `client.catalog.*`, `client.sandboxes.*`, `client.traces.*`, `client.skills.*`.
+- **Usage**: Requires `asyncio`. Methods must be `await`ed where asynchronous.
