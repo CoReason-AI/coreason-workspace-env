@@ -344,30 +344,27 @@ class AgentService:
                     "message": str(e)
                 }
 
-    async def deploy_to_test(self, project_id: str, user_id: str, tenant_id: str) -> Dict[str, Any]:
-        """
-        Deploy the generated agent project to the Test Environment with provisioned sandbox.
-        Records deployment state and returns full audit record.
-        """
+    async def _deploy_to_environment(self, project_id: str, user_id: str, tenant_id: str, environment: str) -> Dict[str, Any]:
+        """Helper method to deploy a project to a specific environment sandbox."""
         import hashlib
         from src.core.ontology import DeploymentRecord
         from src.core.services.sandbox_service import sandbox_service
         
         dep_id = str(uuid.uuid7())
-        bundle_hash = hashlib.sha256(f"{project_id}:test:{dep_id}".encode()).hexdigest()
+        bundle_hash = hashlib.sha256(f"{project_id}:{environment}:{dep_id}".encode()).hexdigest()
         
         # Provision isolated sandbox
         sbx_record = sandbox_service.provision_sandbox(
             project_id=project_id,
             user_id=user_id,
             tenant_id=tenant_id,
-            environment="test"
+            environment=environment
         )
         
         record = DeploymentRecord(
             deployment_id=dep_id,
             project_id=project_id,
-            environment="test",
+            environment=environment,
             bundle_hash=bundle_hash,
             user_id=user_id,
             tenant_id=tenant_id,
@@ -376,52 +373,19 @@ class AgentService:
         )
         
         self._deployments[dep_id] = record.model_dump()
-        logger.info(f"Recorded deployment {dep_id} for project {project_id} to Test sandbox {sbx_record.sandbox_id}.")
+        logger.info(f"Recorded deployment {dep_id} for project {project_id} to {environment.capitalize()} sandbox {sbx_record.sandbox_id}.")
         
         return {
             "status": "success",
             "deployment": record.model_dump(),
             "sandbox": sbx_record.model_dump(),
-            "message": f"Successfully deployed to test sandbox '{sbx_record.sandbox_id}'. Please sync the MCP server in Dify."
+            "message": f"Successfully deployed to {environment} sandbox '{sbx_record.sandbox_id}'. Please sync the MCP server in Dify."
         }
 
+    async def deploy_to_test(self, project_id: str, user_id: str, tenant_id: str) -> Dict[str, Any]:
+        """Deploy the generated agent project to the Test Environment with provisioned sandbox."""
+        return await self._deploy_to_environment(project_id, user_id, tenant_id, "test")
+
     async def deploy_to_production(self, project_id: str, user_id: str, tenant_id: str) -> Dict[str, Any]:
-        """
-        Deploy the generated agent project to the Production Environment with provisioned sandbox.
-        Records deployment state and returns full audit record.
-        """
-        import hashlib
-        from src.core.ontology import DeploymentRecord
-        from src.core.services.sandbox_service import sandbox_service
-        
-        dep_id = str(uuid.uuid7())
-        bundle_hash = hashlib.sha256(f"{project_id}:production:{dep_id}".encode()).hexdigest()
-        
-        # Provision isolated sandbox
-        sbx_record = sandbox_service.provision_sandbox(
-            project_id=project_id,
-            user_id=user_id,
-            tenant_id=tenant_id,
-            environment="production"
-        )
-        
-        record = DeploymentRecord(
-            deployment_id=dep_id,
-            project_id=project_id,
-            environment="production",
-            bundle_hash=bundle_hash,
-            user_id=user_id,
-            tenant_id=tenant_id,
-            status="deployed",
-            deployed_at=time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
-        )
-        
-        self._deployments[dep_id] = record.model_dump()
-        logger.info(f"Recorded deployment {dep_id} for project {project_id} to Production sandbox {sbx_record.sandbox_id}.")
-        
-        return {
-            "status": "success",
-            "deployment": record.model_dump(),
-            "sandbox": sbx_record.model_dump(),
-            "message": f"Successfully deployed to production sandbox '{sbx_record.sandbox_id}'. Please sync the MCP server in Dify."
-        }
+        """Deploy the generated agent project to the Production Environment with provisioned sandbox."""
+        return await self._deploy_to_environment(project_id, user_id, tenant_id, "production")
