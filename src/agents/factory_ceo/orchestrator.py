@@ -67,13 +67,13 @@ Every agentic application synthesized by this factory MUST mirror the platform's
     async def execute(self, context: dict, session_id: str = None) -> Any:
         is_goal_mode = context.get("is_goal_mode", False)
         prompt = self.system_prompt
-        from src.core.tools.catalog_tools import search_catalog_tool, resolve_urn_tool, import_catalog_module_tool
-        agent_tools = [ask_clarifying_question, search_catalog_tool, resolve_urn_tool, import_catalog_module_tool]
+        from src.core.tools.catalog_tools import search_catalog_tool, resolve_urn_tool, import_catalog_module_tool, forge_tool_tool
+        agent_tools = [ask_clarifying_question, search_catalog_tool, resolve_urn_tool, import_catalog_module_tool, forge_tool_tool]
         agent_interrupt_on = {"ask_clarifying_question": True}
         
         if is_goal_mode:
             prompt += "\nGOAL MODE ACTIVE: You are running in fully autonomous mode. Do NOT ask for human clarification or consensus. Make the most reasonable architectural assumptions based on the context provided, be extra thorough, and delegate the final artifact compilation to `agent_pm`. Once `agent_pm` completes, you MUST repeat its output (the YAML blocks) exactly in your final response without any conversational summaries or extra explanation."
-            agent_tools = [search_catalog_tool, resolve_urn_tool, import_catalog_module_tool]
+            agent_tools = [search_catalog_tool, resolve_urn_tool, import_catalog_module_tool, forge_tool_tool]
             agent_interrupt_on = {}
 
         from src.core.config import settings

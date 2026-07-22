@@ -32,3 +32,27 @@ def import_catalog_module_tool(urn: str, target_project_id: str) -> Dict[str, An
     Import a cataloged project, agent, or component module into a target project space.
     """
     return catalog_service.import_module(urn, target_project_id)
+
+
+@tool
+def forge_tool_tool(
+    tool_id: str,
+    name: str,
+    description: str,
+    code: str,
+    unit_test_code: str,
+    tags: Optional[List[str]] = None
+) -> Dict[str, Any]:
+    """
+    Forge a new tool: runs Maker-Checker sandbox validation, executes unit tests,
+    and registers the verified tool into the global catalog under IANA PEN 66197 URN.
+    """
+    from src.core.services.tool_forging_service import tool_forging_service
+    return tool_forging_service.forge_tool(
+        tool_id=tool_id,
+        name=name,
+        description=description,
+        code=code,
+        unit_test_code=unit_test_code,
+        tags=tags
+    )
