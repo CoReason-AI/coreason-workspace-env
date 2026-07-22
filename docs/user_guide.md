@@ -46,8 +46,9 @@ The worker agents execute deterministically in the background. They do not ask y
 ### Step 5: Artifact Finalization
 Instead of using brittle AST parsers and a legacy Maker-Checker pipeline, the artifacts are generated natively through LangGraph StateGraph nodes. The system verifies Pydantic compliance and native checkpointer synchronization natively within the `deepagents` middleware.
 
-### Step 6: The Remediation & Approval Loop
-If a worker encounters an integration error, the `agent_pm` actively routes the artifact back for remediation. You can observe this loop in real-time via the SSE `state_sync` streams or the Accordion tracker list in the UI.
+### Step 6: The Remediation & HOTL Approval Loop
+If a worker encounters an integration error, the `agent_pm` actively routes the artifact back for remediation. You can observe this loop in real-time via the SSE `state_sync` streams or the Accordion tracker list in the Dify UI. 
+If the orchestrator encounters a critical junction (e.g., waiting for validation), it will pause execution. The platform natively supports **Human-On-The-Loop (HOTL)** overrides: a developer or PM can inspect the paused LangGraph thread and explicitly inject a `submit_override` payload to forcibly resume, correct, or approve the agent's state before it continues.
 
 ### Step 7: Packaging & Artifact Synthesis
 Once all artifacts are generated and finalized, the platform generates a dynamically synthesized `pyproject.toml` containing exactly the dependencies your new agents need. It packages the raw Python code and `.yaml` manifests into an immutable ZIP bundle.
@@ -61,7 +62,7 @@ uv run coreason push-project <project_id> ghcr.io/my-org/trial-agent:v1.0.0
 ```
 
 ### Step 9: Downstream Deployment
-You switch hats from "Creator" to "Operator". You pull your newly compiled agent platform onto your target server, unzip it, and run `uv run coreason dev` (or deploy via Docker). Your custom agents are now alive and exposing their own MCP/REST endpoints!
+You switch hats from "Creator" to "Operator". You can trigger the `deploy_to_test` endpoint, which automatically unzips the payload, provisions the local endpoints, and crucially fires a webhook back to the **Dify Enterprise Shell**. Dify immediately syncs with the new CoReason MCP endpoints, making your custom agents alive and instantly consumable in the enterprise chat UI!
 
 ### Step 10: Feedback & Iteration
 As you test your deployed agents, you will discover new features you want or edge cases you missed. You simply open a new Chat session in Dify, point it at your deployed project, and converse with the `factory_ceo` to ingest the new requirements and spin the factory floor back up for version 2.0.
