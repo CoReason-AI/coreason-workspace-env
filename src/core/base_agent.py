@@ -34,6 +34,7 @@ class DeepAgent:
             temperature=settings.LLM_TEMPERATURE,
             base_url=settings.LLM_BASE_URL
         )
+        from deepagents.backends import StateBackend
             
         return create_deep_agent(
             model=llm,
@@ -43,5 +44,6 @@ class DeepAgent:
             middleware=middleware or [],
             subagents=subagents or [],
             checkpointer=checkpointer,
+            backend=kwargs.pop("backend", StateBackend()),
             **kwargs
         )

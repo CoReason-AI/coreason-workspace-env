@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 @tool
 def extract_and_read_context(path: str) -> str:
-    """Extracts zip files and reads all text/code files in the given directory path to provide the codebase context."""
+    """Extracts zip files in the given directory path. Subagents must use native BackendProtocol tools (like ls and read_file) to explore the codebase after extraction."""
     extracted_path = os.path.abspath(path.strip('\'"'))
     if not os.path.exists(extracted_path):
         return f"Path does not exist: {extracted_path}"
@@ -29,21 +29,7 @@ def extract_and_read_context(path: str) -> str:
         except Exception as e:
             logger.error(f"Failed to extract {zpath}: {e}")
 
-    context_text = ""
-    for root_dir, _, files in os.walk(extracted_path):
-        for f in files:
-            if f.endswith(('.py', '.yaml', '.yml', '.md', '.txt', '.json')):
-                fpath = os.path.join(root_dir, f)
-                try:
-                    with open(fpath, 'r', encoding='utf-8') as file_obj:
-                        content = file_obj.read()
-                        context_text += f"\n--- File: {os.path.relpath(fpath, extracted_path)} ---\n{content}\n"
-                except Exception:
-                    pass
-                    
-    if not context_text:
-        return "No readable text or code files found."
-    return context_text[:100000]
+    return f"Extraction complete. The directory {extracted_path} is ready. Use native `ls`, `grep`, and `read_file` tools to explore the codebase."
 
 class LibrarianPmAgent(DeepAgent):
     """
