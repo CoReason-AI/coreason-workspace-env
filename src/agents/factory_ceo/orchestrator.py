@@ -63,8 +63,9 @@ If you need more information from the team to resolve ambiguities, use the `ask_
             agent_tools = []
             agent_interrupt_on = {}
 
-        from src.core.services.observability_service import ObservabilityService
-        obs = ObservabilityService()
+        from src.core.config import settings
+        import os
+        pg_dsn = getattr(settings, "DATABASE_URL", os.environ.get("DATABASE_URL", "postgresql://user:pass@localhost:5432/db"))
 
         from langgraph.checkpoint.postgres.aio import AsyncPostgresSaver
         
@@ -100,7 +101,7 @@ If you need more information from the team to resolve ambiguities, use the `ask_
             }
         ]
 
-        async with AsyncPostgresSaver.from_conn_string(obs.pg_dsn) as checkpointer:
+        async with AsyncPostgresSaver.from_conn_string(pg_dsn) as checkpointer:
             await checkpointer.setup()
             
             from langchain_openai import ChatOpenAI
