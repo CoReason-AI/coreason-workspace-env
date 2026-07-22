@@ -37,6 +37,19 @@ async def test_sdk_client():
     fetched_skill = client.skills.get(skills[0]["name"])
     assert fetched_skill is not None
     
+    # Test sandboxes namespace
+    sbx = client.sandboxes.provision(project_id="proj_sdk_test")
+    assert sbx["sandbox_id"] is not None
+    
+    sbx_info = client.sandboxes.get(sbx["sandbox_id"])
+    assert sbx_info is not None
+    
+    exec_sbx = client.sandboxes.execute(sbx["sandbox_id"], payload={"action": "test"})
+    assert exec_sbx["status"] == "success"
+    
+    term_sbx = client.sandboxes.terminate(sbx["sandbox_id"])
+    assert term_sbx["status"] == "success"
+    
     # Test traces namespace
     trace = client.traces.get(job_id)
     assert trace is not None

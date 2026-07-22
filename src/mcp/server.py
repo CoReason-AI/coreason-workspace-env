@@ -169,11 +169,58 @@ async def list_skills(category: Optional[str] = None) -> Dict[str, Any]:
     return {"skills": skill_service.list_skills(category=category)}
 
 @mcp.tool()
-async def get_skill(skill_name: str) -> Dict[str, Any]:
-    """Get a specific skill's Markdown content and metadata."""
-    from src.core.services import skill_service
-    skill = skill_service.get_skill(skill_name)
-    return {"skill": skill} if skill else {"error": f"Skill '{skill_name}' not found"}
+async def provision_sandbox(
+    project_id: str,
+    user_id: str,
+    tenant_id: str,
+    environment: str = "test",
+    secrets: Optional[Dict[str, str]] = None,
+    connections: Optional[Dict[str, str]] = None,
+    mcp_servers: Optional[List[str]] = None,
+    roles: Optional[List[str]] = None,
+) -> Dict[str, Any]:
+    """Provision a new sandboxed deployment environment with secrets & DB connections."""
+    identity = rbac_service.authenticate_human(user_id, tenant_id, provided_roles=roles)
+    rbac_service.require_role(identity, "developer")
+    
+    from src.core.services import sandbox_service
+    rec = sandbox_service.provision_sandbox(
+        project_id=project_id,
+        user_id=user_id,
+        tenant_id=tenant_id,
+        environment=environment,
+        secrets=secrets,
+        connections=connections,
+        mcp_servers=mcp_servers,
+    )
+    return {"sandbox": rec.model_dump()}
+
+@mcp.tool()
+async def get_sandbox(sandbox_id: str) -> Dict[str, Any]:
+    """Get details of a provisioned sandbox environment."""
+    from src.core.services import sandbox_service
+    sbx = sandbox_service.get_sandbox(sandbox_id)
+    return {"sandbox": sbx} if sbx else {"error": f"Sandbox '{sandbox_id}' not found"}
+
+@mcp.tool()
+async def execute_in_sandbox(sandbox_id: str, payload: Dict[str, Any]) -> Dict[str, Any]:
+    """Execute a task/payload inside a provisioned sandbox environment."""
+    from src.core.services import sandbox_service
+    return sandbox_service.execute_in_sandbox(sandbox_id, payload)
+
+@mcp.tool()
+async def terminate_sandbox(
+    sandbox_id: str,
+    user_id: str,
+    tenant_id: str,
+    roles: Optional[List[str]] = None,
+) -> Dict[str, Any]:
+    """Terminate and clean up a provisioned sandbox environment."""
+    identity = rbac_service.authenticate_human(user_id, tenant_id, provided_roles=roles)
+    rbac_service.require_role(identity, "developer")
+    
+    from src.core.services import sandbox_service
+    return sandbox_service.terminate_sandbox(sandbox_id)
 
 if __name__ == "__main__":
     import os

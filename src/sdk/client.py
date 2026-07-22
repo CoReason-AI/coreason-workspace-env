@@ -112,6 +112,52 @@ class _SkillsNamespace:
         return self._svc.get_skill(name)
 
 
+class _SandboxesNamespace:
+    """SDK namespace for Sandboxed Deployment Environments."""
+
+    def __init__(self):
+        from src.core.services import sandbox_service
+        self._svc = sandbox_service
+
+    def provision(
+        self,
+        project_id: str,
+        user_id: str = "sdk-user",
+        tenant_id: str = "sdk-tenant",
+        environment: str = "test",
+        secrets: Optional[Dict[str, str]] = None,
+        connections: Optional[Dict[str, str]] = None,
+        mcp_servers: Optional[List[str]] = None,
+    ) -> Dict[str, Any]:
+        """Provision a new sandbox environment."""
+        rec = self._svc.provision_sandbox(
+            project_id=project_id,
+            user_id=user_id,
+            tenant_id=tenant_id,
+            environment=environment,
+            secrets=secrets,
+            connections=connections,
+            mcp_servers=mcp_servers,
+        )
+        return rec.model_dump()
+
+    def get(self, sandbox_id: str) -> Optional[Dict[str, Any]]:
+        """Get details of a sandbox environment."""
+        return self._svc.get_sandbox(sandbox_id)
+
+    def list(self, project_id: Optional[str] = None) -> List[Dict[str, Any]]:
+        """List active sandboxes."""
+        return self._svc.list_sandboxes(project_id=project_id)
+
+    def execute(self, sandbox_id: str, payload: Dict[str, Any]) -> Dict[str, Any]:
+        """Execute a payload inside a sandbox."""
+        return self._svc.execute_in_sandbox(sandbox_id, payload)
+
+    def terminate(self, sandbox_id: str) -> Dict[str, Any]:
+        """Terminate a sandbox."""
+        return self._svc.terminate_sandbox(sandbox_id)
+
+
 class CoReasonClient:
     """
     In-process Python SDK for the CoReason platform.
@@ -121,6 +167,7 @@ class CoReasonClient:
         client = CoReasonClient()
         agents = client.agents.list()
         skills = client.skills.list()
+        sbx = client.sandboxes.provision(project_id="proj_1")
         trace = client.traces.get(job_id)
         health = await client.health()
     """
@@ -129,6 +176,7 @@ class CoReasonClient:
         self.agents = _AgentsNamespace()
         self.traces = _TracesNamespace()
         self.skills = _SkillsNamespace()
+        self.sandboxes = _SandboxesNamespace()
 
     async def health(self) -> Dict[str, Any]:
         """Run platform health check."""

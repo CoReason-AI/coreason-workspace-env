@@ -346,14 +346,23 @@ class AgentService:
 
     async def deploy_to_test(self, project_id: str, user_id: str, tenant_id: str) -> Dict[str, Any]:
         """
-        Deploy the generated agent project to the Test Environment.
+        Deploy the generated agent project to the Test Environment with provisioned sandbox.
         Records deployment state and returns full audit record.
         """
         import hashlib
         from src.core.ontology import DeploymentRecord
+        from src.core.services.sandbox_service import sandbox_service
         
         dep_id = str(uuid.uuid7())
         bundle_hash = hashlib.sha256(f"{project_id}:test:{dep_id}".encode()).hexdigest()
+        
+        # Provision isolated sandbox
+        sbx_record = sandbox_service.provision_sandbox(
+            project_id=project_id,
+            user_id=user_id,
+            tenant_id=tenant_id,
+            environment="test"
+        )
         
         record = DeploymentRecord(
             deployment_id=dep_id,
@@ -367,24 +376,34 @@ class AgentService:
         )
         
         self._deployments[dep_id] = record.model_dump()
-        logger.info(f"Recorded deployment {dep_id} for project {project_id} to Test.")
+        logger.info(f"Recorded deployment {dep_id} for project {project_id} to Test sandbox {sbx_record.sandbox_id}.")
         
         return {
             "status": "success",
             "deployment": record.model_dump(),
-            "message": "Successfully deployed to test environment. Please sync the MCP server in Dify."
+            "sandbox": sbx_record.model_dump(),
+            "message": f"Successfully deployed to test sandbox '{sbx_record.sandbox_id}'. Please sync the MCP server in Dify."
         }
 
     async def deploy_to_production(self, project_id: str, user_id: str, tenant_id: str) -> Dict[str, Any]:
         """
-        Deploy the generated agent project to the Production Environment.
+        Deploy the generated agent project to the Production Environment with provisioned sandbox.
         Records deployment state and returns full audit record.
         """
         import hashlib
         from src.core.ontology import DeploymentRecord
+        from src.core.services.sandbox_service import sandbox_service
         
         dep_id = str(uuid.uuid7())
         bundle_hash = hashlib.sha256(f"{project_id}:production:{dep_id}".encode()).hexdigest()
+        
+        # Provision isolated sandbox
+        sbx_record = sandbox_service.provision_sandbox(
+            project_id=project_id,
+            user_id=user_id,
+            tenant_id=tenant_id,
+            environment="production"
+        )
         
         record = DeploymentRecord(
             deployment_id=dep_id,
@@ -398,10 +417,11 @@ class AgentService:
         )
         
         self._deployments[dep_id] = record.model_dump()
-        logger.info(f"Recorded deployment {dep_id} for project {project_id} to Production.")
+        logger.info(f"Recorded deployment {dep_id} for project {project_id} to Production sandbox {sbx_record.sandbox_id}.")
         
         return {
             "status": "success",
             "deployment": record.model_dump(),
-            "message": "Successfully deployed to production environment. Please sync the MCP server in Dify."
+            "sandbox": sbx_record.model_dump(),
+            "message": f"Successfully deployed to production sandbox '{sbx_record.sandbox_id}'. Please sync the MCP server in Dify."
         }

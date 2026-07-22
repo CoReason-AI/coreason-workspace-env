@@ -223,5 +223,50 @@ def get_skill(name: str = typer.Option(..., '--name')):
         sys.exit(1)
     typer.echo(json.dumps({"skill": res}, default=str))
 
+sandbox_app = typer.Typer()
+app.add_typer(sandbox_app, name="sandbox")
+
+@sandbox_app.command("provision")
+def provision_sandbox(
+    project_id: str = typer.Option(..., '--project-id'),
+    environment: str = typer.Option("test", '--environment'),
+    user_id: str = typer.Option("cli-user", '--user-id'),
+    tenant_id: str = typer.Option("cli-tenant", '--tenant-id'),
+):
+    """Provision a new sandboxed deployment environment."""
+    from src.core.services import sandbox_service
+    rec = sandbox_service.provision_sandbox(
+        project_id=project_id,
+        user_id=user_id,
+        tenant_id=tenant_id,
+        environment=environment,
+    )
+    typer.echo(json.dumps({"sandbox": rec.model_dump()}, default=str))
+
+@sandbox_app.command("list")
+def list_sandboxes(project_id: Optional[str] = typer.Option(None, '--project-id')):
+    """List active sandboxes."""
+    from src.core.services import sandbox_service
+    sandboxes = sandbox_service.list_sandboxes(project_id=project_id)
+    typer.echo(json.dumps({"sandboxes": sandboxes}, default=str))
+
+@sandbox_app.command("execute")
+def execute_in_sandbox(
+    sandbox_id: str = typer.Option(..., '--sandbox-id'),
+    payload_json: str = typer.Option("{}", '--payload'),
+):
+    """Execute a task inside a provisioned sandbox."""
+    from src.core.services import sandbox_service
+    payload = json.loads(payload_json)
+    res = sandbox_service.execute_in_sandbox(sandbox_id, payload)
+    typer.echo(json.dumps(res, default=str))
+
+@sandbox_app.command("terminate")
+def terminate_sandbox(sandbox_id: str = typer.Option(..., '--sandbox-id')):
+    """Terminate and clean up a sandbox."""
+    from src.core.services import sandbox_service
+    res = sandbox_service.terminate_sandbox(sandbox_id)
+    typer.echo(json.dumps(res, default=str))
+
 if __name__ == "__main__":
     app()

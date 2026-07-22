@@ -105,3 +105,17 @@ class DeploymentRecord(BaseModel):
     tenant_id: str
     status: str = Field(default="deployed")
     deployed_at: str
+
+
+class SandboxRecord(BaseModel):
+    sandbox_id: str = Field(description="UUIDv7 identifier for the sandbox environment.")
+    project_id: str
+    user_id: str
+    tenant_id: str
+    environment: str = Field(default="test")
+    status: str = Field(default="running", description="running, terminated, error")
+    provisioned_secrets: dict[str, str] = Field(default_factory=dict)
+    connections: dict[str, str] = Field(default_factory=dict)
+    mcp_servers: list[str] = Field(default_factory=list)
+    workspace_path: str = Field(description="Path to isolated sandbox workspace.")
+    created_at: str
