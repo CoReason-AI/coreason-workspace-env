@@ -113,12 +113,61 @@ class BundlerService:
             source_code=orchestrator_yaml,
         )
 
-        logger.info(f"Synthesized self-similar project template {oid_urn} ({name})")
+        # Synthesize standard 5-surface documentation
+        readme_md = f"""# {name}
+
+{description}
+
+## Identity & Authority
+- **IANA OID URN**: `{oid_urn}`
+- **Coreason URL Authority**: `{coreason_url}`
+
+## Architectural Design
+This application inherits the CoReason self-similar 5-surface architecture:
+1. **REST API**: `/agents`, `/catalog`, `/sandboxes`
+2. **CLI**: `coreason agents execute`, `coreason catalog search`
+3. **MCP Server**: FastMCP tools exposed via stdio/SSE
+4. **WebSockets / SSE**: Real-time state updates
+5. **Python SDK**: `CoReasonClient` in-process embedding
+"""
+
+        deployment_md = f"""# Deployment Guide for {name}
+
+## 1. Local / Standalone Deployment
+```bash
+docker compose -f docker-compose.yaml -f docker-compose.standalone.yaml up -d --build
+```
+
+## 2. Dify Enterprise Shell Integration
+Connect your Dify instance to the MCP Server tool endpoint:
+`http://localhost:9005/mcp`
+"""
+
+        distribution_md = f"""# Distribution & Packaging Guide for {name}
+
+## 1. OCI Container Registry Push
+```bash
+docker tag {project_id}:latest registry.coreason.ai/apps/{project_id}:latest
+docker push registry.coreason.ai/apps/{project_id}:latest
+```
+
+## 2. PEN 66197 Catalog Registration
+```bash
+coreason catalog register --urn "{oid_urn}" --name "{name}" --type "project"
+```
+"""
+
+        logger.info(f"Synthesized self-similar project template {oid_urn} ({name}) with complete documentation")
         return {
             "status": "success",
             "project_id": project_id,
             "urn": oid_urn,
             "coreason_url": coreason_url,
+            "documentation": {
+                "README.md": readme_md,
+                "DEPLOYMENT.md": deployment_md,
+                "DISTRIBUTION.md": distribution_md,
+            },
             "catalog_entry": catalog_entry.model_dump(),
         }
 

@@ -108,6 +108,10 @@ class TestBundlerService(unittest.TestCase):
         self.assertEqual(res["status"], "success")
         self.assertEqual(res["project_id"], "test_self_similar_proj")
         self.assertIn("urn:oid:1.3.6.1.4.1.66197:project:test_self_similar_proj", res["urn"])
+        self.assertIn("documentation", res)
+        self.assertIn("README.md", res["documentation"])
+        self.assertIn("DEPLOYMENT.md", res["documentation"])
+        self.assertIn("DISTRIBUTION.md", res["documentation"])
 
 
 if __name__ == "__main__":
