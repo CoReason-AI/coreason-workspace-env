@@ -56,7 +56,7 @@ The platform strictly enforces a **Multi-Surface Parity** mandate. This constrai
 ## Agent Observability & Traceability
 To empower upstream AI coding assistants (the "Agent Improvement System") to natively debug and improve the platform's agents, the environment integrates deep, programmable observability exposed directly via the **MCP Server**:
 - **State Inspection (Postgres)**: Directly queries the `postgres_checkpointer` to read the exact LangGraph thread checkpoints, enabling deterministic analysis of stuck or failed agent states.
-- **LLM Tracing (LangSmith)**: Native LangChain tracing provides full visibility into the prompts and completions that led to hallucination or validation errors. It natively integrates with LangGraph using the `LANGCHAIN_TRACING_V2` environment variables.
+- **LLM Tracing (Langfuse)**: Native Langfuse tracing provides full visibility into the prompts and completions that led to hallucination or validation errors. It natively integrates with LangGraph using the Langfuse CallbackHandler.
 - **Dynamic Identity Federation (Vault)**: Supports injecting external API keys securely into the dev HashiCorp Vault at runtime, allowing agents to impersonate dynamic roles without hardcoded secrets.
 - **Agent Resumption**: Directly invokes the `PlatformOrchestrator` to seamlessly resume paused or failed agents natively using the LangGraph checkpointer.
 
@@ -65,4 +65,4 @@ All observability logic is encapsulated within `src/core/services/observability_
 ## Zero-Waste Ambient Telemetry (Open-Source First)
 The orchestrator maintains rigorous Request-Scoped Telemetry across thousands of asynchronous nodes without leaking memory and without custom `weakref` boilerplate. It achieves this by strictly adopting the CNCF standard **OpenTelemetry Context** (`opentelemetry.context`) and **Structlog ContextVars** natively. 
 
-Standard `logging` instances (used by third parties like Langchain or FastAPI) are transparently hijacked and pipelined through `structlog`. At the entry point of any orchestrator execution, the unique `session_id` is bound to the ambient context. Every deeply nested API call, database query, and model invocation automatically inherits this tracing ID gracefully, providing 100% causal visibility in LangSmith (or any OTel backend) without manually polluting function signatures.
+Standard `logging` instances (used by third parties like Langchain or FastAPI) are transparently hijacked and pipelined through `structlog`. At the entry point of any orchestrator execution, the unique `session_id` is bound to the ambient context. Every deeply nested API call, database query, and model invocation automatically inherits this tracing ID gracefully, providing 100% causal visibility in Langfuse (or any OTel backend) without manually polluting function signatures.

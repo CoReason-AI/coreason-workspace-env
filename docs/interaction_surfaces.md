@@ -18,7 +18,7 @@ The fully-featured headless CLI is built using **Typer** and maps user arguments
 
 Because this platform is fundamentally designed for Agent-to-Agent collaboration, the entire environment can be consumed natively by external AI coding assistants (like Claude Desktop or Cursor) via the Model Context Protocol.
 
-- **IDE Observability Loop**: Exposes internal telemetry via the `get_langsmith_trace` tool, empowering autonomous agents (like Claude Desktop or Cursor) to read exact orchestrator logs and self-debug complex hallucinations.
+- **IDE Observability Loop**: Exposes internal telemetry via the `get_langfuse_trace` tool, empowering autonomous agents (like Claude Desktop or Cursor) to read exact orchestrator logs and self-debug complex hallucinations.
 - Upstream IDEs and agents can invoke the exact same core capabilities (e.g., `build_agent_platform`, `export_oci_bundle`) using JSON-RPC over `stdio` and `SSE`.
 - Tools are grouped logically: Causal Server Tools, Memory Server Tools, and Project Tools.
 

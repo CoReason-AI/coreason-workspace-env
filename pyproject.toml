@@ -64,7 +64,7 @@ packages = ["src"]
 [dependency-groups]
 dev = [
     "deepagents-evals",
-    "langsmith>=0.9.3,<0.10.0",
+    "langfuse>=2.50.0,<3.0.0",
     "pytest>=9.1.1",
     "pytest-asyncio>=1.4.0",
     "pytest-cov>=7.1.0",
@@ -77,6 +77,6 @@ docs = [
 ]
 
 [tool.pytest.ini_options]
-addopts = "-p no:langsmith"
+addopts = "-p no:warnings"
 
 

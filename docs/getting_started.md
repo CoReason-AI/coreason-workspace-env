@@ -72,13 +72,16 @@ To execute endpoints via the Swagger UI or via cURL, you must authenticate. Clic
 
 ### Tracing and Observability (Harbor)
 
-To capture and view OpenTelemetry and LangSmith traces locally without using public SaaS, we use **Harbor** (a local LangSmith instance). 
+To capture and view OpenTelemetry and Langfuse traces locally without using public SaaS, we use **Harbor** (a local container manager). 
 
-Start the Harbor containers:
+### 1. Start the Observability Stack
+
+- **Windows**: Run `.\scripts\start_observability.ps1` in PowerShell.
 - **Linux/Mac**: Run `harbor up langfuse`
-- **Windows**: Run `.\scripts\start_observability.ps1`
 
-This will spin up the local LangSmith/Harbor container stack to capture traces. The platform is pre-configured via `.env` (`LANGCHAIN_ENDPOINT=http://localhost:1984`) to route all traces to this local instance.
+This will spin up the local Langfuse/Harbor container stack to capture traces. The platform is pre-configured to route all traces to this local instance.
+
+### 2. View Traces
 
 ### Standalone Troubleshooting & Testing
 

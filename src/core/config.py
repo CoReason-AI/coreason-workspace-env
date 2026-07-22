@@ -1,9 +1,9 @@
 import os
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-# Disable LangSmith telemetry locally to prevent ConnectionRefused loops
-os.environ["LANGCHAIN_TRACING_V2"] = "false"
- 
+# Ensure Langfuse is disabled locally by default unless explicitly configured in .env
+os.environ.setdefault("LANGFUSE_PUBLIC_KEY", "")
+os.environ.setdefault("LANGFUSE_SECRET_KEY", "") 
 class Settings(BaseSettings):
     """
     Strict SSOT Configuration for the Platform.

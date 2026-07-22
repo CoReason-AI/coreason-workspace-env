@@ -104,7 +104,7 @@ class AgentService:
     ) -> Dict[str, Any]:
         """
         Enqueue an agent execution via the native LangGraph Checkpointer.
-        Traces the execution via the LangSmith/WORM bridge.
+        Traces the execution via the Langfuse/WORM bridge.
         Returns a job_id for polling.
         """
         import re
