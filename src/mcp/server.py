@@ -20,8 +20,28 @@ from src.core.services import health_service, agent_service
 from src.core.services.deepagent_service import deepagent_service
 from src.core.services.rbac_service import rbac_service
 
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.middleware import Middleware
+from starlette.responses import JSONResponse
+
 load_dotenv()
 logger = logging.getLogger(__name__)
+
+class BearerAuthMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request, call_next):
+        expected_token = os.environ.get("MCP_API_KEY")
+        if not expected_token:
+            return JSONResponse({"error": "Server is improperly configured (MCP_API_KEY missing)"}, status_code=500)
+        
+        auth_header = request.headers.get("Authorization")
+        if not auth_header or not auth_header.startswith("Bearer "):
+            return JSONResponse({"error": "Unauthorized"}, status_code=401)
+            
+        token = auth_header.split(" ")[1]
+        if token != expected_token:
+            return JSONResponse({"error": "Forbidden"}, status_code=403)
+            
+        return await call_next(request)
 
 mcp = FastMCP("coreason-platform")
 
@@ -116,11 +136,16 @@ async def deploy_to_production(project_id: str, user_id: str, tenant_id: str, ro
 
 if __name__ == "__main__":
     import os
+    import sys
     logging.basicConfig(level=logging.INFO)
     transport = os.environ.get("MCP_TRANSPORT", "stdio").lower()
     if transport == "sse":
-        logger.info("Starting MCP server with SSE transport for Dify integration...")
-        mcp.run(transport="sse")
+        if not os.environ.get("MCP_API_KEY"):
+            logger.error("FATAL: MCP_API_KEY environment variable is required for SSE transport to secure the endpoint.")
+            sys.exit(1)
+        
+        logger.info("Starting MCP server with authenticated SSE transport for Dify integration...")
+        mcp.run(transport="sse", middleware=[Middleware(BearerAuthMiddleware)])
     else:
         mcp.run()
 
