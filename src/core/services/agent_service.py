@@ -191,3 +191,45 @@ class AgentService:
             status_code=501, 
             detail="Checkpoint rewinding is not supported under the Dify orchestration architecture."
         )
+
+    async def submit_override(self, job_id: str, payload: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Human-On-The-Loop (HOTL) Intervention.
+        Injects an override payload (like Command(resume=...)) into a paused or running LangGraph thread.
+        """
+        from langgraph.types import Command
+        import os
+        from src.core.config import settings
+        from langgraph.checkpoint.postgres.aio import AsyncPostgresSaver
+        from src.core.base_agent import DeepAgent
+        from deepagents.graph import DeepAgentState
+
+        pg_dsn = getattr(settings, "DATABASE_URL", os.environ.get("DATABASE_URL", "postgresql://user:pass@localhost:5432/db"))
+        
+        async with AsyncPostgresSaver.from_conn_string(pg_dsn) as checkpointer:
+            await checkpointer.setup()
+            # We construct a dummy DeepAgent just to get the graph object with the same checkpointer
+            dummy = DeepAgent()
+            graph = dummy.build_standard_deep_agent(
+                system_prompt="dummy",
+                state_schema=DeepAgentState,
+                tools=[],
+                checkpointer=checkpointer
+            )
+            config = {"configurable": {"thread_id": job_id}}
+            
+            try:
+                # Issue the override via Command
+                await graph.ainvoke(Command(resume=payload), config=config)
+                return {
+                    "status": "success",
+                    "job_id": job_id,
+                    "message": "Override payload successfully injected into execution thread."
+                }
+            except Exception as e:
+                logger.error(f"Failed to submit override for job {job_id}: {e}")
+                return {
+                    "status": "error",
+                    "job_id": job_id,
+                    "message": str(e)
+                }

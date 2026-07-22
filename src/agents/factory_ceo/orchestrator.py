@@ -73,6 +73,8 @@ If you need more information from the team to resolve ambiguities, use the `ask_
         from src.agents.agent_pm.orchestrator import AgentPmAgent
         from src.agents.research_agent.orchestrator import ResearchAgent
         
+        from src.agents.agent_tester.orchestrator import AgentTesterAgent
+        
         from langchain_core.messages import AIMessage
         from pydantic import BaseModel, Field
         class LibrarianPmInput(BaseModel):
@@ -81,6 +83,8 @@ If you need more information from the team to resolve ambiguities, use the `ask_
             context: str = Field(description="The saturated context, architectural plan, and requirements to pass to the agent_pm for building.")
         class ResearchInput(BaseModel):
             query: str = Field(description="The search query.")
+        class AgentTesterInput(BaseModel):
+            context: str = Field(description="The finalized project context to generate E2E tests and acceptance criteria for.")
 
         # Subagents exposed to the CEO
         subagents = [
@@ -98,6 +102,11 @@ If you need more information from the team to resolve ambiguities, use the `ask_
                 "name": "research_agent",
                 "description": "Searches the internet for required factual context, news, or domain-specific information.",
                 "runnable": RunnableLambda(lambda inputs, config: {"messages": [AIMessage(content=ResearchAgent().execute(inputs, session_id=config["configurable"]["thread_id"], config=config))]}).with_types(input_type=ResearchInput)
+            },
+            {
+                "name": "agent_tester",
+                "description": "Delegates finalized project context to generate automated tests and acceptance criteria.",
+                "runnable": RunnableLambda(lambda inputs, config: {"messages": [AIMessage(content=AgentTesterAgent().execute(inputs, session_id=config["configurable"]["thread_id"], config=config))]}).with_types(input_type=AgentTesterInput)
             }
         ]
 

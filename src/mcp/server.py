@@ -53,6 +53,10 @@ async def execute_agent(
     payload: Optional[Dict[str, Any]] = None,
 ) -> Dict[str, Any]:
     """Trigger a LangGraph execution flow for a specified agent."""
+    from src.core.services.rbac_service import rbac_service
+    identity = rbac_service.authenticate_human(user_id, tenant_id)
+    rbac_service.require_role(identity, "developer")
+    
     from src.core.services import agent_service
     return await agent_service.execute_agent(
         agent_name=agent_name,
@@ -84,6 +88,39 @@ async def rewind_checkpoint(checkpoint_id: str) -> Dict[str, Any]:
     """Rewind a session to a specific UUIDv7 checkpoint ID."""
     from src.core.services import agent_service
     return agent_service.rewind_checkpoint(checkpoint_id)
+
+@mcp.tool()
+async def submit_override(job_id: str, payload: Dict[str, Any], user_id: str, tenant_id: str) -> Dict[str, Any]:
+    """HOTL Override: Intervene in a paused LangGraph thread by injecting a state payload."""
+    from src.core.services.rbac_service import rbac_service
+    identity = rbac_service.authenticate_human(user_id, tenant_id)
+    rbac_service.require_role(identity, "developer")
+    
+    from src.core.services import agent_service
+    service = agent_service.AgentService()
+    return await service.submit_override(job_id, payload)
+
+@mcp.tool()
+async def deploy_to_test(project_id: str, user_id: str, tenant_id: str) -> Dict[str, Any]:
+    """Deploy the generated agent project to the Test Environment."""
+    from src.core.services.rbac_service import rbac_service
+    identity = rbac_service.authenticate_human(user_id, tenant_id)
+    rbac_service.require_role(identity, "developer")
+    
+    logger.info(f"User {user_id} deploying project {project_id} to TEST environment...")
+    # In a real implementation, this would trigger the OCI push with an 'rc' or 'test' tag.
+    return {"status": "success", "environment": "test", "project_id": project_id, "message": "Successfully deployed to test environment."}
+
+@mcp.tool()
+async def deploy_to_production(project_id: str, user_id: str, tenant_id: str) -> Dict[str, Any]:
+    """Deploy the generated agent project to the Production Environment."""
+    from src.core.services.rbac_service import rbac_service
+    identity = rbac_service.authenticate_human(user_id, tenant_id)
+    rbac_service.require_role(identity, "admin")
+    
+    logger.info(f"User {user_id} deploying project {project_id} to PRODUCTION environment...")
+    # In a real implementation, this would trigger the OCI push with a 'latest' or 'prod' tag.
+    return {"status": "success", "environment": "production", "project_id": project_id, "message": "Successfully deployed to production environment."}
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
