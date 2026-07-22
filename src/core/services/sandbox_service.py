@@ -1,4 +1,5 @@
 import os
+import json
 import uuid
 import time
 import shutil
@@ -28,12 +29,14 @@ class SandboxService:
         user_id: str,
         tenant_id: str,
         environment: str = "test",
+        runtime_engine: str = "openshell",
         secrets: Optional[Dict[str, str]] = None,
         connections: Optional[Dict[str, str]] = None,
         mcp_servers: Optional[List[str]] = None,
     ) -> SandboxRecord:
         """
         Provisions a new isolated sandbox environment for a project deployment.
+        Supports OpenShell process sandboxing, Docker container isolation, and Kubernetes pods.
         """
         sandbox_id = str(uuid.uuid7())
         ws_path = self.base_dir / sandbox_id
@@ -48,16 +51,77 @@ class SandboxService:
         final_secrets = secrets or {"API_KEY": f"sbx_secret_{uuid.uuid4().hex[:12]}"}
         final_mcp = mcp_servers or ["coreason-filesystem", "coreason-postgres", "coreason-fetch"]
 
-        # Write env configuration to sandbox workspace
+        # 1. Write env configuration to sandbox workspace
         env_file = ws_path / ".env.sandbox"
         with open(env_file, "w", encoding="utf-8") as f:
             f.write(f"# Sandbox Environment: {sandbox_id}\n")
             f.write(f"PROJECT_ID={project_id}\n")
             f.write(f"SANDBOX_ENV={environment}\n")
+            f.write(f"RUNTIME_ENGINE={runtime_engine}\n")
             for k, v in final_secrets.items():
                 f.write(f"SECRET_{k}={v}\n")
             for k, v in final_conns.items():
                 f.write(f"CONN_{k.upper()}={v}\n")
+
+        # 2. Write OpenShell Security & Boundary Policy Manifest
+        openshell_policy = {
+            "sandbox_id": sandbox_id,
+            "project_id": project_id,
+            "runtime_engine": runtime_engine,
+            "filesystem": {
+                "read_only_paths": ["/etc", "/usr", "/lib"],
+                "writable_workspace": str(ws_path),
+            },
+            "network": {
+                "allowed_egress_domains": ["api.dify.ai", "api.openai.com", "urn.coreason.ai"],
+                "mcp_server_ports": [9005],
+            },
+            "capabilities": {
+                "allow_subprocess": False if environment == "production" else True,
+                "allow_raw_sockets": False,
+            }
+        }
+        policy_file = ws_path / "openshell.policy.json"
+        with open(policy_file, "w", encoding="utf-8") as f:
+            json.dump(openshell_policy, f, indent=2)
+
+        # 3. Write Docker Sandbox Override Manifest
+        docker_compose_sbx = f"""version: '3.8'
+services:
+  agent-sandbox-{sandbox_id[:8]}:
+    image: registry.coreason.ai/apps/{project_id}:latest
+    environment:
+      - SANDBOX_ID={sandbox_id}
+      - PROJECT_ID={project_id}
+      - RUNTIME_ENGINE={runtime_engine}
+    volumes:
+      - {ws_path}:/app/sandbox
+    security_opt:
+      - no-new-privileges:true
+"""
+        with open(ws_path / "docker-compose.sandbox.yaml", "w", encoding="utf-8") as f:
+            f.write(docker_compose_sbx)
+
+        # 4. Write Kubernetes Pod Manifest
+        k8s_pod_manifest = f"""apiVersion: v1
+kind: Pod
+metadata:
+  name: sbx-{sandbox_id[:8]}
+  namespace: coreason-sandboxes
+  labels:
+    project: "{project_id}"
+    sandbox_id: "{sandbox_id}"
+    runtime_engine: "{runtime_engine}"
+spec:
+  containers:
+  - name: agent-runner
+    image: registry.coreason.ai/apps/{project_id}:latest
+    securityContext:
+      readOnlyRootFilesystem: true
+      allowPrivilegeEscalation: false
+"""
+        with open(ws_path / "k8s-pod.yaml", "w", encoding="utf-8") as f:
+            f.write(k8s_pod_manifest)
 
         record = SandboxRecord(
             sandbox_id=sandbox_id,
@@ -66,6 +130,8 @@ class SandboxService:
             tenant_id=tenant_id,
             environment=environment,
             status="running",
+            runtime_engine=runtime_engine,
+            openshell_policy=openshell_policy,
             provisioned_secrets=final_secrets,
             connections=final_conns,
             mcp_servers=final_mcp,
@@ -74,7 +140,7 @@ class SandboxService:
         )
 
         self._sandboxes[sandbox_id] = record.model_dump()
-        logger.info(f"Provisioned sandbox {sandbox_id} for project {project_id} in {environment} mode.")
+        logger.info(f"Provisioned {runtime_engine} sandbox {sandbox_id} for project {project_id} in {environment} mode.")
         return record
 
     def get_sandbox(self, sandbox_id: str) -> Optional[Dict[str, Any]]:

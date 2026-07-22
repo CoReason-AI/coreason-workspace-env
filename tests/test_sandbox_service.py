@@ -18,8 +18,17 @@ def test_sandbox_lifecycle():
     assert rec.sandbox_id is not None
     assert rec.project_id == project_id
     assert rec.status == "running"
+    assert rec.runtime_engine == "openshell"
+    assert rec.openshell_policy["sandbox_id"] == rec.sandbox_id
     assert rec.provisioned_secrets["CUSTOM_KEY"] == "custom_val_123"
     assert "custom_db" in rec.connections
+    
+    # Assert generated boundary manifests
+    import os
+    ws = rec.workspace_path
+    assert os.path.exists(os.path.join(ws, "openshell.policy.json"))
+    assert os.path.exists(os.path.join(ws, "docker-compose.sandbox.yaml"))
+    assert os.path.exists(os.path.join(ws, "k8s-pod.yaml"))
     
     # 2. Get Sandbox
     fetched = sandbox_service.get_sandbox(rec.sandbox_id)

@@ -114,6 +114,8 @@ class SandboxRecord(BaseModel):
     tenant_id: str
     environment: str = Field(default="test")
     status: str = Field(default="running", description="running, terminated, error")
+    runtime_engine: str = Field(default="openshell", description="openshell, docker, kubernetes")
+    openshell_policy: dict[str, Any] = Field(default_factory=dict)
     provisioned_secrets: dict[str, str] = Field(default_factory=dict)
     connections: dict[str, str] = Field(default_factory=dict)
     mcp_servers: list[str] = Field(default_factory=list)
