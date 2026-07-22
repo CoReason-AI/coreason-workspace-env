@@ -35,14 +35,15 @@ The `SKILL.md` file is the absolute source of truth. It contains YAML frontmatte
 To ensure stability across complex LangGraph architectures, the platform implements a strict **Mock-Free E2E Testing** paradigm.
 
 ### Mock-Free Philosophy
-1. **No Database Mocking**: Tests utilize **Testcontainers** to spin up genuine ephemeral Postgres databases, ensuring tests interact with real database engines without mocks or stubs.
-2. **Native LangChain v1 Agents**: We test against authentic `create_agent` graphs instead of deprecated `AgentExecutor` constructs, verifying modern state routing natively.
+1. **No Database Mocking**: Tests utilize ephemeral local databases provisioned by standard pytest fixtures (or a local dev backend). We run queries against real database engines without mocks or stubs, ensuring the exact ORM and execution paths are validated natively.
+2. **Native LangChain v1 Agents**: We test against authentic `create_deep_agent` graphs instead of deprecated `AgentExecutor` constructs, verifying modern state routing natively.
 3. **Open-Source First Decoupling**: Models are dynamically loaded via Langchain's `init_chat_model` rather than hardcoding proprietary SDKs (like `ChatOpenAI`), ensuring enterprise fallback to local VLLM/Ollama deployments without altering source code.
+4. **Structured Filesystem Isolation**: Instead of writing brittle custom tools using `os` and `glob`, agents must strictly rely on the native `BackendProtocol` tools (`StateBackend`) injected globally into `deepagents>=0.6.12`, providing isolated and structured virtual filesystem actions.
 
 ### Running Tests
-To run the full E2E testing suite, we rely on the native DeepAgents hierarchical routing flow:
+To run the full E2E testing suite against the live orchestrators natively:
 ```bash
-uv run pytest tests/test_integration.py -v
+uv run coreason test --e2e
 ```
 
 This ensures the entire runtime—from API input, down through hierarchical agent delegation, to the checkpointer and final artifact generation—is mathematically proven to work.

@@ -21,15 +21,13 @@ flowchart TD
 ## 10-Step Operational Workflow
 
 ### Step 1: Initialization & Intent Declaration
-You initiate the workflow using the headless CLI, REST API, or the UI Dashboard. You provide your core intent in natural language.
+You initiate the workflow by connecting your Dify platform to the CoReason Workspace MCP endpoint. From the Dify Chat UI, you provide your core intent in natural language.
 
-**Example using the CLI:**
-```bash
-uv run coreason build "I need an automated clinical trial matching agent platform"
-```
+**Example in Dify:**
+> "I need an automated clinical trial matching agent platform"
 
 ### Step 2: The Interrogation Loop (Context Saturation)
-Instead of blindly writing code, the `factory_ceo` orchestrator agent intercepts your request. Because it operates as a rigid state machine, it will evaluate your input against its required internal context schema. If it needs more details (e.g., "What specific databases should it query?"), it will stream clarifying questions back to you in the UI. You answer until the context is fully saturated.
+Because the CoReason workspace is strictly a headless engine, Dify handles all conversational state and RAG routing. The `factory_ceo` orchestrator agent (executing via the MCP Server) intercepts your request. Because it operates as a rigid state machine, it will evaluate your input against its required internal context schema. If it needs more details (e.g., "What specific databases should it query?"), it will pass control back to Dify, which streams clarifying questions back to you in the UI. You answer in the Dify Chat until the context is fully saturated.
 
 ### Step 3: PM & Worker Delegation
 Once the context threshold is met, the `factory_ceo` stops interrogating you. It automatically delegates the raw context payload to the `agent_pm`. The PM breaks the project down into component tasks and routes them to standard native DeepAgent workers, such as the `prompt_engineer` and `yaml_compiler`. 
@@ -58,4 +56,4 @@ uv run coreason push-project <project_id> ghcr.io/my-org/trial-agent:v1.0.0
 You switch hats from "Creator" to "Operator". You pull your newly compiled agent platform onto your target server, unzip it, and run `uv run coreason dev` (or deploy via Docker). Your custom agents are now alive and exposing their own MCP/REST endpoints!
 
 ### Step 10: Feedback & Iteration
-As you test your deployed agents, you will discover new features you want or edge cases you missed. You simply open a new session in the CoReason Workspace Environment, point it at your deployed project, and converse with the `factory_ceo` to ingest the new requirements and spin the factory floor back up for version 2.0.
+As you test your deployed agents, you will discover new features you want or edge cases you missed. You simply open a new Chat session in Dify, point it at your deployed project, and converse with the `factory_ceo` to ingest the new requirements and spin the factory floor back up for version 2.0.

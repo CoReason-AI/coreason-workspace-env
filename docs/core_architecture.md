@@ -13,6 +13,9 @@ The platform physically enforces a strict architectural boundary between **Inten
 - **The Brain (`src/agents/`)**: Represents pure cognitive intent (personas, YAML, StateGraphs) with zero infrastructure code.
 - **The Body (`src/core/`)**: The universal runtime harness (PlatformOrchestrator, DB pools, HTTP routers) that mounts the Brain and wires it into the physical world.
 
+## Headless-First Architecture & Dify Integration
+The CoReason Workspace Environment is strictly a **Headless Execution Engine**. All stateful conversational UI (chat memory, interactive interrogation, and RAG UI) is fully offloaded to upstream orchestration platforms like **Dify**. The workspace acts purely as a distributed worker factory, exposed entirely via its MCP server and REST endpoints.
+
 ## Context Engineering & Schema Saturation
 Context Engineering is the practice of treating context assembly as a disciplined, mathematical control plane *prior* to kinetic execution. Before any deterministic worker node is activated, a supervisory routing node actively interrogates the user's input or the incoming API payload against a predefined `Pydantic` schema. 
 
@@ -35,7 +38,7 @@ The platform introduces a multi-stage cryptographic pipeline:
 To operate in production, the environment implements:
 - **High-Performance Asynchronous Execution**: Non-blocking async IO (`psycopg_pool.AsyncConnectionPool`) preventing thread bottlenecks during agent DAG execution.
 - **True Multi-Tenant Data Isolation**: LangGraph checkpoint threads do not use the `public` schema. Each project is dynamically mapped to a dedicated schema (e.g., `project_{uuid}`).
-- **Physical Sandboxing**: Filesystem paths are strictly validated and pinned to prevent traversal attacks.
+- **Physical Sandboxing**: Filesystem paths are strictly validated and pinned to prevent traversal attacks. The environment uses the native `deepagents>=0.6.12` `BackendProtocol` (`StateBackend`) globally to ensure all agents execute structured JSON filesystem tools rather than brittle custom shell tools.
 
 ## Multi-Surface Parity
 The platform strictly enforces a **Multi-Surface Parity** mandate. This constraint ensures that every platform capability is uniformly accessible, behaves identically, and returns the same data structure regardless of which interaction surface initiates the workflow (REST API, CLI, MCP Server, WebSocket/SSE, Python SDK). None of these surfaces implement business logic; they operate exclusively as thin transport adapters delegating to `src.core.services`.

@@ -57,8 +57,13 @@ The CoReason platform supports three deployment topologies depending on your nee
 
 ### Interacting with the Platform
 
-Once the containers are running, the API is available locally.
-You can explore and test the endpoints directly from your browser by navigating to the **Swagger UI**:
+Because the platform is headless, you have two primary ways to interact:
+
+**1. Interactive Dify UI (Recommended)**
+Connect a local or cloud instance of **Dify** to your running MCP Server (`http://localhost:9005/mcp`). Dify will handle all conversational chat memory, rendering the interactive UI and streaming updates while the CoReason workspace executes the deep agent hierarchies in the background.
+
+**2. Direct API via Swagger UI**
+You can explore and test the raw execution endpoints directly from your browser by navigating to the Swagger UI:
 
 `http://localhost:9005/docs`
 
