@@ -83,6 +83,8 @@ This will spin up the local Langfuse/Harbor container stack to capture traces. T
 
 ### 2. View Traces
 
+Navigate to `http://localhost:3000` to view the local Langfuse dashboard and inspect agent traces.
+
 ### Standalone Troubleshooting & Testing
 
 If you encounter issues during a local standalone build:
