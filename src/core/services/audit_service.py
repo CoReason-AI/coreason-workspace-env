@@ -49,7 +49,7 @@ class AuditService:
         ]
 
         # 1. Deterministic Rule Check: Probabilistic Math / Calculation Anti-Pattern
-        math_keywords = ["calculate tax", "compute vat", "add numbers", "multiply rate", "divide total", "do math"]
+        math_keywords = ["calculate tax", "compute vat", "add numbers", "multiply rate", "divide total", "do math", "calculate numbers", "calculate amount"]
         for kw in math_keywords:
             if kw in content.lower():
                 violations.append(AuditViolation(

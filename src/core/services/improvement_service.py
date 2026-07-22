@@ -2,6 +2,7 @@
 Improvement Service — Autonomous remediation & self-improvement engine.
 Consumes AuditReport and TestReceipt traces to refactor prompts, forge missing tools, and patch skills.
 """
+import re
 import logging
 from typing import Dict, Any, List, Optional
 from pydantic import BaseModel, Field
@@ -68,6 +69,9 @@ def test_calc_vat():
                 )
                 if forge_res["status"] == "success":
                     actions_taken.append(f"Forged deterministic tool '{target_name}_vat_tool'")
+                    # Replace anti-pattern text with deterministic tool invocation directive
+                    for kw in ["calculate tax", "compute vat", "add numbers", "multiply rate", "divide total", "do math", "calculate numbers", "calculate amount"]:
+                        improved_content = re.sub(re.escape(kw), f"invoke deterministic tool {target_name}_vat_tool for", improved_content, flags=re.IGNORECASE)
                     improved_content += f"\n\n[DETERMINISTIC TOOL GUIDANCE]: Use `{target_name}_vat_tool` for calculations."
                     remediated_violations.append(v.rule_id)
 
