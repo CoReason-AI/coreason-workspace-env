@@ -21,6 +21,10 @@ from src.core.tools.audit_testing_tools import (
     run_agent_tests_tool,
     improve_artifact_tool,
 )
+from src.core.tools.reasoning_tools import (
+    analogical_mapping_tool,
+    neurosymbolic_deduction_tool,
+)
 
 ALL_FACTORY_TOOLS = [
     search_catalog_tool,
@@ -37,4 +41,6 @@ ALL_FACTORY_TOOLS = [
     audit_artifact_tool,
     run_agent_tests_tool,
     improve_artifact_tool,
+    analogical_mapping_tool,
+    neurosymbolic_deduction_tool,
 ]

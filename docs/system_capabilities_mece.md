@@ -75,6 +75,11 @@ graph TD
 - **Tech Stack**: Python AST (`ast`), `AuditService`, `TestingService`, `ImprovementService`, Validation Skills (`src/core/skills/validation/`).
 - **Supporting Modules**: `src/core/services/audit_service.py`, `src/core/services/testing_service.py`, `src/core/services/improvement_service.py`.
 
+### 1.8 Advanced Analogical & Neuro-Symbolic Deductive Reasoning Engine
+- **Capability**: Implements Google DeepMind Structure Mapping Theory (Gentner SMT) with explicit relational JSON mapping artifacts (`StructuralMappingArtifact`). Combines LLM translation with the Z3 SMT solver (`z3-solver`) acting as a deterministic "hard constraint firewall" that provides mathematical proof of SAT/UNSAT solutions.
+- **Tech Stack**: Python `z3-solver`, Gentner Structure Mapping Theory, `ReasoningService`.
+- **Supporting Modules**: `src/core/services/reasoning_service.py`, `src/core/tools/reasoning_tools.py`.
+
 ---
 
 ## 2. Identity, Governance & Cataloging (The Knowledge & Identity Authority)
