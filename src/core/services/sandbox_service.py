@@ -99,6 +99,11 @@ class SandboxService:
                 "read_only_paths": read_only_paths,
                 "writable_workspace": rel_ws_path,
             },
+            "wiring": {
+                "intra_sandbox": "in_process_langgraph_dag",
+                "inter_sandbox": "fastmcp_jsonrpc_over_mcp_port",
+                "urn_resolution_authority": "https://urn.coreason.ai/1.3.6.1.4.1.66197",
+            },
             "network": {
                 "allowed_egress_domains": allowed_egress,
                 "mcp_server_ports": [9005],

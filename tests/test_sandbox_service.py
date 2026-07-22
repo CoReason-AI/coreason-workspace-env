@@ -72,5 +72,7 @@ def test_agent_specific_openshell_policy():
     policy = rec.openshell_policy
     assert policy["agent_name"] == "factory_ceo"
     assert policy["zero_trust"]["agent_identity"] == "urn:oid:1.3.6.1.4.1.66197:agent:factory_ceo"
+    assert policy["wiring"]["intra_sandbox"] == "in_process_langgraph_dag"
+    assert policy["wiring"]["inter_sandbox"] == "fastmcp_jsonrpc_over_mcp_port"
     assert "custom.api.com" in policy["network"]["allowed_egress_domains"]
     assert policy["capabilities"]["allow_subprocess"] is False
