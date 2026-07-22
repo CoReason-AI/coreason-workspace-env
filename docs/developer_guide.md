@@ -63,7 +63,7 @@ docker compose -f docker-compose.yaml -f docker-compose.standalone.yaml up -d --
 > **Ollama Setup:** The first time you launch the standalone stack, you must pull the model manually by executing into the container:
 > `docker compose -f docker-compose.yaml -f docker-compose.standalone.yaml exec ollama ollama run llama3`
 
-This automatically spins up the `platform_server`, `postgres_checkpointer`, `vault`, `jaeger`, `minio`, and `ollama` components. 
+This automatically spins up the `platform_server`, `postgres_checkpointer`, `vault`, `langfuse`, `minio`, and `ollama` components. 
 
 ### Hybrid
 For standard development using cloud-hosted models (e.g., OpenAI, OpenRouter) and public S3 endpoints, you can avoid spinning up local AI models by using the base compose file:
@@ -72,4 +72,4 @@ For standard development using cloud-hosted models (e.g., OpenAI, OpenRouter) an
 docker compose up -d
 ```
 
-This will run the core state infrastructure (Postgres, Vault, Jaeger) locally, but relies on the `LLM_BASE_URL` and `WORM_S3_ENDPOINT` variables in your `.env` file to route traffic to the cloud.
+This will run the core state infrastructure (Postgres, Vault, Langfuse) locally, but relies on the `LLM_BASE_URL` and `WORM_S3_ENDPOINT` variables in your `.env` file to route traffic to the cloud.
