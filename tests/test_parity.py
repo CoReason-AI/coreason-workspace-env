@@ -6,7 +6,7 @@ import unittest
 import json
 import subprocess
 import sys
-from unittest.mock import patch, MagicMock
+
 
 
 class TestCLISurface(unittest.TestCase):
