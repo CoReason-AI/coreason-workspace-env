@@ -9,6 +9,20 @@ class DeepAgent:
         # Ensure telemetry is bootstrapped to route traces to the OTEL sidecar
         setup_telemetry()
 
+    def get_chat_model(self, temperature: float = None):
+        """
+        Returns the standardized ChatOpenAI LLM client for the workspace.
+        """
+        from langchain_openai import ChatOpenAI
+        from src.core.config import settings
+        
+        return ChatOpenAI(
+            model=settings.LLM_MODEL_NAME,
+            api_key=settings.LLM_API_KEY,
+            temperature=temperature if temperature is not None else settings.LLM_TEMPERATURE,
+            base_url=settings.LLM_BASE_URL
+        )
+
     def get_embedding_model(self):
         """
         Returns the standardized embedding client for the workspace.
@@ -26,17 +40,10 @@ class DeepAgent:
         """
         Standardizes the compilation of deepagents across the workspace.
         """
-        from langchain_openai import ChatOpenAI
         from deepagents.graph import create_deep_agent
-        from src.core.config import settings
-        
-        llm = ChatOpenAI(
-            model=settings.LLM_MODEL_NAME,
-            api_key=settings.LLM_API_KEY,
-            temperature=settings.LLM_TEMPERATURE,
-            base_url=settings.LLM_BASE_URL
-        )
         from deepagents.backends import StateBackend
+        
+        llm = self.get_chat_model()
             
         return create_deep_agent(
             model=llm,

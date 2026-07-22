@@ -57,13 +57,7 @@ class DeepagentTranspilerAgent(DeepAgent):
             
         human_msg = f"Transpile this Oracle YAML to DeepAgent YAML:\n\n```yaml\n{oracle_yaml}\n```"
 
-        from langchain_openai import ChatOpenAI
-        llm = ChatOpenAI(
-            model=settings.LLM_MODEL_NAME,
-            api_key=settings.LLM_API_KEY,
-            temperature=0.1,  # Low temperature for highly deterministic parsing
-            base_url=settings.LLM_BASE_URL
-        )
+        llm = self.get_chat_model(temperature=0.1)
         
         response_format = {"type": "json_schema", "json_schema": DEEPAGENT_SCHEMA}
         

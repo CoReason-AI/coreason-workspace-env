@@ -116,13 +116,7 @@ If you need more information from the team to resolve ambiguities, use the `ask_
         async with AsyncPostgresSaver.from_conn_string(pg_dsn) as checkpointer:
             await checkpointer.setup()
             
-            from langchain_openai import ChatOpenAI
-            llm = ChatOpenAI(
-                model=settings.LLM_MODEL_NAME,
-                api_key=settings.LLM_API_KEY,
-                temperature=settings.LLM_TEMPERATURE,
-                base_url=settings.LLM_BASE_URL
-            )
+            llm = self.get_chat_model()
             
             # Construct the multi-user deep agent dynamically
             graph = create_deep_agent(

@@ -75,8 +75,7 @@ async def execute_agent(
     payload: Optional[Dict[str, Any]] = None,
 ) -> Dict[str, Any]:
     """Trigger a LangGraph execution flow for a specified agent."""
-    identity = rbac_service.authenticate_human(user_id, tenant_id, provided_roles=roles)
-    rbac_service.require_role(identity, "developer")
+    rbac_service.authorize(user_id, tenant_id, required_role="developer", provided_roles=roles)
     
     return await agent_service.execute_agent(
         agent_name=agent_name,
@@ -109,16 +108,14 @@ async def rewind_checkpoint(checkpoint_id: str) -> Dict[str, Any]:
 @mcp.tool()
 async def submit_override(job_id: str, agent_name: str, payload: Dict[str, Any], user_id: str, tenant_id: str, roles: Optional[List[str]] = None) -> Dict[str, Any]:
     """HOTL Override: Intervene in a paused LangGraph thread by injecting a state payload."""
-    identity = rbac_service.authenticate_human(user_id, tenant_id, provided_roles=roles)
-    rbac_service.require_role(identity, "developer")
+    rbac_service.authorize(user_id, tenant_id, required_role="developer", provided_roles=roles)
     
     return await agent_service.submit_override(job_id, agent_name, payload)
 
 @mcp.tool()
 async def deploy_to_test(project_id: str, user_id: str, tenant_id: str, roles: Optional[List[str]] = None) -> Dict[str, Any]:
     """Deploy the generated agent project to the Test Environment."""
-    identity = rbac_service.authenticate_human(user_id, tenant_id, provided_roles=roles)
-    rbac_service.require_role(identity, "developer")
+    rbac_service.authorize(user_id, tenant_id, required_role="developer", provided_roles=roles)
     
     logger.info(f"User {user_id} deploying project {project_id} to TEST environment...")
     # In a real implementation, this would trigger the OCI push with an 'rc' or 'test' tag.
@@ -127,8 +124,7 @@ async def deploy_to_test(project_id: str, user_id: str, tenant_id: str, roles: O
 @mcp.tool()
 async def deploy_to_production(project_id: str, user_id: str, tenant_id: str, roles: Optional[List[str]] = None) -> Dict[str, Any]:
     """Deploy the generated agent project to the Production Environment."""
-    identity = rbac_service.authenticate_human(user_id, tenant_id, provided_roles=roles)
-    rbac_service.require_role(identity, "admin")
+    rbac_service.authorize(user_id, tenant_id, required_role="admin", provided_roles=roles)
     
     logger.info(f"User {user_id} deploying project {project_id} to PRODUCTION environment...")
     return {"status": "success", "environment": "production", "project_id": project_id, "message": "Successfully deployed to production environment."}
@@ -149,8 +145,7 @@ async def evaluate_agent(
     roles: Optional[List[str]] = None,
 ) -> Dict[str, Any]:
     """Run an agent-level unit and E2E evaluation suite against an agent."""
-    identity = rbac_service.authenticate_human(user_id, tenant_id, provided_roles=roles)
-    rbac_service.require_role(identity, "developer")
+    rbac_service.authorize(user_id, tenant_id, required_role="developer", provided_roles=roles)
     
     from src.core.testing.agent_harness import agent_test_harness, TestCaseSpec
     specs = [TestCaseSpec(**tc) for tc in test_cases]
@@ -180,8 +175,7 @@ async def provision_sandbox(
     roles: Optional[List[str]] = None,
 ) -> Dict[str, Any]:
     """Provision a new sandboxed deployment environment with secrets & DB connections."""
-    identity = rbac_service.authenticate_human(user_id, tenant_id, provided_roles=roles)
-    rbac_service.require_role(identity, "developer")
+    rbac_service.authorize(user_id, tenant_id, required_role="developer", provided_roles=roles)
     
     from src.core.services import sandbox_service
     rec = sandbox_service.provision_sandbox(
@@ -241,8 +235,7 @@ async def register_catalog_entry(
     roles: Optional[List[str]] = None,
 ) -> Dict[str, Any]:
     """Register a new project or component under URN PEN 66197 authority."""
-    identity = rbac_service.authenticate_human(user_id, tenant_id, provided_roles=roles)
-    rbac_service.require_role(identity, "developer")
+    rbac_service.authorize(user_id, tenant_id, required_role="developer", provided_roles=roles)
     
     from src.core.services import catalog_service
     entry = catalog_service.register_entry(

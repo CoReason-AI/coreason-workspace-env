@@ -40,6 +40,12 @@ class RbacService:
                 status_code=403, 
                 detail=f"RBAC Authorization failed. Required role: {required_role}. Your roles: {identity.roles}"
             )
-        return True
+    def authorize(self, user_id: str, tenant_id: str, required_role: str = "developer", provided_roles: Optional[List[str]] = None) -> UserIdentity:
+        """
+        Streamlined helper that authenticates the user identity and enforces the required role in one call.
+        """
+        identity = self.authenticate_human(user_id=user_id, tenant_id=tenant_id, provided_roles=provided_roles)
+        self.require_role(identity, required_role)
+        return identity
 
 rbac_service = RbacService()

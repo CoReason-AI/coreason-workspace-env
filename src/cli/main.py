@@ -86,8 +86,7 @@ def execute_agent(
     """
     Execute a native deepagent synchronously and return the structured JSON output.
     """
-    identity = rbac_service.authenticate_human(user_id, tenant_id, provided_roles=["admin", "developer", "viewer"])
-    rbac_service.require_role(identity, "developer")
+    identity = rbac_service.authorize(user_id, tenant_id, required_role="developer", provided_roles=["admin", "developer", "viewer"])
     
     try:
         payload_dict = json.loads(payload)
@@ -130,8 +129,7 @@ def submit_override(
     tenant_id: str = typer.Option(os.environ.get("COREASON_TENANT_ID", "cli-tenant"), '--tenant-id')
 ):
     """HOTL Override: Intervene in a paused LangGraph thread by injecting a state payload."""
-    identity = rbac_service.authenticate_human(user_id, tenant_id, provided_roles=["admin", "developer", "viewer"])
-    rbac_service.require_role(identity, "developer")
+    identity = rbac_service.authorize(user_id, tenant_id, required_role="developer", provided_roles=["admin", "developer", "viewer"])
     
     try:
         payload_dict = json.loads(payload)
@@ -155,8 +153,7 @@ def deploy_to_test(
     tenant_id: str = typer.Option(os.environ.get("COREASON_TENANT_ID", "cli-tenant"), '--tenant-id')
 ):
     """Deploy the generated agent project to the Test Environment."""
-    identity = rbac_service.authenticate_human(user_id, tenant_id, provided_roles=["admin", "developer", "viewer"])
-    rbac_service.require_role(identity, "developer")
+    identity = rbac_service.authorize(user_id, tenant_id, required_role="developer", provided_roles=["admin", "developer", "viewer"])
     
     async def run():
         return await agent_service.deploy_to_test(project_id, identity.user_id, identity.tenant_id)
@@ -171,8 +168,7 @@ def deploy_to_production(
     tenant_id: str = typer.Option(os.environ.get("COREASON_TENANT_ID", "cli-tenant"), '--tenant-id')
 ):
     """Deploy the generated agent project to the Production Environment."""
-    identity = rbac_service.authenticate_human(user_id, tenant_id, provided_roles=["admin", "developer", "viewer"])
-    rbac_service.require_role(identity, "admin")
+    identity = rbac_service.authorize(user_id, tenant_id, required_role="admin", provided_roles=["admin", "developer", "viewer"])
     
     async def run():
         return await agent_service.deploy_to_production(project_id, identity.user_id, identity.tenant_id)
