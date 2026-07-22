@@ -103,7 +103,9 @@ async def deploy_to_test(project_id: str, identity = Depends(get_current_identit
     from src.core.services.rbac_service import rbac_service
     rbac_service.require_role(identity, "developer")
     
-    return {"status": "success", "environment": "test", "project_id": project_id, "message": "Successfully deployed to test environment."}
+    from src.core.services.agent_service import AgentService
+    service = AgentService()
+    return await service.deploy_to_test(project_id, identity.user_id, identity.tenant_id)
 
 @router.post("/deploy/production/{project_id}")
 async def deploy_to_production(project_id: str, identity = Depends(get_current_identity)):
@@ -111,5 +113,7 @@ async def deploy_to_production(project_id: str, identity = Depends(get_current_i
     from src.core.services.rbac_service import rbac_service
     rbac_service.require_role(identity, "admin")
     
-    return {"status": "success", "environment": "production", "project_id": project_id, "message": "Successfully deployed to production environment."}
+    from src.core.services.agent_service import AgentService
+    service = AgentService()
+    return await service.deploy_to_production(project_id, identity.user_id, identity.tenant_id)
 

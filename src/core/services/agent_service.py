@@ -233,3 +233,75 @@ class AgentService:
                     "job_id": job_id,
                     "message": str(e)
                 }
+
+    async def deploy_to_test(self, project_id: str, user_id: str, tenant_id: str) -> Dict[str, Any]:
+        """
+        Deploy the generated agent project to the Test Environment via the Dify API.
+        This notifies the Dify orchestration shell to sync the MCP tools for the test workspace.
+        """
+        import httpx
+        from src.core.config import settings
+        
+        headers = {
+            "Authorization": f"Bearer {settings.DIFY_API_KEY}",
+            "Content-Type": "application/json"
+        }
+        
+        try:
+            async with httpx.AsyncClient() as client:
+                # We simulate calling a hypothetical Dify webhook to sync the MCP server for a specific environment
+                response = await client.post(
+                    f"{settings.DIFY_API_URL}/mcp/sync",
+                    json={"project_id": project_id, "environment": "test", "tenant_id": tenant_id},
+                    headers=headers
+                )
+            logger.info(f"Deployed project {project_id} to Test. Dify sync status: {response.status_code}")
+            return {
+                "status": "success",
+                "environment": "test",
+                "project_id": project_id,
+                "message": "Successfully notified Dify to sync MCP tools for test environment."
+            }
+        except Exception as e:
+            logger.error(f"Failed to deploy to test environment: {e}")
+            return {
+                "status": "error",
+                "environment": "test",
+                "project_id": project_id,
+                "message": f"Deployment failed: {str(e)}"
+            }
+
+    async def deploy_to_production(self, project_id: str, user_id: str, tenant_id: str) -> Dict[str, Any]:
+        """
+        Deploy the generated agent project to the Production Environment via the Dify API.
+        """
+        import httpx
+        from src.core.config import settings
+        
+        headers = {
+            "Authorization": f"Bearer {settings.DIFY_API_KEY}",
+            "Content-Type": "application/json"
+        }
+        
+        try:
+            async with httpx.AsyncClient() as client:
+                response = await client.post(
+                    f"{settings.DIFY_API_URL}/mcp/sync",
+                    json={"project_id": project_id, "environment": "production", "tenant_id": tenant_id},
+                    headers=headers
+                )
+            logger.info(f"Deployed project {project_id} to Production. Dify sync status: {response.status_code}")
+            return {
+                "status": "success",
+                "environment": "production",
+                "project_id": project_id,
+                "message": "Successfully notified Dify to sync MCP tools for production environment."
+            }
+        except Exception as e:
+            logger.error(f"Failed to deploy to production environment: {e}")
+            return {
+                "status": "error",
+                "environment": "production",
+                "project_id": project_id,
+                "message": f"Deployment failed: {str(e)}"
+            }

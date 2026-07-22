@@ -170,7 +170,12 @@ def deploy_to_test(
     identity = rbac_service.authenticate_human(user_id, tenant_id)
     rbac_service.require_role(identity, "developer")
     
-    res = {"status": "success", "environment": "test", "project_id": project_id, "message": "Successfully deployed to test environment."}
+    from src.core.services.agent_service import AgentService
+    service = AgentService()
+    async def run():
+        return await service.deploy_to_test(project_id, identity.user_id, identity.tenant_id)
+        
+    res = asyncio.run(run())
     typer.echo(json.dumps(res, default=str))
 
 @deploy_app.command("production")
@@ -184,7 +189,12 @@ def deploy_to_production(
     identity = rbac_service.authenticate_human(user_id, tenant_id)
     rbac_service.require_role(identity, "admin")
     
-    res = {"status": "success", "environment": "production", "project_id": project_id, "message": "Successfully deployed to production environment."}
+    from src.core.services.agent_service import AgentService
+    service = AgentService()
+    async def run():
+        return await service.deploy_to_production(project_id, identity.user_id, identity.tenant_id)
+        
+    res = asyncio.run(run())
     typer.echo(json.dumps(res, default=str))
 
 if __name__ == "__main__":
