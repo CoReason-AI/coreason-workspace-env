@@ -142,28 +142,52 @@ class AgentService:
     async def get_execution_status(self, job_id: str) -> Dict[str, Any]:
         """
         Check the status of a previously enqueued job.
-        Since we moved to Dify, this delegates to Dify API (currently stubbed).
+        Delegates to the Dify API.
         """
-        return {
-            "job_id": job_id,
-            "status": "running",
-            "detail": "Delegated to Dify",
+        import httpx
+        from src.core.config import settings
+        
+        headers = {
+            "Authorization": f"Bearer {settings.DIFY_API_KEY}",
+            "Content-Type": "application/json"
         }
+        
+        try:
+            # Query Dify message status API
+            async with httpx.AsyncClient() as client:
+                response = await client.get(
+                    f"{settings.DIFY_API_URL}/messages/{job_id}",
+                    headers=headers
+                )
+                
+            if response.status_code == 200:
+                data = response.json()
+                return {
+                    "job_id": job_id,
+                    "status": "success",
+                    "detail": data
+                }
+            else:
+                return {
+                    "job_id": job_id,
+                    "status": "running",
+                    "detail": f"Dify API returned {response.status_code}: {response.text}"
+                }
+        except Exception as e:
+            logger.error(f"Failed to fetch status from Dify: {e}")
+            return {
+                "job_id": job_id,
+                "status": "running",
+                "detail": "Failed to connect to Dify orchestration engine."
+            }
 
     def rewind_checkpoint(self, checkpoint_id: str) -> Dict[str, Any]:
         """
         Rewind a session's LangGraph execution state to a specific checkpoint.
-        For now, returns a dummy success response.
+        With Dify as the primary orchestrator, this is no longer supported directly via this API.
         """
-        try:
-            uuid.UUID(checkpoint_id)
-        except ValueError:
-            from fastapi import HTTPException
-            raise HTTPException(status_code=400, detail="Invalid checkpoint_id format. Must be a valid UUID.")
-
-        logger.info(f"Rewinding session to checkpoint: {checkpoint_id}")
-        return {
-            "status": "success",
-            "checkpoint_id": checkpoint_id,
-            "message": f"Successfully rewound state to checkpoint {checkpoint_id}"
-        }
+        from fastapi import HTTPException
+        raise HTTPException(
+            status_code=501, 
+            detail="Checkpoint rewinding is not supported under the Dify orchestration architecture."
+        )
