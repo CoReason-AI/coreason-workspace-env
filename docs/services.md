@@ -101,3 +101,20 @@ Open an **Administrator PowerShell** prompt, navigate to your project directory,
 ```
 
 You can now manage the platform identically to any native Windows service via the `services.msc` GUI or by using PowerShell (`Stop-Service coreason`).
+
+---
+
+## Enterprise RBAC Deep Dive
+
+When deployed alongside the **Dify Enterprise Shell**, all requests routed to the CoReason backend must include a serialized identity payload to maintain Zero-Trust isolation. The `rbac_service` strictly validates this identity before allowing execution or thread resumption.
+
+The exact Pydantic schema required by the CoReason REST/MCP endpoints is defined centrally in `src/core/ontology.py` as `UserIdentity`:
+
+```python
+class UserIdentity(BaseModel):
+    user_id: str      # The unique UUID of the human operator from Dify
+    tenant_id: str    # The isolated workspace/organization ID for Postgres schema routing
+    roles: list[str]  # e.g., ["admin", "developer", "viewer"]
+```
+
+When Dify invokes an agent via the MCP `execute_agent` tool, it must pass this structure. The `PlatformOrchestrator` securely binds this identity to the executing thread, ensuring that any subsequent tool calls (e.g., database writes or API fetches) strictly adhere to the human operator's exact clearance tier.
