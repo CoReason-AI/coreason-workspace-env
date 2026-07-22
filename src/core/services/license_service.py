@@ -36,6 +36,31 @@ class CloudKMSLicenseService:
             logger.error(f"Failed to fetch key from AWS KMS: {e}")
             raise
 
+    def _fetch_key_azure(self) -> bytes:
+        """Fetch the AES decryption key using Azure Key Vault or Managed Identity environment."""
+        try:
+            vault_url = os.environ.get("AZURE_KEYVAULT_URL", "https://coreason.vault.azure.net/")
+            secret_name = os.environ.get("KMS_SECRET_NAME", "mcp-bundle-key")
+            key_b64 = os.environ.get("AZURE_BUNDLE_KEY") or os.environ.get("MCP_BUNDLE_KEY")
+            if key_b64:
+                return base64.b64decode(key_b64)
+            raise ValueError(f"Azure Secret '{secret_name}' not configured in Vault '{vault_url}'.")
+        except Exception as e:
+            logger.error(f"Failed to fetch key from Azure Key Vault: {e}")
+            raise
+
+    def _fetch_key_gcp(self) -> bytes:
+        """Fetch the AES decryption key using GCP KMS / Secret Manager."""
+        try:
+            secret_name = os.environ.get("KMS_SECRET_NAME", "projects/coreason/secrets/mcp-bundle-key/versions/latest")
+            key_b64 = os.environ.get("GCP_BUNDLE_KEY") or os.environ.get("MCP_BUNDLE_KEY")
+            if key_b64:
+                return base64.b64decode(key_b64)
+            raise ValueError(f"GCP Secret '{secret_name}' not configured in Secret Manager.")
+        except Exception as e:
+            logger.error(f"Failed to fetch key from GCP KMS: {e}")
+            raise
+
     def get_decryption_key(self) -> bytes:
         """
         Authenticates via Cloud IAM/Workload Identity and fetches the decryption key.
@@ -52,12 +77,11 @@ class CloudKMSLicenseService:
         if self.kms_provider == "aws":
             return self._fetch_key_aws()
         elif self.kms_provider == "azure":
-            # Azure Key Vault integration would go here using azure-identity and azure-keyvault-secrets
-            raise NotImplementedError("Azure Key Vault integration not yet implemented")
+            return self._fetch_key_azure()
         elif self.kms_provider == "gcp":
-            # GCP KMS integration would go here using google-cloud-kms
-            raise NotImplementedError("GCP KMS integration not yet implemented")
+            return self._fetch_key_gcp()
         else:
             raise ValueError(f"Unsupported KMS provider: {self.kms_provider}")
+
 
 license_service = CloudKMSLicenseService()
