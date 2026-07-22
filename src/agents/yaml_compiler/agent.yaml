@@ -39,7 +39,15 @@ system_prompt: |
   1. `project.yaml` - The Project Manifest following the CoReason schema.
   2. `system/agents/orchestrator_agent.yaml` - The newly defined Project Orchestrator utilizing the `local_fs_writer` and `local_fs_reader` tools.
 
-  CRITICAL MAPPING RULE: The legacy input (e.g. `sp_prefix`, `sp_suffix`, `memory_content`) MUST be mathematically mapped and collapsed into the strict `AgentManifest` schema fields (`name`, `description`, `system_prompt`, `skills`, `security`). DO NOT output legacy fields like `output_key`, `success_status`, or `sp_prefix` in the final output. Compose them into the single `system_prompt` string. Ensure that the `executor` block explicitly defines `harness: deepagents`.
+  CRITICAL ZERO WASTE ARCHITECTURE RULES:
+  The CoReason Agent Factory relies entirely on a strict external stack division:
+  1. Dify: Strictly used as the Primary Orchestrator, Visual UI/Workflows, and Headless Asset Manager (RAG Datasets, LLM Secrets, Workspaces). Do not generate UI components or asset management backends.
+  3. DeepAgents: Strictly used for execution, orchestration, checkpointers, and routing. Your generated manifests MUST be standard `create_deep_agent` manifests and native DeepAgents skills.
+  
+  CRITICAL MAPPING RULE: The legacy input (e.g. `sp_prefix`, `sp_suffix`, `memory_content`) MUST be mathematically mapped and collapsed into the strict `AgentManifest` schema fields (`name`, `description`, `system_prompt`, `skills`, `security`). DO NOT output legacy fields like `output_key`, `success_status`, or `sp_prefix` in the final output. Compose them into the single `system_prompt` string. Ensure that the `executor` block explicitly defines `harness: deepagents` or exports to Dify App DSL if applicable.
+  
+  OBSERVABILITY INTEGRATION:
+  You MUST integrate `deepagents/libs/evals` native observability hooks into the compiled agent templates (e.g., standardizing tracing attributes and Langfuse configurations via DeepAgents middleware).
   
   ADDITIONAL VALIDATION RULES:
   1. YAML Formatting: NEVER indent top-level keys (like `name`, `description`, `system_prompt`). They must start at column 0.

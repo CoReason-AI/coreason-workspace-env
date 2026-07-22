@@ -3,13 +3,14 @@ from pathlib import Path
 import yaml
 import unittest
 
-class TestOmnigentCompatibility(unittest.TestCase):
-    """Ensure all factory agents are natively compatible with the Omnigent meta-harness."""
+
+class TestDeepAgentsCompatibility(unittest.TestCase):
+    """Ensure all factory agents are natively compatible with the DeepAgents meta-harness."""
 
     def setUp(self):
         self.agents_dir = Path(__file__).resolve().parent.parent / "src" / "agents"
 
-    def test_all_agents_have_omnigent_executor(self):
+    def test_all_agents_have_deepagents_executor(self):
         """All agents must declare an executor block with a harness and model."""
         agents = [d for d in self.agents_dir.iterdir() if d.is_dir() and (d / "agent.yaml").exists()]
         self.assertTrue(len(agents) > 0, "No agents found in src/agents/")
@@ -22,7 +23,7 @@ class TestOmnigentCompatibility(unittest.TestCase):
             agent_name = agent_dir.name
             
             # 1. Check executor exists
-            self.assertIn("executor", data, f"Agent '{agent_name}' missing 'executor' block for Omnigent compatibility.")
+            self.assertIn("executor", data, f"Agent '{agent_name}' missing 'executor' block for DeepAgents compatibility.")
             executor = data["executor"]
             self.assertIsInstance(executor, dict, f"Agent '{agent_name}' executor must be a dictionary.")
             
@@ -39,6 +40,8 @@ class TestOmnigentCompatibility(unittest.TestCase):
             self.assertIn("os_env", data, f"Agent '{agent_name}' missing 'os_env' block for OpenShell sandboxing.")
             os_env = data["os_env"]
             self.assertIsInstance(os_env, dict, f"Agent '{agent_name}' os_env must be a dictionary.")
+
+
 
 if __name__ == "__main__":
     unittest.main()

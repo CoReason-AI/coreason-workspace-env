@@ -195,11 +195,18 @@ def test(coverage: bool = False, e2e: bool = False, verbose: bool = False):
 
 @projects_app.command("list")
 def list_projects():
-    """List all workspace projects."""
-    from src.core.services import project_service
+    """List all workspace projects (via Dify)."""
+    from src.core.adapters.dify_adapter import DifyAdapter
     async def run():
-        res = await project_service.list_projects()
-        typer.echo(json.dumps({"projects": res}, default=str))
+        # Implicitly uses settings.DIFY_API_KEY
+        adapter = DifyAdapter()
+        try:
+            res = await adapter.get_workspace_info()
+            typer.echo(json.dumps({"projects": [res]}, default=str))
+        except Exception:
+            typer.echo(json.dumps({"projects": []}))
+        finally:
+            await adapter.close()
     asyncio.run(run())
 
 @agents_app.command("list")

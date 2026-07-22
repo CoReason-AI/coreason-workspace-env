@@ -11,8 +11,7 @@ from typing import Dict, Any, List, Optional
 
 import yaml
 
-# from src.core.engine.deepagent_runtime import PlatformOrchestrator
-from src.core.services.observability_service import ObservabilityService
+
 
 logger = logging.getLogger(__name__)
 
@@ -60,11 +59,11 @@ class AgentService:
         """
         Reads a specific agent's YAML manifest and orchestrator source.
         """
-        from src.core.security.path_validation import validate_alphanumeric, validate_safe_path
-        try:
-            validate_alphanumeric(agent_name)
-            agent_dir = validate_safe_path(agent_name, base_dir=_AGENTS_DIR)
-        except ValueError:
+        import re
+        if not re.match(r"^[a-zA-Z0-9_-]+$", agent_name):
+            return None
+        agent_dir = (_AGENTS_DIR / agent_name).resolve()
+        if not str(agent_dir).startswith(str(_AGENTS_DIR.resolve())):
             return None
 
         manifest = agent_dir / "agent.yaml"
@@ -106,24 +105,59 @@ class AgentService:
         Traces the execution via the LangSmith/WORM bridge.
         Returns a job_id for polling.
         """
-        from src.core.security.path_validation import validate_alphanumeric, sanitize_log_input
-        validate_alphanumeric(agent_name)
+        import re
+        if not re.match(r"^[a-zA-Z0-9_-]+$", agent_name):
+            raise ValueError("Invalid agent name")
 
         job_id = session_id or str(uuid.uuid7())
 
-        import importlib
+        from deepagents.graph import create_deep_agent
+        from deepagents.backends import StateBackend
+        from langchain_openai import ChatOpenAI
+        
         try:
-            module_path = f"src.agents.{agent_name}.orchestrator"
-            module = importlib.import_module(module_path)
-            agent_class_name = "".join(word.capitalize() for word in agent_name.split("_")) + "Agent"
-            agent_class = getattr(module, agent_class_name)
-            agent = agent_class()
+            agent_manifest = self.get_agent(agent_name)
+            if not agent_manifest:
+                raise ValueError(f"Agent {agent_name} not found")
+
+            # Extract config
+            system_prompt = agent_manifest.get("system_prompt", "")
+            raw_skills = agent_manifest.get("skill_registry", agent_manifest.get("skills", []))
+            skills = []
+            for s in raw_skills:
+                if isinstance(s, dict):
+                    if "name" in s and "path" in s:
+                        skills.append((s["name"], s["path"]))
+                    elif "name" in s:
+                        skills.append(s["name"])
+                else:
+                    skills.append(s)
+
+            # Initialize DeepAgent
+            # Assuming ChatOpenAI is available.
+            model = ChatOpenAI(model="gpt-4o", temperature=0)
             
-            # Prepare context for the agent
-            if hasattr(agent, "execute") and asyncio.iscoroutinefunction(agent.execute):
-                asyncio.create_task(agent.execute(context={"messages": [("user", json.dumps(payload))]}, session_id=job_id))
-            else:
-                asyncio.create_task(asyncio.to_thread(agent.execute, payload, session_id=job_id))
+            agent = create_deep_agent(
+                model=model,
+                system_prompt=system_prompt,
+                skills=skills,
+                backend=StateBackend(),
+            )
+            
+            # Execute agent in background
+            async def run_agent():
+                from langgraph.checkpoint.memory import MemorySaver
+                # Use in-memory saver for now since custom Postgres DB was removed
+                checkpointer = MemorySaver()
+                config = {"configurable": {"thread_id": job_id}}
+                try:
+                    inputs = {"messages": [("user", json.dumps(payload))]}
+                    async for chunk in agent.astream(inputs, config=config):
+                        pass
+                except Exception as e:
+                    logger.error(f"Agent execution failed: {e}")
+                    
+            asyncio.create_task(run_agent())
             logger.info(f"Native DeepAgent execution enqueued for thread_id {job_id}")
         except Exception as e:
             logger.error(f"Failed to instantiate agent {agent_name}: {e}")
@@ -137,40 +171,3 @@ class AgentService:
             "poll_url": f"/api/v2/jobs/{job_id}",
         }
 
-    async def get_execution_status(self, job_id: str) -> Dict[str, Any]:
-        """
-        Check the status of a previously enqueued job.
-        Queries Postgres LangGraph checkpointer for actual thread state.
-        """
-        obs = ObservabilityService()
-        state = await obs.fetch_postgres_state(job_id)
-        if "error" in state:
-            return {
-                "job_id": job_id,
-                "status": "running",
-                "detail": state["error"],
-            }
-        return {
-            "job_id": job_id,
-            "status": "success",
-            "detail": state,
-        }
-
-    def rewind_checkpoint(self, checkpoint_id: str) -> Dict[str, Any]:
-        """
-        Rewind a session's LangGraph execution state to a specific checkpoint.
-        For now, returns a dummy success response.
-        """
-        try:
-            uuid.UUID(checkpoint_id)
-        except ValueError:
-            from fastapi import HTTPException
-            raise HTTPException(status_code=400, detail="Invalid checkpoint_id format. Must be a valid UUID.")
-
-        from src.core.security.path_validation import sanitize_log_input
-        logger.info(f"Rewinding session to checkpoint: {sanitize_log_input(checkpoint_id)}")
-        return {
-            "status": "success",
-            "checkpoint_id": checkpoint_id,
-            "message": f"Successfully rewound state to checkpoint {checkpoint_id}"
-        }

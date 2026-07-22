@@ -6,26 +6,23 @@ import os
 # Test with tracing disabled to prevent test failures on missing credentials
 os.environ["LANGCHAIN_TRACING_V2"] = "false"
 
+# Dummy env vars for pydantic-settings validation
+dummy_envs = [
+    "ENVIRONMENT", "ALLOWED_ORIGINS", "VAULT_ADDR", "VAULT_NAMESPACE",
+    "POSTGRES_USER", "POSTGRES_PASSWORD", "POSTGRES_DB", "POSTGRES_HOST", "POSTGRES_PORT",
+    "REDIS_URL", "WORM_S3_BUCKET", "WORM_S3_REGION", "WORM_S3_ENDPOINT",
+    "WORM_S3_ACCESS_KEY", "WORM_S3_SECRET_KEY", "OPENROUTER_API_KEY", "DIFY_API_KEY"
+]
+for env in dummy_envs:
+    if env not in os.environ:
+        if env == "POSTGRES_PORT":
+            os.environ[env] = "5432"
+        else:
+            os.environ[env] = "test-dummy"
+
 if sys.platform == 'win32':
     # Psycopg requires SelectorEventLoop on Windows for async mode
     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
-@pytest.fixture(scope="session", autouse=True)
-def global_postgres_container():
-    """Spin up a single Postgres container for the entire test session."""
-    from testcontainers.postgres import PostgresContainer
-    from src.core.config import settings
-    
-    postgres = PostgresContainer("postgres:15-alpine")
-    postgres.start()
-    
-    # Override global settings
-    settings.POSTGRES_USER = postgres.username
-    settings.POSTGRES_PASSWORD = postgres.password
-    settings.POSTGRES_HOST = postgres.get_container_host_ip()
-    settings.POSTGRES_PORT = int(postgres.get_exposed_port(5432))
-    settings.POSTGRES_DB = postgres.dbname
-    
-    yield postgres
-    
-    postgres.stop()
+# Removed global_postgres_container fixture due to Zero Waste deprecation of custom DB 
+# and to prevent testcontainers Docker crash.

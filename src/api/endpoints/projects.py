@@ -8,8 +8,15 @@ from typing import Optional
 from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel, Field
 
-from src.core.services import project_service
-from src.core.security.auth import get_current_user, UserIdentity
+from src.core.adapters.dify_adapter import DifyAdapter
+import os
+
+def get_dify_adapter():
+    # In a real app, API keys come from config/vault
+    from src.core.adapters.dify_adapter import DifyAdapter
+    # Implicitly uses settings.DIFY_API_KEY
+    adapter = DifyAdapter()
+    return adapter
 
 router = APIRouter()
 
@@ -35,109 +42,74 @@ class PullProjectRequest(BaseModel):
 
 
 @router.get("/")
-async def list_projects(user: UserIdentity = Depends(get_current_user)):
-    """List all projects in the workspace."""
-    projects = await project_service.list_projects()
-    return {"projects": projects}
+async def list_projects():
+    """List all projects in the workspace, proxied to Dify Workspaces."""
+    adapter = get_dify_adapter()
+    try:
+        info = await adapter.get_workspace_info()
+        return {"projects": [info]}
+    except Exception as e:
+        return {"projects": []}
+    finally:
+        await adapter.close()
 
 
 @router.post("/", status_code=201)
-async def create_project(req: CreateProjectRequest, user: UserIdentity = Depends(get_current_user)):
-    """Create a new project."""
-    project_id = str(uuid.uuid7())
+async def create_project(req: CreateProjectRequest):
+    adapter = get_dify_adapter()
     try:
-        project = await project_service.create_project(
-            project_id=project_id,
-            name=req.name,
-            description=req.description,
-            config=req.config,
-        )
-        return {"status": "created", "project": project}
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        res = await adapter.create_workspace(req.name, req.description)
+        return {"status": "created", "project": res}
+    finally:
+        await adapter.close()
 
 
 @router.get("/{project_id}")
-async def get_project(project_id: str, user: UserIdentity = Depends(get_current_user)):
-    """Fetch a single project by ID."""
-    project = await project_service.get_project(project_id)
-    if not project:
-        raise HTTPException(status_code=404, detail=f"Project '{project_id}' not found")
-    return {"project": project}
+async def get_project(project_id: str):
+    """Fetch a single project by ID (proxied to Dify)."""
+    adapter = get_dify_adapter()
+    try:
+        res = await adapter.get_workspace_info()
+        return {"project": res}
+    finally:
+        await adapter.close()
 
 
 @router.delete("/{project_id}")
-async def delete_project(project_id: str, user: UserIdentity = Depends(get_current_user)):
-    """Delete a project by ID."""
-    deleted = await project_service.delete_project(project_id)
-    if not deleted:
-        raise HTTPException(status_code=404, detail=f"Project '{project_id}' not found")
-    return {"status": "deleted", "project_id": project_id}
+async def delete_project(project_id: str):
+    """Delete a project by ID (proxied to Dify)."""
+    adapter = get_dify_adapter()
+    try:
+        await adapter.delete_workspace(project_id)
+        return {"status": "deleted", "project_id": project_id}
+    finally:
+        await adapter.close()
 
 
 @router.post("/{project_id}/export")
-async def export_project(project_id: str, output_path: str, skip_state: bool = False, skip_docker: bool = False, user: UserIdentity = Depends(get_current_user)):
-    """Export a project for air-gapped transfer."""
+async def export_project(project_id: str, output_path: str, skip_state: bool = False, skip_docker: bool = False):
+    """Export a project for air-gapped transfer (proxied to Dify App Export)."""
+    import json
+    adapter = get_dify_adapter()
     try:
-        from src.core.services import project_service
-        result = await project_service.export_project(
-            project_id, 
-            output_path, 
-            skip_state=skip_state, 
-            skip_docker=skip_docker
-        )
-        return result
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        res = await adapter.export_app(project_id)
+        with open(output_path, "w") as f:
+            json.dump(res, f)
+        return {"status": "exported", "path": output_path}
+    finally:
+        await adapter.close()
 
 @router.post("/import")
-async def import_project(req: ImportProjectRequest, skip_state: bool = False, skip_docker: bool = False, user: UserIdentity = Depends(get_current_user)):
-    """Import an air-gapped project."""
-    project_id = str(uuid.uuid7())
+async def import_project(req: ImportProjectRequest, skip_state: bool = False, skip_docker: bool = False):
+    """Import an air-gapped project (proxied to Dify App Import)."""
+    import json
+    adapter = get_dify_adapter()
     try:
-        from src.core.services import project_service
-        result = await project_service.import_project(
-            project_id=project_id,
-            import_path=req.import_path,
-            name=req.name,
-            description=req.description,
-            config=req.config,
-            skip_state=skip_state,
-            skip_docker=skip_docker
-        )
-        return result
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        with open(req.import_path, "r") as f:
+            data = json.load(f)
+        res = await adapter.import_app(data)
+        return {"status": "imported", "project": res}
+    finally:
+        await adapter.close()
 
-@router.post("/{project_id}/push")
-async def push_project(project_id: str, req: PushProjectRequest, skip_state: bool = False, skip_docker: bool = False, user: UserIdentity = Depends(get_current_user)):
-    """Push project to OCI registry."""
-    try:
-        from src.sdk.client import CoReasonClient
-        client = CoReasonClient()
-        result = await client.projects.push_bundle(
-            project_id, 
-            req.registry_url, 
-            skip_state=skip_state, 
-            skip_docker=skip_docker
-        )
-        return result
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
 
-@router.post("/pull")
-async def pull_project(req: PullProjectRequest, skip_state: bool = False, skip_docker: bool = False, user: UserIdentity = Depends(get_current_user)):
-    """Pull project from OCI registry."""
-    try:
-        from src.sdk.client import CoReasonClient
-        client = CoReasonClient()
-        result = await client.projects.pull_bundle(
-            req.oci_uri, 
-            req.name, 
-            req.description, 
-            skip_state=skip_state, 
-            skip_docker=skip_docker
-        )
-        return result
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))

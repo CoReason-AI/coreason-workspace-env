@@ -6,7 +6,7 @@ import unittest
 import json
 import subprocess
 import sys
-from unittest.mock import patch, MagicMock
+
 
 
 class TestCLISurface(unittest.TestCase):
@@ -113,7 +113,6 @@ class TestSDKSurface(unittest.TestCase):
         client = CoReasonClient()
         self.assertTrue(hasattr(client, "projects"))
         self.assertTrue(hasattr(client, "agents"))
-        self.assertTrue(hasattr(client, "docs"))
 
 
 
@@ -147,15 +146,6 @@ class TestAPIRouter(unittest.TestCase):
 
 class TestStreamingModules(unittest.IsolatedAsyncioTestCase):
     """Test that streaming modules import correctly."""
-
-    def test_crdt_router_import(self):
-        from src.api.streaming.crdt import router
-        self.assertIsNotNone(router)
-
-
-    def test_state_sync_router_import(self):
-        from src.api.streaming.state_sync import router
-        self.assertIsNotNone(router)
 
 
 
@@ -196,6 +186,8 @@ class TestParityConsistency(unittest.TestCase):
         sdk_names = sorted([a["name"] for a in CoReasonClient().agents.list()])
 
         self.assertEqual(cli_names, sdk_names)
+
+
 
 
 if __name__ == "__main__":

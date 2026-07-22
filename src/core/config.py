@@ -39,6 +39,8 @@ class Settings(BaseSettings):
     
     # External APIs
     OPENROUTER_API_KEY: str
+    DIFY_API_KEY: str = "coreason-local-dify-secret"
+    DIFY_BASE_URL: str = "http://localhost:5001/v1"
     
     # LLM Configuration
     LLM_MODEL_NAME: str = "nvidia/nemotron-3-nano-30b-a3b:free"
