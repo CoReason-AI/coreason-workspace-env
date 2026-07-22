@@ -26,3 +26,16 @@ async def test_sdk_client():
     res = await client.agents.execute("factory_ceo", payload={"cmd": "test"})
     assert res["status"] == "accepted"
     assert "job_id" in res
+    
+    job_id = res["job_id"]
+    
+    # Test traces namespace
+    trace = client.traces.get(job_id)
+    assert trace is not None
+    assert trace["job_id"] == job_id
+    
+    # Test evaluate
+    report = await client.agents.evaluate("factory_ceo", test_cases=[
+        {"name": "SDK eval test", "payload": {"cmd": "eval"}, "expected_status": "accepted"}
+    ])
+    assert report["passed_tests"] == 1

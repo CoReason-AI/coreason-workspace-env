@@ -18,9 +18,21 @@ def execute_agent_task(
 ):
     """
     Celery task to execute a LangGraph deep agent synchronously (via asyncio.run).
+    Captures OpenTelemetry / TraceService spans for full observability and meta-programming.
     """
     import importlib
-    
+    import time
+    from src.core.services.trace_service import trace_service
+
+    start_t = time.time()
+    trace_service.start_trace(
+        job_id=session_id,
+        agent_name=agent_name,
+        user_id=user_id,
+        tenant_id=tenant_id,
+        metadata={"payload": payload}
+    )
+
     try:
         module_path = f"src.agents.{agent_name}.orchestrator"
         module = importlib.import_module(module_path)
@@ -29,6 +41,7 @@ def execute_agent_task(
         agent = agent_class()
         
         logger.info(f"Celery executing agent {agent_name} for thread_id {session_id}")
+        trace_service.add_step_summary(session_id, f"Instantiated agent orchestrator {agent_class_name}")
         
         # Prepare context for the agent
         if hasattr(agent, "execute") and asyncio.iscoroutinefunction(agent.execute):
@@ -42,12 +55,6 @@ def execute_agent_task(
                 loop = None
                 
             if loop and loop.is_running():
-                # If we are already in a running event loop (e.g., Celery EAGER mode during tests)
-                # We can't use asyncio.run(). We must run it synchronously or create a task.
-                # For testing purposes, we'll run it until complete in a nested loop if possible,
-                # or just use ensure_future if that doesn't block (but eager tasks block).
-                # Actually, nest_asyncio handles this, but since we don't have it, we just
-                # create a task and return. The test will await it.
                 asyncio.create_task(coro)
             else:
                 asyncio.run(coro)
@@ -55,11 +62,31 @@ def execute_agent_task(
             # Synchronous execute method
             agent.execute(payload, session_id=session_id)
             
+        end_t = time.time()
+        trace_service.add_span(
+            job_id=session_id,
+            name=f"execute_{agent_name}",
+            span_type="agent_step",
+            start_time=start_t,
+            end_time=end_t,
+            input_data=payload,
+            output_data={"status": "completed"}
+        )
+        trace_service.finish_trace(session_id, status="success")
         logger.info(f"Agent {agent_name} execution completed for thread_id {session_id}")
         return {"status": "success", "session_id": session_id}
         
     except Exception as e:
+        end_t = time.time()
+        trace_service.add_span(
+            job_id=session_id,
+            name=f"execute_{agent_name}",
+            span_type="agent_step",
+            start_time=start_t,
+            end_time=end_t,
+            input_data=payload,
+            error=str(e)
+        )
+        trace_service.finish_trace(session_id, status="error", error=str(e))
         logger.error(f"Failed to execute agent {agent_name} in Celery task: {e}", exc_info=True)
-        # We can retry if it's a transient failure, but typically LangGraph failures
-        # should just be logged. For now, we raise to let Celery register the failure.
         raise

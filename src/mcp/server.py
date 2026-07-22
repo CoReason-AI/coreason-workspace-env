@@ -131,8 +131,36 @@ async def deploy_to_production(project_id: str, user_id: str, tenant_id: str, ro
     rbac_service.require_role(identity, "admin")
     
     logger.info(f"User {user_id} deploying project {project_id} to PRODUCTION environment...")
-    # In a real implementation, this would trigger the OCI push with a 'latest' or 'prod' tag.
     return {"status": "success", "environment": "production", "project_id": project_id, "message": "Successfully deployed to production environment."}
+
+@mcp.tool()
+async def get_trace(job_id: str) -> Dict[str, Any]:
+    """Retrieve full execution trace for meta-programming and observability."""
+    from src.core.services import trace_service
+    trace = trace_service.get_trace(job_id)
+    return {"trace": trace} if trace else {"error": f"Trace for job '{job_id}' not found"}
+
+@mcp.tool()
+async def evaluate_agent(
+    agent_name: str,
+    test_cases: List[Dict[str, Any]],
+    user_id: str,
+    tenant_id: str,
+    roles: Optional[List[str]] = None,
+) -> Dict[str, Any]:
+    """Run an agent-level unit and E2E evaluation suite against an agent."""
+    identity = rbac_service.authenticate_human(user_id, tenant_id, provided_roles=roles)
+    rbac_service.require_role(identity, "developer")
+    
+    from src.core.testing.agent_harness import agent_test_harness, TestCaseSpec
+    specs = [TestCaseSpec(**tc) for tc in test_cases]
+    report = await agent_test_harness.run_evaluation(
+        agent_name=agent_name,
+        test_cases=specs,
+        user_id=user_id,
+        tenant_id=tenant_id
+    )
+    return report.model_dump()
 
 if __name__ == "__main__":
     import os

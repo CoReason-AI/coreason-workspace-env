@@ -112,3 +112,35 @@ async def deploy_to_production(project_id: str, identity = Depends(get_current_i
     
     return await agent_service.deploy_to_production(project_id, identity.user_id, identity.tenant_id)
 
+
+@router.get("/traces/{job_id}")
+async def get_execution_trace(job_id: str):
+    """Retrieve full execution trace for meta-programming and observability."""
+    from src.core.services import trace_service
+    trace = trace_service.get_trace(job_id)
+    if not trace:
+        raise HTTPException(status_code=404, detail=f"Trace for job '{job_id}' not found.")
+    return {"trace": trace}
+
+
+class EvaluateAgentRequest(BaseModel):
+    agent_name: str
+    test_cases: list[dict]
+
+
+@router.post("/evaluate")
+async def evaluate_agent(req: EvaluateAgentRequest, identity = Depends(get_current_identity)):
+    """Run an agent-level unit and E2E evaluation suite against an agent."""
+    from src.core.services.rbac_service import rbac_service
+    rbac_service.require_role(identity, "developer")
+    
+    from src.core.testing.agent_harness import agent_test_harness, TestCaseSpec
+    specs = [TestCaseSpec(**tc) for tc in req.test_cases]
+    report = await agent_test_harness.run_evaluation(
+        agent_name=req.agent_name,
+        test_cases=specs,
+        user_id=identity.user_id,
+        tenant_id=identity.tenant_id
+    )
+    return report.model_dump()
+

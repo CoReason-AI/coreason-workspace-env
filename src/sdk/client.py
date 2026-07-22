@@ -13,14 +13,12 @@ Usage:
 
     # Async operations
     health = await client.health()
-    projects = await client.projects.list()
+    trace = client.traces.get(job_id)
     result = await client.agents.execute("yaml_compiler", payload={...}, user_id="u1", tenant_id="t1")
 """
 import uuid
 import json
 from typing import Dict, Any, List, Optional
-
-
 
 
 class _AgentsNamespace:
@@ -63,8 +61,39 @@ class _AgentsNamespace:
         """Rewind a session to a specific UUIDv7 checkpoint ID."""
         return self._svc.rewind_checkpoint(checkpoint_id)
 
+    async def evaluate(
+        self,
+        agent_name: str,
+        test_cases: List[Dict[str, Any]],
+        user_id: str = "sdk-user",
+        tenant_id: str = "sdk-tenant",
+    ) -> Dict[str, Any]:
+        """Run agent-level evaluation harness."""
+        from src.core.testing.agent_harness import agent_test_harness, TestCaseSpec
+        specs = [TestCaseSpec(**tc) for tc in test_cases]
+        report = await agent_test_harness.run_evaluation(
+            agent_name=agent_name,
+            test_cases=specs,
+            user_id=user_id,
+            tenant_id=tenant_id,
+        )
+        return report.model_dump()
 
 
+class _TracesNamespace:
+    """SDK namespace for execution trace inspection (meta-programming)."""
+
+    def __init__(self):
+        from src.core.services import trace_service
+        self._svc = trace_service
+
+    def get(self, job_id: str) -> Optional[Dict[str, Any]]:
+        """Get full execution trace for a job."""
+        return self._svc.get_trace(job_id)
+
+    def list(self, agent_name: Optional[str] = None) -> List[Dict[str, Any]]:
+        """List execution traces."""
+        return self._svc.list_traces(agent_name=agent_name)
 
 
 class CoReasonClient:
@@ -75,11 +104,13 @@ class CoReasonClient:
     Usage:
         client = CoReasonClient()
         agents = client.agents.list()
+        trace = client.traces.get(job_id)
         health = await client.health()
     """
 
     def __init__(self):
         self.agents = _AgentsNamespace()
+        self.traces = _TracesNamespace()
 
     async def health(self) -> Dict[str, Any]:
         """Run platform health check."""
