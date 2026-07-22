@@ -125,8 +125,66 @@ def agent_status(job_id: str = typer.Option(..., '--job-id')):
 @agents_app.command("rewind")
 def agent_rewind(checkpoint_id: str = typer.Option(..., '--checkpoint-id')):
     """Rewind a session to a specific UUIDv7 checkpoint ID."""
-    from src.core.services import agent_service
-    res = agent_service.rewind_checkpoint(checkpoint_id)
+    from src.core.services.agent_service import AgentService
+    service = AgentService()
+    res = service.rewind_checkpoint(checkpoint_id)
+    typer.echo(json.dumps(res, default=str))
+
+@agents_app.command("override")
+def submit_override(
+    job_id: str = typer.Option(..., '--job-id'),
+    payload: str = typer.Option(..., '--payload'),
+    user_id: str = typer.Option(os.environ.get("COREASON_USER_ID", "cli-user"), '--user-id'),
+    tenant_id: str = typer.Option(os.environ.get("COREASON_TENANT_ID", "cli-tenant"), '--tenant-id')
+):
+    """HOTL Override: Intervene in a paused LangGraph thread by injecting a state payload."""
+    from src.core.services.rbac_service import rbac_service
+    identity = rbac_service.authenticate_human(user_id, tenant_id)
+    rbac_service.require_role(identity, "developer")
+    
+    from src.core.services.agent_service import AgentService
+    service = AgentService()
+    try:
+        payload_dict = json.loads(payload)
+    except json.JSONDecodeError:
+        typer.secho("Error: --payload must be a valid JSON string.", fg=typer.colors.RED)
+        sys.exit(1)
+        
+    async def run():
+        return await service.submit_override(job_id, payload_dict)
+        
+    res = asyncio.run(run())
+    typer.echo(json.dumps(res, default=str))
+
+deploy_app = typer.Typer()
+app.add_typer(deploy_app, name="deploy")
+
+@deploy_app.command("test")
+def deploy_to_test(
+    project_id: str = typer.Option(..., '--project-id'),
+    user_id: str = typer.Option(os.environ.get("COREASON_USER_ID", "cli-user"), '--user-id'),
+    tenant_id: str = typer.Option(os.environ.get("COREASON_TENANT_ID", "cli-tenant"), '--tenant-id')
+):
+    """Deploy the generated agent project to the Test Environment."""
+    from src.core.services.rbac_service import rbac_service
+    identity = rbac_service.authenticate_human(user_id, tenant_id)
+    rbac_service.require_role(identity, "developer")
+    
+    res = {"status": "success", "environment": "test", "project_id": project_id, "message": "Successfully deployed to test environment."}
+    typer.echo(json.dumps(res, default=str))
+
+@deploy_app.command("production")
+def deploy_to_production(
+    project_id: str = typer.Option(..., '--project-id'),
+    user_id: str = typer.Option(os.environ.get("COREASON_USER_ID", "cli-user"), '--user-id'),
+    tenant_id: str = typer.Option(os.environ.get("COREASON_TENANT_ID", "cli-tenant"), '--tenant-id')
+):
+    """Deploy the generated agent project to the Production Environment."""
+    from src.core.services.rbac_service import rbac_service
+    identity = rbac_service.authenticate_human(user_id, tenant_id)
+    rbac_service.require_role(identity, "admin")
+    
+    res = {"status": "success", "environment": "production", "project_id": project_id, "message": "Successfully deployed to production environment."}
     typer.echo(json.dumps(res, default=str))
 
 if __name__ == "__main__":

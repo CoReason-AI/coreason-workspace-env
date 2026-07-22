@@ -21,6 +21,11 @@ class CoreasonBaseState(AgentState, total=False):
     pass
 
 
+class UserIdentity(BaseModel):
+    user_id: str
+    tenant_id: str
+    roles: list[str]
+
 
 from langgraph.graph import add_messages
 from typing import Annotated

@@ -2,13 +2,9 @@ import logging
 from typing import List, Optional, Dict
 from pydantic import BaseModel
 from fastapi import HTTPException
+from src.core.ontology import UserIdentity
 
 logger = logging.getLogger(__name__)
-
-class UserIdentity(BaseModel):
-    user_id: str
-    tenant_id: str
-    roles: List[str]
 
 class RbacService:
     """

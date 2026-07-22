@@ -23,10 +23,14 @@ class AgentTesterAgent(DeepAgent):
         prompt = self.system_prompt
         
         # We use the standard DeepAgent factory wrapper which handles LangGraph creation
+        # We must inject the StateBackend to provide the virtual filesystem tools so it can write tests
+        from deepagents.acp.backends.local import StateBackend
+        backend = StateBackend()
+        
         graph = self.build_standard_deep_agent(
             system_prompt=prompt,
             state_schema=DeepAgentState,
-            tools=[]
+            tools=backend.get_tools()
         )
         
         if config is None:
