@@ -60,6 +60,16 @@ graph TD
 - **Tech Stack**: `DeepAgentState` `TypedDict`, `Command(resume=...)`, `FastMCP`, `langchain_mcp_adapters`.
 - **Supporting Modules**: `src/core/base_agent.py`, `src/mcp/server.py`.
 
+### 1.5 Dynamic Tool & Skill Forging Engine
+- **Capability**: Allows factory agents and human partners to forge new Python tools and markdown skills dynamically. Enforces a Maker-Checker validation gate where tools are executed against pytest unit tests in isolated sandboxes before being cleared.
+- **Tech Stack**: Python `subprocess`, `pytest`, `ToolForgingService`, `SkillService`.
+- **Supporting Modules**: `src/core/services/tool_forging_service.py`, `src/core/services/skill_service.py`.
+
+### 1.6 Self-Similar Skill Registry & Cross-Project Skill Cloning
+- **Capability**: Maintains self-similar skill registries across factory orchestrators and downstream synthesized agent applications. Enables agents to clone skills out to the PEN 66197 global catalog or clone existing catalog skills in.
+- **Tech Stack**: Markdown YAML frontmatter, `CatalogService` PEN 66197 OID URNs (`urn:oid:1.3.6.1.4.1.66197:skill:...`).
+- **Supporting Modules**: `src/core/services/skill_service.py`, `src/core/tools/catalog_tools.py`.
+
 ---
 
 ## 2. Identity, Governance & Cataloging (The Knowledge & Identity Authority)

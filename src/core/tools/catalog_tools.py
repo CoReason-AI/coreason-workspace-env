@@ -56,3 +56,36 @@ def forge_tool_tool(
         unit_test_code=unit_test_code,
         tags=tags
     )
+
+
+@tool
+def forge_skill_tool(
+    skill_id: str,
+    name: str,
+    category: str,
+    description: str,
+    content: str,
+    tags: Optional[List[str]] = None
+) -> Dict[str, Any]:
+    """
+    Forge a new agent skill markdown document: writes skill file to registry
+    and registers it into the global catalog under IANA PEN 66197 URN.
+    """
+    from src.core.services.skill_service import skill_service
+    return skill_service.forge_skill(
+        skill_id=skill_id,
+        name=name,
+        category=category,
+        description=description,
+        content=content,
+        tags=tags
+    )
+
+
+@tool
+def clone_skill_tool(urn_or_id: str, target_category: Optional[str] = None) -> Dict[str, Any]:
+    """
+    Clone an existing skill from the global catalog (PEN 66197 URN) into the local skill registry.
+    """
+    from src.core.services.skill_service import skill_service
+    return skill_service.clone_skill(urn_or_id, target_category)

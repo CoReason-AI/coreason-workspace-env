@@ -82,5 +82,84 @@ class SkillService:
             "is_valid": len(missing) == 0,
         }
 
+    def forge_skill(
+        self,
+        skill_id: str,
+        name: str,
+        category: str,
+        description: str,
+        content: str,
+        tags: Optional[List[str]] = None,
+        author_id: str = "prompt_engineer",
+    ) -> Dict[str, Any]:
+        """
+        Forges a new skill: writes markdown to src/core/skills/<category>/<skill_id>.md,
+        validates syntax, and registers the verified skill into CatalogService under PEN 66197 URN.
+        """
+        from src.core.ontology import CoreasonURN
+        from src.core.services.catalog_service import catalog_service
+
+        target_dir = self.skills_dir / category
+        target_dir.mkdir(parents=True, exist_ok=True)
+        file_path = target_dir / f"{skill_id}.md"
+
+        full_md = f"# {name}\n\n**Category**: `{category}`\n**Description**: {description}\n\n{content}"
+        file_path.write_text(full_md, encoding="utf-8")
+
+        urn_obj = CoreasonURN(resource_type="skill", resource_id=skill_id)
+        oid_urn = urn_obj.to_oid_urn()
+        coreason_url = urn_obj.to_coreason_url()
+
+        final_tags = list(set(["skill", "forged", category] + (tags or [])))
+        catalog_entry = catalog_service.register_entry(
+            urn=oid_urn,
+            name=name,
+            description=description,
+            resource_type="skill",
+            tags=final_tags,
+            metadata={
+                "category": category,
+                "author_id": author_id,
+                "path": f"{category}/{skill_id}.md",
+                "coreason_url": coreason_url,
+            },
+            source_code=full_md,
+        )
+
+        logger.info(f"Successfully forged and cataloged skill '{name}' ({skill_id}) under URN {oid_urn}.")
+        return {
+            "status": "success",
+            "skill_id": skill_id,
+            "urn": oid_urn,
+            "coreason_url": coreason_url,
+            "path": f"{category}/{skill_id}.md",
+            "catalog_entry": catalog_entry.model_dump(),
+        }
+
+    def clone_skill(self, urn_or_id: str, target_category: Optional[str] = None) -> Dict[str, Any]:
+        """
+        Clones a skill from the global catalog into the active skills directory.
+        """
+        from src.core.services.catalog_service import catalog_service
+
+        entry = catalog_service.resolve_urn(urn_or_id)
+        if not entry or entry.get("resource_type") != "skill":
+            return {"status": "error", "message": f"Skill URN '{urn_or_id}' not found in catalog."}
+
+        category = target_category or entry.get("metadata", {}).get("category", "building")
+        urn_parts = urn_or_id.split(":")
+        skill_id = urn_parts[-1] if len(urn_parts) > 1 else urn_or_id
+        content = entry.get("source_code") or entry.get("description", "")
+
+        return self.forge_skill(
+            skill_id=skill_id,
+            name=entry.get("name", skill_id),
+            category=category,
+            description=entry.get("description", ""),
+            content=content,
+            tags=entry.get("tags", []),
+            author_id="skill_cloner",
+        )
+
 
 skill_service = SkillService()

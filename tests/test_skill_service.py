@@ -28,3 +28,24 @@ def test_skill_service_validation():
     assert res["is_valid"] is False
     assert len(res["valid"]) == 1
     assert "non_existent_skill_xyz" in res["missing"]
+
+
+def test_forge_and_clone_skill():
+    # 1. Forge skill
+    res = skill_service.forge_skill(
+        skill_id="sec_filing_analysis_skill",
+        name="SEC Filing Analysis",
+        category="building",
+        description="Analyzes SEC 10-K filings for risk factors",
+        content="## SEC Filing Analysis Protocol\n1. Extract Item 1A Risk Factors.\n2. Run sentiment analysis.",
+        tags=["sec", "finance"]
+    )
+    assert res["status"] == "success"
+    assert res["skill_id"] == "sec_filing_analysis_skill"
+    assert "urn:oid:1.3.6.1.4.1.66197:skill:sec_filing_analysis_skill" in res["urn"]
+
+    # 2. Clone skill
+    cloned = skill_service.clone_skill("urn:oid:1.3.6.1.4.1.66197:skill:sec_filing_analysis_skill", target_category="cloned")
+    assert cloned["status"] == "success"
+    assert cloned["path"] == "cloned/sec_filing_analysis_skill.md"
+
