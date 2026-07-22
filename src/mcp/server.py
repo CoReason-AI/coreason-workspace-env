@@ -50,11 +50,12 @@ async def execute_agent(
     agent_name: str,
     user_id: str,
     tenant_id: str,
+    roles: Optional[List[str]] = None,
     payload: Optional[Dict[str, Any]] = None,
 ) -> Dict[str, Any]:
     """Trigger a LangGraph execution flow for a specified agent."""
     from src.core.services.rbac_service import rbac_service
-    identity = rbac_service.authenticate_human(user_id, tenant_id)
+    identity = rbac_service.authenticate_human(user_id, tenant_id, provided_roles=roles)
     rbac_service.require_role(identity, "developer")
     
     from src.core.services import agent_service
@@ -90,21 +91,21 @@ async def rewind_checkpoint(checkpoint_id: str) -> Dict[str, Any]:
     return agent_service.rewind_checkpoint(checkpoint_id)
 
 @mcp.tool()
-async def submit_override(job_id: str, payload: Dict[str, Any], user_id: str, tenant_id: str) -> Dict[str, Any]:
+async def submit_override(job_id: str, agent_name: str, payload: Dict[str, Any], user_id: str, tenant_id: str, roles: Optional[List[str]] = None) -> Dict[str, Any]:
     """HOTL Override: Intervene in a paused LangGraph thread by injecting a state payload."""
     from src.core.services.rbac_service import rbac_service
-    identity = rbac_service.authenticate_human(user_id, tenant_id)
+    identity = rbac_service.authenticate_human(user_id, tenant_id, provided_roles=roles)
     rbac_service.require_role(identity, "developer")
     
     from src.core.services import agent_service
     service = agent_service.AgentService()
-    return await service.submit_override(job_id, payload)
+    return await service.submit_override(job_id, agent_name, payload)
 
 @mcp.tool()
-async def deploy_to_test(project_id: str, user_id: str, tenant_id: str) -> Dict[str, Any]:
+async def deploy_to_test(project_id: str, user_id: str, tenant_id: str, roles: Optional[List[str]] = None) -> Dict[str, Any]:
     """Deploy the generated agent project to the Test Environment."""
     from src.core.services.rbac_service import rbac_service
-    identity = rbac_service.authenticate_human(user_id, tenant_id)
+    identity = rbac_service.authenticate_human(user_id, tenant_id, provided_roles=roles)
     rbac_service.require_role(identity, "developer")
     
     logger.info(f"User {user_id} deploying project {project_id} to TEST environment...")
@@ -112,10 +113,10 @@ async def deploy_to_test(project_id: str, user_id: str, tenant_id: str) -> Dict[
     return {"status": "success", "environment": "test", "project_id": project_id, "message": "Successfully deployed to test environment."}
 
 @mcp.tool()
-async def deploy_to_production(project_id: str, user_id: str, tenant_id: str) -> Dict[str, Any]:
+async def deploy_to_production(project_id: str, user_id: str, tenant_id: str, roles: Optional[List[str]] = None) -> Dict[str, Any]:
     """Deploy the generated agent project to the Production Environment."""
     from src.core.services.rbac_service import rbac_service
-    identity = rbac_service.authenticate_human(user_id, tenant_id)
+    identity = rbac_service.authenticate_human(user_id, tenant_id, provided_roles=roles)
     rbac_service.require_role(identity, "admin")
     
     logger.info(f"User {user_id} deploying project {project_id} to PRODUCTION environment...")

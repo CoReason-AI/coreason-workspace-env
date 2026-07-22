@@ -84,7 +84,7 @@ class DeepagentTranspilerAgent(DeepAgent):
             langfuse_handler = CallbackHandler()
             config["callbacks"] = [langfuse_handler]
         except Exception as e:
-            pass
+            logger.warning(f"Langfuse disabled for transpiler: {e}")
 
         result = graph.invoke({"messages": [HumanMessage(content=human_msg)]}, config=config)
         content = result["messages"][-1].content

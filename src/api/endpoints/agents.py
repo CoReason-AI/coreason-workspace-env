@@ -10,9 +10,14 @@ from pydantic import BaseModel, Field
 from src.core.services import agent_service
 from fastapi import Header
 
-async def get_current_identity(x_user_id: str = Header("dev-user-456"), x_tenant_id: str = Header("default-tenant")):
+async def get_current_identity(
+    x_user_id: str = Header("dev-user-456"), 
+    x_tenant_id: str = Header("default-tenant"),
+    x_user_roles: Optional[str] = Header(None)
+):
     from src.core.services.rbac_service import rbac_service
-    return rbac_service.authenticate_human(user_id=x_user_id, tenant_id=x_tenant_id)
+    roles = [r.strip() for r in x_user_roles.split(",")] if x_user_roles else None
+    return rbac_service.authenticate_human(user_id=x_user_id, tenant_id=x_tenant_id, provided_roles=roles)
 
 router = APIRouter()
 
@@ -85,6 +90,7 @@ async def rewind_checkpoint(req: RewindCheckpointRequest):
 
 class OverrideRequest(BaseModel):
     job_id: str
+    agent_name: str
     payload: dict
 
 @router.post("/override")
@@ -95,7 +101,7 @@ async def submit_override(req: OverrideRequest, identity = Depends(get_current_i
     
     from src.core.services.agent_service import AgentService
     service = AgentService()
-    return await service.submit_override(req.job_id, req.payload)
+    return await service.submit_override(req.job_id, req.agent_name, req.payload)
 
 @router.post("/deploy/test/{project_id}")
 async def deploy_to_test(project_id: str, identity = Depends(get_current_identity)):

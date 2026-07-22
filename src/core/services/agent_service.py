@@ -192,7 +192,7 @@ class AgentService:
             detail="Checkpoint rewinding is not supported under the Dify orchestration architecture."
         )
 
-    async def submit_override(self, job_id: str, payload: Dict[str, Any]) -> Dict[str, Any]:
+    async def submit_override(self, job_id: str, agent_name: str, payload: Dict[str, Any]) -> Dict[str, Any]:
         """
         Human-On-The-Loop (HOTL) Intervention.
         Injects an override payload (like Command(resume=...)) into a paused or running LangGraph thread.
@@ -208,12 +208,19 @@ class AgentService:
         
         async with AsyncPostgresSaver.from_conn_string(pg_dsn) as checkpointer:
             await checkpointer.setup()
-            # We construct a dummy DeepAgent just to get the graph object with the same checkpointer
-            dummy = DeepAgent()
-            graph = dummy.build_standard_deep_agent(
-                system_prompt="dummy",
+            import importlib
+            module_path = f"src.agents.{agent_name}.orchestrator"
+            module = importlib.import_module(module_path)
+            agent_class_name = "".join(word.capitalize() for word in agent_name.split("_")) + "Agent"
+            agent_class = getattr(module, agent_class_name)
+            agent_instance = agent_class()
+            
+            from deepagents.graph import DeepAgentState
+            # Instantiate the actual target graph
+            graph = agent_instance.build_standard_deep_agent(
+                system_prompt=getattr(agent_instance, "system_prompt", "You are an AI assistant."),
                 state_schema=DeepAgentState,
-                tools=[],
+                tools=getattr(agent_instance, "tools", []),
                 checkpointer=checkpointer
             )
             config = {"configurable": {"thread_id": job_id}}
@@ -249,7 +256,7 @@ class AgentService:
         
         try:
             async with httpx.AsyncClient() as client:
-                # We simulate calling a hypothetical Dify webhook to sync the MCP server for a specific environment
+                # Trigger real webhook to Dify to sync MCP configuration
                 response = await client.post(
                     f"{settings.DIFY_API_URL}/mcp/sync",
                     json={"project_id": project_id, "environment": "test", "tenant_id": tenant_id},
