@@ -210,6 +210,7 @@ class AgentService:
         Delegates to the Dify API.
         """
         import httpx
+        import asyncio
         from src.core.config import settings
         
         headers = {
@@ -217,34 +218,59 @@ class AgentService:
             "Content-Type": "application/json"
         }
         
-        try:
-            # Query Dify message status API
-            async with httpx.AsyncClient() as client:
-                response = await client.get(
-                    f"{settings.DIFY_API_URL}/messages/{job_id}",
-                    headers=headers
-                )
-                
-            if response.status_code == 200:
-                data = response.json()
-                return {
-                    "job_id": job_id,
-                    "status": "success",
-                    "detail": data
-                }
-            else:
-                return {
-                    "job_id": job_id,
-                    "status": "running",
-                    "detail": f"Dify API returned {response.status_code}: {response.text}"
-                }
-        except Exception as e:
-            logger.error(f"Failed to fetch status from Dify: {e}")
-            return {
-                "job_id": job_id,
-                "status": "running",
-                "detail": "Failed to connect to Dify orchestration engine."
-            }
+        max_retries = 3
+        base_delay = 1.0
+        
+        for attempt in range(max_retries):
+            try:
+                # Query Dify message status API
+                async with httpx.AsyncClient() as client:
+                    response = await client.get(
+                        f"{settings.DIFY_API_URL}/messages/{job_id}",
+                        headers=headers
+                    )
+                    
+                if response.status_code == 200:
+                    data = response.json()
+                    return {
+                        "job_id": job_id,
+                        "status": "success",
+                        "detail": data
+                    }
+                elif response.status_code in [502, 503, 504]:
+                    # Transient error, let the loop retry
+                    logger.warning(f"Transient Dify error {response.status_code}. Retrying...")
+                    response.raise_for_status()
+                else:
+                    # Deterministic error (400, 401, 404, 500), fail immediately
+                    logger.error(f"Dify API error {response.status_code}: {response.text}")
+                    return {
+                        "job_id": job_id,
+                        "status": "error",
+                        "message": f"Dify API returned HTTP {response.status_code}"
+                    }
+                    
+            except httpx.RequestError as e:
+                logger.warning(f"Network error on attempt {attempt+1}/{max_retries}: {e}")
+                if attempt == max_retries - 1:
+                    logger.error(f"Failed to fetch status from Dify after {max_retries} attempts: {e}")
+                    return {
+                        "job_id": job_id,
+                        "status": "error",
+                        "message": "Failed to connect to Dify orchestration engine."
+                    }
+            except httpx.HTTPStatusError as e:
+                if attempt == max_retries - 1:
+                    logger.error(f"Failed to fetch status from Dify after {max_retries} attempts (HTTP {e.response.status_code})")
+                    return {
+                        "job_id": job_id,
+                        "status": "error",
+                        "message": f"Dify API returned HTTP {e.response.status_code} after retries."
+                    }
+                    
+            # Exponential backoff
+            if attempt < max_retries - 1:
+                await asyncio.sleep(base_delay * (2 ** attempt))
 
     def rewind_checkpoint(self, checkpoint_id: str) -> Dict[str, Any]:
         """
