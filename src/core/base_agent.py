@@ -5,7 +5,9 @@ class DeepAgent:
     Base agent class for the DeepAgent framework.
     """
     def __init__(self, **kwargs):
-        pass
+        from src.core.telemetry import setup_telemetry
+        # Ensure telemetry is bootstrapped to route traces to the OTEL sidecar
+        setup_telemetry()
 
     def get_embedding_model(self):
         """

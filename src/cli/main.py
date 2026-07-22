@@ -202,5 +202,20 @@ def deploy_to_production(
     res = asyncio.run(run())
     typer.echo(json.dumps(res, default=str))
 
+mcp_app = typer.Typer()
+app.add_typer(mcp_app, name="mcp")
+
+@mcp_app.command("bundle")
+def bundle_mcp_agents(source: str = "src/agents", output: str = "dist/coreason_mcp_bundle.enc"):
+    """Bundle and encrypt MCP agents for air-gapped deployment."""
+    import sys
+    import subprocess
+    cmd = [sys.executable, "scripts/mcp_bundler.py", "--source", source, "--output", output]
+    result = subprocess.run(cmd, cwd=".")
+    if result.returncode != 0:
+        typer.secho("Failed to bundle MCP agents.", fg=typer.colors.RED, bold=True)
+        raise typer.Exit(code=result.returncode)
+    typer.secho("MCP agents bundled successfully.", fg=typer.colors.GREEN, bold=True)
+
 if __name__ == "__main__":
     app()

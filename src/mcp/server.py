@@ -18,6 +18,26 @@ from dotenv import load_dotenv
 load_dotenv()
 logger = logging.getLogger(__name__)
 
+AGENT_MANIFEST_CACHE = {}
+
+def load_encrypted_agents():
+    import os
+    bundle_path = os.environ.get("MCP_BUNDLE_PATH", "dist/coreason_mcp_bundle.enc")
+    if os.path.exists(bundle_path):
+        from src.core.services.license_service import license_service
+        try:
+            logger.info("Starting Cloud KMS authentication to decrypt MCP bundle...")
+            global AGENT_MANIFEST_CACHE
+            AGENT_MANIFEST_CACHE = license_service.decrypt_bundle(bundle_path)
+            logger.info(f"Loaded {len(AGENT_MANIFEST_CACHE)} encrypted agent manifests into memory.")
+        except Exception as e:
+            logger.error(f"Failed to load encrypted agents: {e}")
+            raise
+    else:
+        logger.info("No encrypted MCP bundle found. Running in standard plaintext mode.")
+
+load_encrypted_agents()
+
 mcp = FastMCP("coreason-platform")
 
 @mcp.tool()
@@ -124,8 +144,14 @@ async def deploy_to_production(project_id: str, user_id: str, tenant_id: str, ro
     return {"status": "success", "environment": "production", "project_id": project_id, "message": "Successfully deployed to production environment."}
 
 if __name__ == "__main__":
+    import os
     logging.basicConfig(level=logging.INFO)
-    mcp.run()
+    transport = os.environ.get("MCP_TRANSPORT", "stdio").lower()
+    if transport == "sse":
+        logger.info("Starting MCP server with SSE transport for Dify integration...")
+        mcp.run(transport="sse")
+    else:
+        mcp.run()
 
 def _build_server():
     return mcp
