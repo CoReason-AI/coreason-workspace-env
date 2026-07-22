@@ -3,8 +3,7 @@ from typing import Dict, Any, Optional
 from pathlib import Path
 import json
 
-from deepagents.graph import create_deep_agent, DeepAgentState, SystemPromptConfig
-from deepagents.backends import StateBackend
+from deepagents.graph import create_deep_agent
 from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.messages import BaseMessage, AIMessage, SystemMessage, HumanMessage
 from langchain_core.outputs import ChatResult, ChatGeneration
@@ -65,9 +64,12 @@ class NativeLiteLLMModel(BaseChatModel):
     def _llm_type(self) -> str:
         return "native-litellm"
 
-# Dynamically define a subclass of DeepAgentState for custom payloads
-class DynamicAgentState(DeepAgentState):
+from typing import TypedDict, Annotated
+import operator
+
+class DynamicAgentState(TypedDict):
     payload: dict
+    messages: Annotated[list, operator.add]
 
 class DeepAgentService:
     """
@@ -106,15 +108,11 @@ class DeepAgentService:
                 temperature=settings.LLM_TEMPERATURE
             )
 
-            # Build the agent
             agent = create_deep_agent(
                 model=model,
                 tools=[],
-                system_prompt=SystemPromptConfig(
-                    prefix=system_prompt_str,
-                ),
+                system_prompt=system_prompt_str,
                 state_schema=DynamicAgentState,
-                backend=StateBackend(),
                 skills=skill_paths
             )
 

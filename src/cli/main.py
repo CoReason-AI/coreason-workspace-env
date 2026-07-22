@@ -3,26 +3,25 @@ import asyncio
 import sys
 from typing import Optional
 from dotenv import load_dotenv
-
-load_dotenv()
 import uuid
 import logging
 import re
 import yaml
 from pathlib import Path
 import httpx
-from rich.live import Live
-from rich.tree import Tree
-from rich.console import Console
-from rich.prompt import Prompt
+import os
+import json
+
+load_dotenv()
+
+from src.core.services import agent_service
+from src.core.services.rbac_service import rbac_service
 
 logging.basicConfig(level=logging.INFO, stream=sys.stdout, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
 app = typer.Typer()
 import langchain
-import os
 os.environ["LANGCHAIN_TRACING_V2"] = "false"
-import json
 agents_app = typer.Typer()
 app.add_typer(agents_app, name="agents")
 
@@ -66,14 +65,11 @@ def test(coverage: bool = False, e2e: bool = False, verbose: bool = False):
 
 @agents_app.command("list")
 def list_agents():
-    from src.core.services import agent_service
     res = {"agents": agent_service.list_agents()}
     typer.echo(json.dumps(res, default=str))
 
 @agents_app.command("get")
 def get_agent(name: str = typer.Option(..., '--name')):
-    from src.core.services import agent_service
-    import sys
     res = agent_service.get_agent(name)
     if not res:
         typer.echo("Not found")
@@ -90,10 +86,6 @@ def execute_agent(
     """
     Execute a native deepagent synchronously and return the structured JSON output.
     """
-    from src.core.services import agent_service
-    from src.core.services.rbac_service import rbac_service
-    import sys
-    
     identity = rbac_service.authenticate_human(user_id, tenant_id, provided_roles=["admin", "developer", "viewer"])
     rbac_service.require_role(identity, "developer")
     
@@ -117,9 +109,6 @@ def execute_agent(
 @agents_app.command("status")
 def agent_status(job_id: str = typer.Option(..., '--job-id')):
     """Check the status of an enqueued job."""
-    from src.core.services import agent_service
-    import sys
-    
     async def run():
         return await agent_service.get_execution_status(job_id)
         
@@ -129,9 +118,7 @@ def agent_status(job_id: str = typer.Option(..., '--job-id')):
 @agents_app.command("rewind")
 def agent_rewind(checkpoint_id: str = typer.Option(..., '--checkpoint-id')):
     """Rewind a session to a specific UUIDv7 checkpoint ID."""
-    from src.core.services.agent_service import AgentService
-    service = AgentService()
-    res = service.rewind_checkpoint(checkpoint_id)
+    res = agent_service.rewind_checkpoint(checkpoint_id)
     typer.echo(json.dumps(res, default=str))
 
 @agents_app.command("override")
@@ -143,12 +130,9 @@ def submit_override(
     tenant_id: str = typer.Option(os.environ.get("COREASON_TENANT_ID", "cli-tenant"), '--tenant-id')
 ):
     """HOTL Override: Intervene in a paused LangGraph thread by injecting a state payload."""
-    from src.core.services.rbac_service import rbac_service
     identity = rbac_service.authenticate_human(user_id, tenant_id, provided_roles=["admin", "developer", "viewer"])
     rbac_service.require_role(identity, "developer")
     
-    from src.core.services.agent_service import AgentService
-    service = AgentService()
     try:
         payload_dict = json.loads(payload)
     except json.JSONDecodeError:
@@ -156,7 +140,7 @@ def submit_override(
         sys.exit(1)
         
     async def run():
-        return await service.submit_override(job_id, agent_name, payload_dict)
+        return await agent_service.submit_override(job_id, agent_name, payload_dict)
         
     res = asyncio.run(run())
     typer.echo(json.dumps(res, default=str))
@@ -171,14 +155,11 @@ def deploy_to_test(
     tenant_id: str = typer.Option(os.environ.get("COREASON_TENANT_ID", "cli-tenant"), '--tenant-id')
 ):
     """Deploy the generated agent project to the Test Environment."""
-    from src.core.services.rbac_service import rbac_service
     identity = rbac_service.authenticate_human(user_id, tenant_id, provided_roles=["admin", "developer", "viewer"])
     rbac_service.require_role(identity, "developer")
     
-    from src.core.services.agent_service import AgentService
-    service = AgentService()
     async def run():
-        return await service.deploy_to_test(project_id, identity.user_id, identity.tenant_id)
+        return await agent_service.deploy_to_test(project_id, identity.user_id, identity.tenant_id)
         
     res = asyncio.run(run())
     typer.echo(json.dumps(res, default=str))
@@ -190,14 +171,11 @@ def deploy_to_production(
     tenant_id: str = typer.Option(os.environ.get("COREASON_TENANT_ID", "cli-tenant"), '--tenant-id')
 ):
     """Deploy the generated agent project to the Production Environment."""
-    from src.core.services.rbac_service import rbac_service
     identity = rbac_service.authenticate_human(user_id, tenant_id, provided_roles=["admin", "developer", "viewer"])
     rbac_service.require_role(identity, "admin")
     
-    from src.core.services.agent_service import AgentService
-    service = AgentService()
     async def run():
-        return await service.deploy_to_production(project_id, identity.user_id, identity.tenant_id)
+        return await agent_service.deploy_to_production(project_id, identity.user_id, identity.tenant_id)
         
     res = asyncio.run(run())
     typer.echo(json.dumps(res, default=str))
@@ -208,14 +186,22 @@ app.add_typer(mcp_app, name="mcp")
 @mcp_app.command("bundle")
 def bundle_mcp_agents(source: str = "src/agents", output: str = "dist/coreason_mcp_bundle.enc"):
     """Bundle and encrypt MCP agents for air-gapped deployment."""
-    import sys
-    import subprocess
-    cmd = [sys.executable, "scripts/mcp_bundler.py", "--source", source, "--output", output]
-    result = subprocess.run(cmd, cwd=".")
-    if result.returncode != 0:
-        typer.secho("Failed to bundle MCP agents.", fg=typer.colors.RED, bold=True)
-        raise typer.Exit(code=result.returncode)
-    typer.secho("MCP agents bundled successfully.", fg=typer.colors.GREEN, bold=True)
+    from src.core.services.bundler_service import bundler_service
+    
+    key_b64 = os.environ.get("MCP_BUNDLE_KEY")
+    if not key_b64:
+        from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+        import base64
+        test_key = AESGCM.generate_key(bit_length=256)
+        key_b64 = base64.b64encode(test_key).decode('utf-8')
+        typer.secho(f"WARNING: MCP_BUNDLE_KEY not set. Generated a random test key: {key_b64}", fg=typer.colors.YELLOW)
+        
+    try:
+        bundler_service.bundle_agents(source, output, key_b64)
+        typer.secho("MCP agents bundled successfully.", fg=typer.colors.GREEN, bold=True)
+    except Exception as e:
+        typer.secho(f"Failed to bundle MCP agents: {e}", fg=typer.colors.RED, bold=True)
+        raise typer.Exit(code=1)
 
 if __name__ == "__main__":
     app()

@@ -1,7 +1,6 @@
 import os
 import base64
 import logging
-from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 
 logger = logging.getLogger(__name__)
 
@@ -60,33 +59,5 @@ class CloudKMSLicenseService:
             raise NotImplementedError("GCP KMS integration not yet implemented")
         else:
             raise ValueError(f"Unsupported KMS provider: {self.kms_provider}")
-
-    def decrypt_bundle(self, bundle_path: str) -> dict:
-        """
-        Reads the encrypted bundle, fetches the KMS key, and decrypts it strictly in-memory.
-        Returns a dictionary of relative file paths to their YAML contents.
-        """
-        import json
-        
-        with open(bundle_path, 'rb') as f:
-            final_data = f.read()
-            
-        nonce = final_data[:12]
-        ciphertext = final_data[12:]
-        
-        key = self.get_decryption_key()
-        if len(key) != 32:
-            raise ValueError("Key must be 32 bytes for AES-256")
-            
-        aesgcm = AESGCM(key)
-        
-        try:
-            payload = aesgcm.decrypt(nonce, ciphertext, None)
-            bundle = json.loads(payload.decode('utf-8'))
-            logger.info(f"Successfully decrypted bundle containing {len(bundle)} files in-memory.")
-            return bundle
-        except Exception as e:
-            logger.error(f"Failed to decrypt MCP bundle: {e}")
-            raise
 
 license_service = CloudKMSLicenseService()

@@ -22,12 +22,58 @@ class AgentService:
     Manages agent discovery and execution.
     All surfaces (API, CLI, MCP, SDK) delegate here.
     """
+    _bundle_cache = None
+    _bundle_loaded = False
+
+    @classmethod
+    def _get_bundle(cls) -> Optional[Dict[str, str]]:
+        if cls._bundle_loaded:
+            return cls._bundle_cache
+            
+        cls._bundle_loaded = True
+        import os
+        bundle_path = os.environ.get("MCP_BUNDLE_PATH", "dist/coreason_mcp_bundle.enc")
+        if os.path.exists(bundle_path):
+            from src.core.services.bundler_service import bundler_service
+            try:
+                cls._bundle_cache = bundler_service.decrypt_bundle(bundle_path)
+            except Exception as e:
+                logger.error(f"Failed to load encrypted agents: {e}")
+        return cls._bundle_cache
 
     def list_agents(self, project_id: Optional[str] = None) -> List[Dict[str, Any]]:
         """
-        Scans src/agents/ for agent.yaml files and returns parsed metadata.
+        Scans src/agents/ for agent.yaml files (or the encrypted bundle) and returns parsed metadata.
         """
         agents = []
+        bundle = self._get_bundle()
+        
+        if bundle is not None:
+            # Load from encrypted bundle
+            for rel_path, content in bundle.items():
+                if rel_path.endswith("agent.yaml") or rel_path.endswith("agent.yml"):
+                    try:
+                        data = yaml.safe_load(content)
+                        agent_name = rel_path.split("/")[0] if "/" in rel_path else "unknown"
+                        if "\\" in agent_name:
+                            agent_name = agent_name.split("\\")[0]
+                        agent_entry = {
+                            "name": data.get("name", agent_name),
+                            "type": data.get("type", "unknown"),
+                            "description": data.get("description", ""),
+                            "dependencies": data.get("dependencies", []),
+                            "path": f"bundle://{agent_name}",
+                        }
+                        if "skill_registry" in data:
+                            agent_entry["skill_registry"] = data["skill_registry"]
+                        else:
+                            agent_entry["skills"] = data.get("skills", [])
+                        agents.append(agent_entry)
+                    except Exception as e:
+                        logger.warning(f"Failed to parse {rel_path} from bundle: {e}")
+            return agents
+            
+        # Fallback to filesystem
         if not _AGENTS_DIR.is_dir():
             logger.warning(f"Agents directory not found: {_AGENTS_DIR}")
             return agents
@@ -61,19 +107,38 @@ class AgentService:
         import re
         if not re.match(r"^[a-zA-Z0-9_-]+$", agent_name):
             return None
+            
+        data = None
+        bundle = self._get_bundle()
+        is_bundled = False
+        
+        if bundle is not None:
+            # Try to read from bundle (checking both forward and backslashes)
+            target_path = f"{agent_name}/agent.yaml"
+            target_path_win = f"{agent_name}\\agent.yaml"
+            if target_path in bundle:
+                data = yaml.safe_load(bundle[target_path])
+                is_bundled = True
+            elif target_path_win in bundle:
+                data = yaml.safe_load(bundle[target_path_win])
+                is_bundled = True
+                
         agent_dir = _AGENTS_DIR / agent_name
-        try:
-            if not agent_dir.resolve().is_relative_to(_AGENTS_DIR.resolve()):
+        
+        if data is None:
+            # Fallback to filesystem
+            try:
+                if not agent_dir.resolve().is_relative_to(_AGENTS_DIR.resolve()):
+                    return None
+            except ValueError:
                 return None
-        except ValueError:
-            return None
 
-        manifest = agent_dir / "agent.yaml"
-        if not manifest.is_file():
-            return None
+            manifest = agent_dir / "agent.yaml"
+            if not manifest.is_file():
+                return None
 
-        with open(manifest, "r", encoding="utf-8") as f:
-            data = yaml.safe_load(f)
+            with open(manifest, "r", encoding="utf-8") as f:
+                data = yaml.safe_load(f)
 
         result = {
             "name": data.get("name", agent_name),
@@ -81,7 +146,7 @@ class AgentService:
             "description": data.get("description", ""),
             "dependencies": data.get("dependencies", []),
             "system_prompt": data.get("system_prompt", ""),
-            "path": str(agent_dir),
+            "path": f"bundle://{agent_name}" if is_bundled else str(agent_dir),
         }
         if "skill_registry" in data:
             result["skill_registry"] = data["skill_registry"]
