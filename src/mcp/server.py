@@ -62,6 +62,18 @@ async def execute_agent(
     )
 
 @mcp.tool()
+async def run_native_deepagent(
+    agent_name: str,
+    payload: Optional[Dict[str, Any]] = None,
+) -> Dict[str, Any]:
+    """Execute a local native deepagent (v0.6.0+) dynamically."""
+    from src.core.services.deepagent_service import deepagent_service
+    return await deepagent_service.run_native_deepagent(
+        agent_name=agent_name,
+        payload=payload or {},
+    )
+
+@mcp.tool()
 async def get_execution_status(job_id: str) -> Dict[str, Any]:
     """Check the status of an enqueued agent execution."""
     from src.core.services import agent_service

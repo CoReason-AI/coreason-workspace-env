@@ -10,6 +10,18 @@ services:
       - ./src:/home/coreason/project/src
     restart: always
 
+  # 1.5 MCP Server for Dify routing over SSE
+  mcp_server:
+    image: ghcr.io/coreason-ai/coreason-workspace-env:develop
+    command: ["fastmcp", "run", "src/mcp/server.py", "--transport", "sse"]
+    ports:
+      - "8001:8000"
+    env_file:
+      - .env
+    volumes:
+      - ./src:/home/coreason/project/src
+    restart: always
+
   # 2. Dify API Server
   dify-api:
     image: langgenius/dify-api:latest
