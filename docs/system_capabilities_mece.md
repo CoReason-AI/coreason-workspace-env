@@ -80,6 +80,16 @@ graph TD
 - **Tech Stack**: Python `z3-solver`, Gentner Structure Mapping Theory, `ReasoningService`.
 - **Supporting Modules**: `src/core/services/reasoning_service.py`, `src/core/tools/reasoning_tools.py`.
 
+### 1.9 Causal Inference Theory Proving Engine
+- **Capability**: Implements Judea Pearl's Causal Directed Acyclic Graph (DAG) framework with $do$-intervention Average Treatment Effect (ATE) estimation and Bradford Hill epidemiological criteria evaluation. Automatically evaluates theory validity against 9 empirical criteria (Strength, Consistency, Specificity, Temporality, Biological Gradient, Plausibility, Coherence, Experiment, Analogy) to issue a mathematical `CausalProofReceipt`.
+- **Tech Stack**: Judea Pearl $do$-calculus, DoWhy framework philosophy, Bradford Hill Criteria, `CausalProvingService`.
+- **Supporting Modules**: `src/core/services/causal_proving_service.py`, `src/core/tools/causal_thought_tools.py`.
+
+### 1.10 Hierarchical Thought Structuring & MECE Clustering Service
+- **Capability**: Parses high-entropy raw notes or unstructured human thoughts into clean, mutually exclusive and collectively exhaustive (MECE) hierarchical trees (`StructuredThoughtArtifact`). Decomposes complex ideas into Tree-of-Thoughts / Chain-of-Knowledge graphs and clusters them into distinct, modular functional groups with clear boundaries.
+- **Tech Stack**: Tree-of-Thoughts (ToT) decomposition, MECE structuring, `ThoughtStructuringService`.
+- **Supporting Modules**: `src/core/services/thought_structuring_service.py`, `src/core/tools/causal_thought_tools.py`.
+
 ---
 
 ## 2. Identity, Governance & Cataloging (The Knowledge & Identity Authority)

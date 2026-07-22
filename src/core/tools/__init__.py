@@ -25,6 +25,11 @@ from src.core.tools.reasoning_tools import (
     analogical_mapping_tool,
     neurosymbolic_deduction_tool,
 )
+from src.core.tools.causal_thought_tools import (
+    prove_causal_hypothesis_tool,
+    organize_thoughts_tool,
+    structure_complex_thoughts_tool,
+)
 
 ALL_FACTORY_TOOLS = [
     search_catalog_tool,
@@ -43,4 +48,7 @@ ALL_FACTORY_TOOLS = [
     improve_artifact_tool,
     analogical_mapping_tool,
     neurosymbolic_deduction_tool,
+    prove_causal_hypothesis_tool,
+    organize_thoughts_tool,
+    structure_complex_thoughts_tool,
 ]
