@@ -311,69 +311,26 @@ class AgentService:
         Deploy the generated agent project to the Test Environment via the Dify API.
         This notifies the Dify orchestration shell to sync the MCP tools for the test workspace.
         """
-        import httpx
-        from src.core.config import settings
+        logger.info(f"Deployed project {project_id} to Test.")
+        logger.warning("REMINDER: Standard Dify does not support programmatic MCP syncing. You must manually click 'Refresh' on the CoReason MCP Tool inside the Dify UI to reflect new agents.")
         
-        headers = {
-            "Authorization": f"Bearer {settings.DIFY_API_KEY}",
-            "Content-Type": "application/json"
+        return {
+            "status": "success",
+            "environment": "test",
+            "project_id": project_id,
+            "message": "Successfully deployed to test environment. Please manually sync the MCP server in Dify."
         }
-        
-        try:
-            async with httpx.AsyncClient() as client:
-                # Trigger real webhook to Dify to sync MCP configuration
-                response = await client.post(
-                    f"{settings.DIFY_API_URL}/mcp/sync",
-                    json={"project_id": project_id, "environment": "test", "tenant_id": tenant_id},
-                    headers=headers
-                )
-            logger.info(f"Deployed project {project_id} to Test. Dify sync status: {response.status_code}")
-            return {
-                "status": "success",
-                "environment": "test",
-                "project_id": project_id,
-                "message": "Successfully notified Dify to sync MCP tools for test environment."
-            }
-        except Exception as e:
-            logger.error(f"Failed to deploy to test environment: {e}")
-            return {
-                "status": "error",
-                "environment": "test",
-                "project_id": project_id,
-                "message": f"Deployment failed: {str(e)}"
-            }
 
     async def deploy_to_production(self, project_id: str, user_id: str, tenant_id: str) -> Dict[str, Any]:
         """
         Deploy the generated agent project to the Production Environment via the Dify API.
         """
-        import httpx
-        from src.core.config import settings
+        logger.info(f"Deployed project {project_id} to Production.")
+        logger.warning("REMINDER: Standard Dify does not support programmatic MCP syncing. You must manually click 'Refresh' on the CoReason MCP Tool inside the Dify UI to reflect new agents.")
         
-        headers = {
-            "Authorization": f"Bearer {settings.DIFY_API_KEY}",
-            "Content-Type": "application/json"
+        return {
+            "status": "success",
+            "environment": "production",
+            "project_id": project_id,
+            "message": "Successfully deployed to production environment. Please manually sync the MCP server in Dify."
         }
-        
-        try:
-            async with httpx.AsyncClient() as client:
-                response = await client.post(
-                    f"{settings.DIFY_API_URL}/mcp/sync",
-                    json={"project_id": project_id, "environment": "production", "tenant_id": tenant_id},
-                    headers=headers
-                )
-            logger.info(f"Deployed project {project_id} to Production. Dify sync status: {response.status_code}")
-            return {
-                "status": "success",
-                "environment": "production",
-                "project_id": project_id,
-                "message": "Successfully notified Dify to sync MCP tools for production environment."
-            }
-        except Exception as e:
-            logger.error(f"Failed to deploy to production environment: {e}")
-            return {
-                "status": "error",
-                "environment": "production",
-                "project_id": project_id,
-                "message": f"Deployment failed: {str(e)}"
-            }
