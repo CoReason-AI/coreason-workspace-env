@@ -1,9 +1,10 @@
 import os
 from celery import Celery
 
-# Default to dify-redis:6379/1 if not set
-broker_url = os.environ.get("CELERY_BROKER_URL", "redis://dify-redis:6379/1")
-result_backend = os.environ.get("CELERY_RESULT_BACKEND", "redis://dify-redis:6379/1")
+# Default to REDIS_URL or localhost:6379/1 if not set
+default_redis = os.environ.get("REDIS_URL", "redis://localhost:6379").rstrip("/") + "/1"
+broker_url = os.environ.get("CELERY_BROKER_URL", default_redis)
+result_backend = os.environ.get("CELERY_RESULT_BACKEND", default_redis)
 
 celery_app = Celery(
     "coreason_tasks",

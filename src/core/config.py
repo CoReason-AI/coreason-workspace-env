@@ -24,7 +24,7 @@ class Settings(BaseSettings):
     E2B_API_KEY: str = ""
     
     # Dify Configuration
-    DIFY_API_URL: str = "http://dify-api:5001/v1"
+    DIFY_API_URL: str = "http://localhost:5001/v1"
     DIFY_API_KEY: str = ""
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding='utf-8', extra="ignore")

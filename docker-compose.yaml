@@ -16,7 +16,7 @@ services:
   # 1.1 CoReason Celery Worker
   platform_worker:
     image: ghcr.io/coreason-ai/coreason-workspace-env:develop
-    command: ["uv", "run", "celery", "-A", "src.core.celery_app", "worker", "-l", "INFO"]
+    command: ["python", "-m", "celery", "-A", "src.core.celery_app", "worker", "-l", "INFO"]
     env_file:
       - .env
     environment:
@@ -51,6 +51,8 @@ services:
       - DB_PASSWORD=dify
       - DB_USERNAME=postgres
       - DB_DATABASE=dify
+      - CONSOLE_CORS_ALLOW_ORIGINS=*
+      - WEB_API_CORS_ALLOW_ORIGINS=*
     depends_on:
       - dify-postgres
       - dify-redis
@@ -77,8 +79,8 @@ services:
     ports:
       - "3000:3000"
     environment:
-      - CONSOLE_API_URL=http://dify-api:5001
-      - APP_API_URL=http://dify-api:5001
+      - CONSOLE_API_URL=http://localhost:5001
+      - APP_API_URL=http://localhost:5001
     depends_on:
       - dify-api
     restart: always

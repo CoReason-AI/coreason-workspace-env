@@ -262,24 +262,29 @@ class AgentService:
                         "message": f"Dify API returned HTTP {response.status_code}"
                     }
                     
-            except httpx.RequestError as e:
-                logger.warning(f"Network error on attempt {attempt+1}/{max_retries}: {e}")
+            except (httpx.RequestError, httpx.HTTPStatusError) as e:
                 if attempt == max_retries - 1:
-                    logger.error(f"Failed to fetch status from Dify after {max_retries} attempts: {e}")
-                    return {
-                        "job_id": job_id,
-                        "status": "error",
-                        "message": "Failed to connect to Dify orchestration engine."
-                    }
-            except httpx.HTTPStatusError as e:
-                if attempt == max_retries - 1:
-                    logger.error(f"Failed to fetch status from Dify after {max_retries} attempts (HTTP {e.response.status_code})")
-                    return {
-                        "job_id": job_id,
-                        "status": "error",
-                        "message": f"Dify API returned HTTP {e.response.status_code} after retries."
-                    }
-                    
+                    logger.warning(f"Dify status lookup unavailable ({e}). Falling back to Celery task status.")
+                    try:
+                        from src.core.celery_app import celery_app
+                        from celery.result import AsyncResult
+                        async_res = AsyncResult(job_id, app=celery_app)
+                        state = async_res.state
+                        result = async_res.result if async_res.ready() else None
+                        return {
+                            "job_id": job_id,
+                            "status": state.lower(),
+                            "result": str(result) if result else None,
+                            "info": "Retrieved from local Celery task backend."
+                        }
+                    except Exception as fallback_err:
+                        logger.error(f"Failed to fetch status from Celery fallback: {fallback_err}")
+                        return {
+                            "job_id": job_id,
+                            "status": "error",
+                            "message": f"Dify engine unreachable and local fallback failed: {e}"
+                        }
+            
             # Exponential backoff
             if attempt < max_retries - 1:
                 await asyncio.sleep(base_delay * (2 ** attempt))
