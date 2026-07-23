@@ -2,6 +2,8 @@ services:
   # Overrides for the main platform server to build locally and respect .env MaaS endpoints
   platform_server:
     build: .
+    volumes:
+      - ./src:/home/coreason/project/src
     environment:
       - LLM_BASE_URL=${LLM_BASE_URL:-http://ollama:11434/v1}
       - LLM_MODEL_NAME=${LLM_MODEL_NAME:-llama3}

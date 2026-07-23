@@ -27,6 +27,13 @@ class Settings(BaseSettings):
     DIFY_API_URL: str = "http://localhost:5001/v1"
     DIFY_API_KEY: str = ""
 
+    # Checkpointer Database (Postgres)
+    POSTGRES_USER: str = "coreason_admin"
+    POSTGRES_PASSWORD: str = "secure_dev_password"
+    POSTGRES_DB: str = "langgraph_state"
+    POSTGRES_HOST: str = "postgres_checkpointer"
+    POSTGRES_PORT: int = 5432
+
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding='utf-8', extra="ignore")
  
 settings = Settings()
