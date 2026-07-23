@@ -59,28 +59,24 @@ class DeepagentTranspilerAgent(DeepAgent):
 
         llm = self.get_chat_model(temperature=0.1)
         
-        response_format = {"type": "json_schema", "json_schema": DEEPAGENT_SCHEMA}
-        
-        graph = create_deep_agent(
-            model=llm,
-            system_prompt=prompt,
-            state_schema=DeepAgentState,
-            response_format=response_format
-        )
-        
-        config = {"configurable": {"thread_id": session_id or "transpiler"}}
-        
         try:
-            try:
-                from langfuse.langchain import CallbackHandler
-            except ImportError:
-                from langfuse.callback import CallbackHandler
-            langfuse_handler = CallbackHandler()
-            config["callbacks"] = [langfuse_handler]
+            response_format = {"type": "json_schema", "json_schema": DEEPAGENT_SCHEMA}
+            graph = create_deep_agent(
+                model=llm,
+                system_prompt=prompt,
+                state_schema=DeepAgentState,
+                response_format=response_format
+            )
+            result = graph.invoke({"messages": [HumanMessage(content=human_msg)]}, config=config)
         except Exception as e:
-            logger.warning(f"Langfuse disabled for transpiler: {e}")
-
-        result = graph.invoke({"messages": [HumanMessage(content=human_msg)]}, config=config)
+            logger.warning(f"Transpiler response_format rejected by provider ({e}), falling back to standard execution.")
+            graph = create_deep_agent(
+                model=llm,
+                system_prompt=f"{prompt}\n\nYou MUST return valid JSON matching the schema.",
+                state_schema=DeepAgentState
+            )
+            result = graph.invoke({"messages": [HumanMessage(content=human_msg)]}, config=config)
+            
         content = result["messages"][-1].content
         
         try:
