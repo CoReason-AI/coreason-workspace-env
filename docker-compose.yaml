@@ -79,8 +79,10 @@ services:
     ports:
       - "3000:3000"
     environment:
-      - CONSOLE_API_URL=http://localhost:5001
-      - APP_API_URL=http://localhost:5001
+      - CONSOLE_API_URL=http://dify-api:5001
+      - APP_API_URL=http://dify-api:5001
+      - NEXT_PUBLIC_CONSOLE_API_URL=http://localhost:5001
+      - NEXT_PUBLIC_APP_API_URL=http://localhost:5001
     depends_on:
       - dify-api
     restart: always
