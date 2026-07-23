@@ -206,16 +206,19 @@ class AgentService:
         Check the status of a previously enqueued job.
         Checks Celery result backend first, then falls back to Dify.
         """
+        from src.core.config import settings
+
         # 1. Try Celery AsyncResult
         try:
             from celery.result import AsyncResult
             from src.core.celery_app import celery_app
             res = AsyncResult(job_id, app=celery_app)
-            if res.state and res.state != "PENDING":
+            if res.ready() or res.state in ["STARTED", "SUCCESS", "FAILURE", "RETRY"] or not settings.DIFY_API_KEY:
                 return {
                     "job_id": job_id,
-                    "status": res.state.lower(),
-                    "detail": res.result if res.ready() else None
+                    "status": res.state.lower() if res.state else "pending",
+                    "result": str(res.result) if res.ready() else None,
+                    "info": "Retrieved from local Celery task backend."
                 }
         except Exception as e:
             logger.debug(f"Celery AsyncResult lookup failed for {job_id}: {e}")
@@ -225,10 +228,9 @@ class AgentService:
         import asyncio
         from src.core.config import settings
         
-        headers = {
-            "Authorization": f"Bearer {settings.DIFY_API_KEY}",
-            "Content-Type": "application/json"
-        }
+        headers = {"Content-Type": "application/json"}
+        if settings.DIFY_API_KEY:
+            headers["Authorization"] = f"Bearer {settings.DIFY_API_KEY}"
         
         max_retries = 3
         base_delay = 1.0
