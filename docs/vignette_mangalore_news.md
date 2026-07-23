@@ -11,7 +11,7 @@ First, ensure your `.env` file is configured with the necessary LLM and infrastr
 docker compose up -d
 
 # Start the CoReason MCP Server to expose the factory to upstream orchestrators
-fastmcp run src/mcp/server.py --transport sse
+uv run fastmcp run src/mcp/server.py --transport sse
 ```
 
 This spins up the complete headless agent development platform and exposes it natively to IDEs and orchestration platforms like Dify.

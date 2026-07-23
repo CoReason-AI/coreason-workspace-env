@@ -20,8 +20,10 @@ services:
     env_file:
       - .env
     environment:
-      - CELERY_BROKER_URL=redis://dify-redis:6379/1
-      - CELERY_RESULT_BACKEND=redis://dify-redis:6379/1
+      - CELERY_BROKER_URL=redis://redis_queue:6379/1
+      - CELERY_RESULT_BACKEND=redis://redis_queue:6379/1
+      - POSTGRES_HOST=postgres_checkpointer
+      - POSTGRES_PORT=5432
     volumes:
       - ./src:/home/coreason/project/src
     depends_on:

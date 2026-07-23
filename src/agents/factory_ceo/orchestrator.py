@@ -77,8 +77,9 @@ Every agentic application synthesized by this factory MUST mirror the platform's
             agent_interrupt_on = {}
 
         from src.core.config import settings
-        import os
-        pg_dsn = getattr(settings, "DATABASE_URL", os.environ.get("DATABASE_URL", "postgresql://user:pass@localhost:5432/db"))
+        pg_dsn = getattr(settings, "DATABASE_URL", None) or os.environ.get("DATABASE_URL")
+        if not pg_dsn:
+            pg_dsn = f"postgresql://{settings.POSTGRES_USER}:{settings.POSTGRES_PASSWORD}@{settings.POSTGRES_HOST}:{settings.POSTGRES_PORT}/{settings.POSTGRES_DB}"
 
         from langgraph.checkpoint.postgres.aio import AsyncPostgresSaver
         

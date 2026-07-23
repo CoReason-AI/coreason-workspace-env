@@ -181,13 +181,16 @@ class AgentService:
 
         from src.core.tasks.agent_tasks import execute_agent_task
         try:
-            # Enqueue the Celery task
-            execute_agent_task.delay(
-                agent_name=agent_name,
-                payload=payload,
-                user_id=user_id,
-                tenant_id=tenant_id,
-                session_id=job_id
+            # Enqueue the Celery task with explicit task_id matching job_id
+            execute_agent_task.apply_async(
+                kwargs={
+                    "agent_name": agent_name,
+                    "payload": payload,
+                    "user_id": user_id,
+                    "tenant_id": tenant_id,
+                    "session_id": job_id
+                },
+                task_id=job_id
             )
             logger.info(f"Native DeepAgent execution enqueued to Celery for thread_id {job_id}")
         except Exception as e:
@@ -314,7 +317,9 @@ class AgentService:
         from src.core.base_agent import DeepAgent
         from deepagents.graph import DeepAgentState
 
-        pg_dsn = getattr(settings, "DATABASE_URL", os.environ.get("DATABASE_URL", "postgresql://user:pass@localhost:5432/db"))
+        pg_dsn = getattr(settings, "DATABASE_URL", None) or os.environ.get("DATABASE_URL")
+        if not pg_dsn:
+            pg_dsn = f"postgresql://{settings.POSTGRES_USER}:{settings.POSTGRES_PASSWORD}@{settings.POSTGRES_HOST}:{settings.POSTGRES_PORT}/{settings.POSTGRES_DB}"
         
         async with AsyncPostgresSaver.from_conn_string(pg_dsn) as checkpointer:
             await checkpointer.setup()
