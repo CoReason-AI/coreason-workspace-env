@@ -46,10 +46,20 @@ nav:
     - Getting Started: getting_started.md
     - User Guide: user_guide.md
     - Mangalore News Vignette: vignette_mangalore_news.md
-  - Architecture:
+  - Architecture & System Design:
     - Core Architecture: core_architecture.md
-  - Interaction Surfaces:
-    - Overview: interaction_surfaces.md
-  - Developer Guides:
+    - MECE System Capabilities: system_capabilities_mece.md
+    - Bare-Metal Services: services.md
+  - Capabilities & Parity:
+    - General-Purpose Agent Parity: general_purpose_agent_parity.md
+    - Interaction Surfaces: interaction_surfaces.md
+  - Developer & How-To Guides:
     - Developer Guide: developer_guide.md
+    - How-To Recipes: how_to_guides.md
+    - End-to-End Tutorials: tutorials.md
+  - Deployment & Enterprise Shell:
     - Deployment Guide: deployment_guide.md
+    - Dify Deployment: dify_deployment.md
+    - Real-World Use Cases: real_world_use_cases.md
+  - Testing & Quality Assurance:
+    - Testing Architecture: testing_and_verification.md

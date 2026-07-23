@@ -53,7 +53,7 @@ The CoReason platform supports three deployment topologies depending on your nee
 
 > [!NOTE]
 > For the exact CLI commands and detailed steps to run the **Local Only** or **Hybrid** topologies, please refer to the [Developer Guide](developer_guide.md#3-local-development-topologies). 
-> For **Cloud Only** deployment steps, see the [Deployment Guide](deployment_guide.md#2-deployment-architectures).
+> For **Cloud Only** deployment steps, see the [Deployment Guide](deployment_guide.md#2-deployment-architectures-cloud-only).
 
 ### Interacting with the Platform
 

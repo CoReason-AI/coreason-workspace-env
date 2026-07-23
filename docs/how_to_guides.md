@@ -28,7 +28,7 @@ Call tool `execute_agent`:
 ```
 
 ### 4. WebSockets / SSE
-Connect to `ws://localhost:8000/ws/agents/factory_ceo/stream` to receive real-time execution tokens and step updates.
+Connect to `http://localhost:8000/api/v1/agents/stream` (SSE) or `ws://localhost:8000/ws/agents/factory_ceo/stream` (WebSocket) to receive real-time execution tokens and step updates.
 
 ### 5. Python SDK
 ```python
@@ -94,9 +94,11 @@ print("Resolved Entry:", entry)
 ## Recipe 4: Configuring OpenTelemetry & Langfuse Local Observability
 
 Run the local telemetry stack:
-```bash
-docker compose -f docker-compose.yaml -f docker-compose.standalone.yaml up -d langfuse otel-collector
-```
+- **Windows**: `.\scripts\start_observability.ps1`
+- **Linux / Docker**:
+  ```bash
+  docker compose -f docker-compose.yaml -f docker-compose.standalone.yaml up -d langfuse otel-collector
+  ```
 
 Set environment variables in `.env`:
 ```env

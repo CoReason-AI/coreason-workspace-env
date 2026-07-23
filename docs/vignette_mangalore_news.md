@@ -8,7 +8,7 @@ First, ensure your `.env` file is configured with the necessary LLM and infrastr
 
 ```bash
 # Start infrastructure and observability (Langfuse)
-docker-compose up -d
+docker compose up -d
 
 # Start the CoReason MCP Server to expose the factory to upstream orchestrators
 fastmcp run src/mcp/server.py --transport sse
