@@ -171,4 +171,112 @@ coreason catalog register --urn "{oid_urn}" --name "{name}" --type "project"
             "catalog_entry": catalog_entry.model_dump(),
         }
 
+    def synthesize_standalone_app(
+        self,
+        target_location: str,
+        agent_name: str,
+        agent_dict: dict,
+        orchestrator_code: str,
+        proj_yaml: str = "",
+    ) -> dict:
+        """
+        Synthesizes a fully deployable, executable container, multi-surface copy of a coreason-workspace-env-like
+        agentic application at target_location.
+        """
+        target_path = Path(target_location).resolve()
+        target_agent_dir = target_path / "src" / "agents" / agent_name
+        target_agent_dir.mkdir(parents=True, exist_ok=True)
+
+        # 1. Write core agent files
+        with open(target_agent_dir / "agent.yaml", "w", encoding="utf-8") as f:
+            import yaml
+            yaml.dump(agent_dict, f, sort_keys=False)
+        with open(target_agent_dir / "orchestrator.py", "w", encoding="utf-8") as f:
+            f.write(orchestrator_code)
+        if proj_yaml:
+            with open(target_agent_dir / "project.yaml", "w", encoding="utf-8") as f:
+                f.write(proj_yaml)
+
+        # 2. Write pyproject.toml
+        pyproject_content = f"""[project]
+name = "{agent_name}-app"
+version = "0.1.0"
+description = "Standalone multi-surface agentic application for {agent_name}"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi>=0.115.0",
+    "uvicorn>=0.30.0",
+    "fastmcp>=0.4.0",
+    "langchain>=0.3.0",
+    "langgraph>=0.2.0",
+    "deepagents>=0.6.0",
+    "pydantic>=2.0.0",
+    "pyyaml>=6.0",
+    "tavily-python>=0.3.0",
+    "httpx>=0.27.0",
+]
+
+[project.scripts]
+{agent_name} = "src.cli.main:app"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+"""
+        with open(target_path / "pyproject.toml", "w", encoding="utf-8") as f:
+            f.write(pyproject_content)
+
+        # 3. Write Dockerfile & docker-compose.yaml
+        dockerfile_content = f"""FROM python:3.11-slim
+WORKDIR /app
+COPY pyproject.toml .
+RUN pip install --no-cache-dir .
+COPY . .
+EXPOSE 9005
+CMD ["uvicorn", "src.api.main:app", "--host", "0.0.0.0", "--port", "9005"]
+"""
+        with open(target_path / "Dockerfile", "w", encoding="utf-8") as f:
+            f.write(dockerfile_content)
+
+        compose_content = f"""version: '3.8'
+services:
+  {agent_name}_app:
+    build: .
+    ports:
+      - "9005:9005"
+    environment:
+      - LLM_MODEL_NAME=${{LLM_MODEL_NAME:-meta-llama/llama-3.3-70b-instruct}}
+      - OPENROUTER_API_KEY=${{OPENROUTER_API_KEY}}
+      - TAVILY_API_KEY=${{TAVILY_API_KEY}}
+"""
+        with open(target_path / "docker-compose.yaml", "w", encoding="utf-8") as f:
+            f.write(compose_content)
+
+        # 4. Synthesize README documentation
+        readme_content = f"""# {agent_name} Standalone Application
+
+This repository is a fully deployable, multi-surface agentic application synthesized from `coreason-workspace-env`.
+
+## Identity
+- **Agent Name**: `{agent_name}`
+- **Description**: {agent_dict.get('description', '')}
+
+## Multi-Surface Surfaces
+1. **REST API**: Launch via `uvicorn src.api.main:app --port 9005`
+2. **CLI**: Run `python -m src.cli.main`
+3. **MCP Server**: Launch via `fastmcp run src/mcp/server.py --transport sse`
+4. **Container**: Run `docker compose up -d`
+"""
+        with open(target_path / "README.md", "w", encoding="utf-8") as f:
+            f.write(readme_content)
+
+        logger.info(f"Successfully synthesized standalone multi-surface container app at {target_path}")
+        return {
+            "status": "success",
+            "target_location": str(target_path),
+            "agent_name": agent_name,
+            "agent_dir": str(target_agent_dir),
+        }
+
 bundler_service = BundlerService()

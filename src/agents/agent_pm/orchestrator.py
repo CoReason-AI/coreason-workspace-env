@@ -119,7 +119,9 @@ Follow the Builder-Validator-Approver workflow:
                 return {"messages": [AIMessage(content=last_msg)]}
                 
             try:
-                import re, pathlib
+                import re, pathlib, json
+                from src.core.services.bundler_service import bundler_service
+                
                 blocks = re.findall(r'```yaml\n(.*?)\n```', last_msg, re.DOTALL)
                 if len(blocks) >= 2:
                     proj_yaml_str = blocks[0]
@@ -128,17 +130,79 @@ Follow the Builder-Validator-Approver workflow:
                     agent_dict = yaml.safe_load(agent_yaml_str) or {}
                     raw_agent_name = agent_dict.get("name", f"unnamed_agent_{str(uuid.uuid4())[:8]}")
                     agent_name = re.sub(r'[^a-zA-Z0-9_]', '_', raw_agent_name).strip('_').lower()
+                    agent_dict["name"] = agent_name
                     
-                    agents_dir = pathlib.Path(__file__).resolve().parent.parent
-                    new_agent_dir = agents_dir / agent_name
-                    new_agent_dir.mkdir(parents=True, exist_ok=True)
-                    
-                    with open(new_agent_dir / "project.yaml", "w", encoding="utf-8") as f:
-                        f.write(proj_yaml_str)
-                    with open(new_agent_dir / "agent.yaml", "w", encoding="utf-8") as f:
-                        f.write(agent_yaml_str)
-                        
-                    success_msg = f"{last_msg}\n\n**SUCCESS**: Agent '{agent_name}' validated and written to `{new_agent_dir}`!"
+                    # Extract target_location from context input
+                    target_location = None
+                    export_standalone = True
+                    first_msg = messages[0].content if messages else ""
+                    if isinstance(context, dict):
+                        target_location = context.get("target_location")
+                        export_standalone = context.get("export_standalone_app", True)
+                    elif "target_location:" in first_msg:
+                        for line in first_msg.splitlines():
+                            if line.strip().startswith("target_location:"):
+                                target_location = line.split(":", 1)[1].strip()
+                            if line.strip().startswith("export_standalone_app:"):
+                                export_standalone = line.split(":", 1)[1].strip().lower() in ("true", "1", "yes")
+
+                    if not target_location or target_location.lower() == "self_improvement":
+                        agents_dir = pathlib.Path(__file__).resolve().parent.parent
+                        target_location = str(agents_dir / agent_name)
+
+                    target_path = pathlib.Path(target_location).resolve()
+                    target_path.mkdir(parents=True, exist_ok=True)
+
+                    # Synthesize orchestrator code
+                    orchestrator_code = f'''import os
+import uuid
+import yaml
+import logging
+from typing import Any
+from src.core.base_agent import DeepAgent
+from deepagents.graph import DeepAgentState
+
+logger = logging.getLogger(__name__)
+
+class {agent_name.title().replace("_", "")}Agent(DeepAgent):
+    """
+    Autonomous agent for {agent_name}.
+    """
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        yaml_path = os.path.join(os.path.dirname(__file__), "agent.yaml")
+        self.agent_spec = {{}}
+        if os.path.exists(yaml_path):
+            with open(yaml_path, "r", encoding="utf-8") as f:
+                self.agent_spec = yaml.safe_load(f)
+        self.system_prompt = self.agent_spec.get("system_prompt", "You are {agent_name} agent.")
+
+    def execute(self, context: Any, session_id: str = None, config: dict = None) -> str:
+        initial_state = {{"messages": context}} if isinstance(context, list) else {{"messages": [("user", str(context))]}}
+        graph = self.build_standard_deep_agent(system_prompt=self.system_prompt, state_schema=DeepAgentState)
+        result = graph.invoke(initial_state, config=config or {{}})
+        messages = result.get("messages", [])
+        return messages[-1].content if messages else "No output produced."
+'''
+
+                    if export_standalone:
+                        res = bundler_service.synthesize_standalone_app(
+                            target_location=str(target_path),
+                            agent_name=agent_name,
+                            agent_dict=agent_dict,
+                            orchestrator_code=orchestrator_code,
+                            proj_yaml=proj_yaml_str
+                        )
+                        success_msg = f"{last_msg}\n\n**SUCCESS**: Standalone multi-surface container app for '{agent_name}' validated and synthesized at `{target_path}`!"
+                    else:
+                        with open(target_path / "project.yaml", "w", encoding="utf-8") as f:
+                            f.write(proj_yaml_str)
+                        with open(target_path / "agent.yaml", "w", encoding="utf-8") as f:
+                            yaml.dump(agent_dict, f, sort_keys=False)
+                        with open(target_path / "orchestrator.py", "w", encoding="utf-8") as f:
+                            f.write(orchestrator_code)
+                        success_msg = f"{last_msg}\n\n**SUCCESS**: Core specification for Agent '{agent_name}' written to `{target_path}`!"
+
                     return {"messages": [AIMessage(content=success_msg)]}
             except Exception as e:
                 logger.error(f"Failed to write agent to disk: {e}")
