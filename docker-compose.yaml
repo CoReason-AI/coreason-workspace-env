@@ -75,6 +75,22 @@ services:
       - dify-redis
     restart: always
 
+  # 0. Enterprise Gateway (Nginx Reverse Proxy - Port 80 HTTP / Port 443 HTTPS TLS)
+  gateway:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./docker/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./docker/nginx/certs:/etc/nginx/certs:ro
+    depends_on:
+      - dify-web
+      - dify-api
+      - platform_server
+      - mcp_server
+    restart: always
+
   # 4. Dify Web UI
   dify-web:
     image: langgenius/dify-web:latest
