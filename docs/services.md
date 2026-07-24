@@ -101,3 +101,58 @@ Open an **Administrator PowerShell** prompt, navigate to your project directory,
 ```
 
 You can now manage the platform identically to any native Windows service via the `services.msc` GUI or by using PowerShell (`Stop-Service coreason`).
+
+---
+
+## Standalone Computer Setup: Resource Sizing & Remote MaaS Routing
+
+Deploying on a standalone PC or laptop often introduces hardware constraints, particularly regarding local GPU memory (VRAM). Deep agent reasoning models (such as 70B parameter models or heavy reasoning graphs) typically require 48GB+ of VRAM to host locally.
+
+### Resource Sizing Guidelines
+
+| Hardware Tier | GPU VRAM | Recommended LLM Topology | Recommended Model Configuration |
+|---|---|---|---|
+| **High-End Workstation** | ≥ 48 GB VRAM | Sovereign Local (Ollama / vLLM) | `llama3:70b` or `qwen2.5:72b` via local Ollama container |
+| **Mid-Range PC** | 16 GB - 24 GB VRAM | Sovereign Local / Hybrid | `llama3.1:8b` or `phi3:medium` locally |
+| **Standalone Desktop / Laptop (Small GPU)** | < 16 GB VRAM / Integrated | **Standalone Hybrid (Remote MaaS)** | Offload to **OpenRouter / OpenAI** remote MaaS API |
+
+### Standalone Hybrid Configuration (Remote MaaS)
+
+For standalone computers with small GPUs, the platform recommends running local state infrastructure (PostgreSQL, HashiCorp Vault, Langfuse, MinIO) locally while delegating model inference to a remote Model-as-a-Service (MaaS) provider like **OpenRouter**.
+
+Configure your `.env` as follows:
+
+```ini
+# Environment
+ENVIRONMENT=development
+
+# Remote MaaS LLM Configuration (OpenRouter)
+LLM_BASE_URL=https://openrouter.ai/api/v1
+LLM_MODEL_NAME=nvidia/llama-3.1-nemotron-70b-instruct
+LLM_API_KEY=sk-or-v1-your-openrouter-key
+
+# Local State Infrastructure
+POSTGRES_HOST=localhost
+POSTGRES_PORT=5434
+VAULT_ADDR=http://localhost:8200
+REDIS_URL=redis://localhost:6379
+```
+
+This configuration ensures high-performance reasoning without overwhelming local system RAM or GPU memory.
+
+---
+
+## Enterprise RBAC Deep Dive
+
+When deployed alongside the **Dify Enterprise Shell**, all requests routed to the CoReason backend must include a serialized identity payload to maintain Zero-Trust isolation. The `rbac_service` strictly validates this identity before allowing execution or thread resumption.
+
+The exact Pydantic schema required by the CoReason REST/MCP endpoints is defined centrally in `src/core/ontology.py` as `UserIdentity`:
+
+```python
+class UserIdentity(BaseModel):
+    user_id: str      # The unique UUID of the human operator from Dify
+    tenant_id: str    # The isolated workspace/organization ID for Postgres schema routing
+    roles: list[str]  # e.g., ["admin", "developer", "viewer"]
+```
+
+When Dify invokes an agent via the MCP `execute_agent` tool, it must pass this structure. The `PlatformOrchestrator` securely binds this identity to the executing thread, ensuring that any subsequent tool calls (e.g., database writes or API fetches) strictly adhere to the human operator's exact clearance tier.

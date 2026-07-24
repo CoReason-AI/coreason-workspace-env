@@ -3,22 +3,21 @@ Core Services Layer — Single Source of Truth for all business logic.
 All interaction surfaces (API, CLI, MCP, SDK, Streaming) delegate here.
 """
 from src.core.services.health_service import HealthService
-from src.core.services.project_service import ProjectService
 from src.core.services.agent_service import AgentService
-from src.core.services.docs_service import DocsService
-from src.core.services.portability_service import PortabilityService
+from src.core.services.trace_service import trace_service
+from src.core.services.skill_service import skill_service
+from src.core.services.sandbox_service import sandbox_service
+from src.core.services.catalog_service import catalog_service
 
 # Singleton service instances — shared across all surfaces
 health_service = HealthService()
-project_service = ProjectService()
 agent_service = AgentService()
-docs_service = DocsService()
-portability_service = PortabilityService()
 
 __all__ = [
     "health_service",
-    "project_service",
     "agent_service",
-    "docs_service",
-    "portability_service",
+    "trace_service",
+    "skill_service",
+    "sandbox_service",
+    "catalog_service",
 ]

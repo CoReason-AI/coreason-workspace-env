@@ -10,7 +10,36 @@ To support asynchronous concurrency and horizontal scaling, the platform utilize
 
 ## 2. Deployment Architectures (Cloud Only)
 
-For production environments, the platform relies on Managed Cloud Services (like AWS RDS, Elasticache, managed Vault, and S3) rather than Docker containers for stateful infrastructure.
+### Dify Enterprise Shell Integration (The Full-Code Air-Gapped Bridge)
+In production, the CoReason platform is deployed as a headless **MCP Server** and plugged into **Dify**. We strictly bypass Dify's low-code workflow builder in favor of a **Full-Code** paradigm. 
+
+**Data Sovereignty Mandate**: Dify must be **Self-Hosted** locally via Docker Compose or internally via Kubernetes. You must never tunnel the CoReason MCP server to Dify's public SaaS cloud (`api.dify.ai`). *(Note: Tunneling out to remote Model-as-a-Service (MaaS) APIs for LLM inference is permitted, provided your enterprise data sharing agreements allow it).*
+
+- The Python backend (running `coreason-workspace-env`) is deployed independently (e.g., via Helm or ECS) but inside the same private network as your Dify cluster.
+- A production Self-Hosted Dify instance is configured to use the CoReason MCP Server internal URL (e.g., `http://coreason-mcp:8000`) as an external Tool Provider.
+- This creates a powerful enterprise boundary: Dify handles RBAC, horizontal UI scaling, SSO, and user chat sessions, while delegating the execution of deterministic, high-stakes LangGraph autonomous pipelines to the CoReason backend via the `run_native_deepagent` MCP tool.
+
+**Example Docker Compose Local Network Bridge:**
+```yaml
+services:
+  coreason-mcp:
+    image: coreason-workspace-env:latest
+    ports: ["8000:8000"]
+    networks:
+      - dify_network
+      
+  # Your self-hosted Dify stack
+  dify-api:
+    image: langgenius/dify-api:latest
+    networks:
+      - dify_network
+      
+networks:
+  dify_network:
+    external: true
+```
+
+For infrastructure provisioning, the platform relies on Managed Cloud Services (like AWS RDS, Elasticache, managed Vault, and S3) rather than Docker containers for stateful infrastructure.
 
 ### Marketplace & Infrastructure as Code (Terraform)
 Complete IaC templates for AWS (EKS/RDS) and Azure (AKS/PostgreSQL) are located in `deploy/terraform/`. To deploy the full Cloud Only stack on AWS:

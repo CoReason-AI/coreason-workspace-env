@@ -45,20 +45,36 @@ The CoReason platform relies on a distributed multi-tenant architecture utilizin
 
 ### Starting the Services (Topologies)
 
-The CoReason platform supports three deployment topologies depending on your needs:
+The CoReason platform supports deployment topologies tailored for various infrastructure scale requirements:
 
-1. **Local Only**: A fully localized Docker Compose stack including local LLM inference (Ollama) and local S3-compatible storage (MinIO).
-2. **Hybrid**: A Docker Compose stack for core infrastructure (Postgres, Vault) but relies on Cloud API endpoints for LLMs (OpenAI, OpenRouter) and S3 via `.env`.
-3. **Cloud Only**: Production-ready deployments to Enterprise Kubernetes (EKS/AKS) using Terraform, OpenTofu, or Helm.
+1. **Local Only (Fully Sovereign)**: A fully localized Docker Compose stack including local LLM inference (Ollama) and local S3-compatible storage (MinIO). Best for workstation PCs equipped with high-VRAM GPUs capable of hosting local models natively.
+2. **Standalone Hybrid (Recommended for Small GPUs / Desktop PCs)**: Runs core state infrastructure (Postgres, Vault, Langfuse, MinIO) locally via Docker Compose, while offloading LLM inference to remote Model-as-a-Service (MaaS) providers such as OpenRouter or OpenAI via `.env`. This pattern is ideal for desktop/laptop PCs where local GPU memory (<16GB VRAM) is insufficient for hosting large reasoning models.
+3. **Native Bare-Metal (Python + Remote MaaS)**: Runs the Python backend directly on the host OS (`uv run coreason`) connecting to external/remote services and cloud MaaS LLM endpoints without running containers locally.
+4. **Cloud Only**: Production-ready enterprise deployments to Kubernetes (EKS/AKS/GKE) using Terraform, OpenTofu, or Helm.
+
+> [!TIP]
+> **Standalone Workstation Setup (Small GPU / OpenRouter MaaS):**
+> If you are running on a Windows or Linux PC with a small GPU, configure `.env` to route LLM inference to a remote MaaS provider like OpenRouter:
+> ```ini
+> LLM_BASE_URL=https://openrouter.ai/api/v1
+> LLM_MODEL_NAME=nvidia/llama-3.1-nemotron-70b-instruct
+> LLM_API_KEY=sk-or-v1-your-openrouter-key
+> ```
+> For detailed OS service setup (systemd / WinSW) on standalone PCs, see the [Standalone Services Guide](services.md#standalone-computer-setup-resource-sizing--remote-maas-routing).
 
 > [!NOTE]
 > For the exact CLI commands and detailed steps to run the **Local Only** or **Hybrid** topologies, please refer to the [Developer Guide](developer_guide.md#3-local-development-topologies). 
-> For **Cloud Only** deployment steps, see the [Deployment Guide](deployment_guide.md#2-deployment-architectures).
+> For **Cloud Only** deployment steps, see the [Deployment Guide](deployment_guide.md#2-deployment-architectures-cloud-only).
 
 ### Interacting with the Platform
 
-Once the containers are running, the API is available locally.
-You can explore and test the endpoints directly from your browser by navigating to the **Swagger UI**:
+Because the platform is headless, you have two primary ways to interact:
+
+**1. Interactive Dify UI (Recommended)**
+Connect a local or cloud instance of **Dify** to your running MCP Server (`http://localhost:9005/mcp`). Dify will handle all conversational chat memory, rendering the interactive UI and streaming updates while the CoReason workspace executes the deep agent hierarchies in the background.
+
+**2. Direct API via Swagger UI**
+You can explore and test the raw execution endpoints directly from your browser by navigating to the Swagger UI:
 
 `http://localhost:9005/docs`
 
@@ -67,13 +83,18 @@ To execute endpoints via the Swagger UI or via cURL, you must authenticate. Clic
 
 ### Tracing and Observability (Harbor)
 
-To capture and view OpenTelemetry and LangSmith traces locally without using public SaaS, we use **Harbor** (a local LangSmith instance). 
+To capture and view OpenTelemetry and Langfuse traces locally without using public SaaS, we use **Harbor** (a local container manager). 
 
-Start the Harbor containers:
+### 1. Start the Observability Stack
+
+- **Windows**: Run `.\scripts\start_observability.ps1` in PowerShell.
 - **Linux/Mac**: Run `harbor up langfuse`
-- **Windows**: Run `.\scripts\start_observability.ps1`
 
-This will spin up the local LangSmith/Harbor container stack to capture traces. The platform is pre-configured via `.env` (`LANGCHAIN_ENDPOINT=http://localhost:1984`) to route all traces to this local instance.
+This will spin up the local Langfuse/Harbor container stack to capture traces. The platform is pre-configured to route all traces to this local instance.
+
+### 2. View Traces
+
+Navigate to `http://localhost:3000` to view the local Langfuse dashboard and inspect agent traces.
 
 ### Standalone Troubleshooting & Testing
 

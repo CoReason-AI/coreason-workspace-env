@@ -1,6 +1,14 @@
-# User Guide: The Factory Workflow
+# User Guide
 
-As an operator of the CoReason Workspace Environment, your primary role is to act as the visionary and stakeholder. The heavy lifting of software engineering and agent orchestration is delegated to your internal hierarchy of factory agents.
+Welcome to the CoReason Workspace Environment. 
+
+## The Interaction Model (Full-Code vs Dify)
+
+The CoReason platform enforces a strict separation of concerns between agent development and user interaction:
+
+1. **Developers (Full-Code)**: You will not use drag-and-drop workflow builders. You will write deterministic, full-code agents natively in Python using the `deepagents` SDK. These agents live in `src/agents/`.
+2. **Users (Dify)**: End-users will never interact with the raw workspace APIs. They interact with the agents exclusively through the **Dify** enterprise chat UI.
+3. **The Bridge**: The platform exposes the Full-Code agents via an **MCP Server**, which Dify securely consumes as a tool provider. Dify handles the SSO, chat memory, and session management, while the heavy agentic lifting is offloaded back to your Python backend.
 
 This guide outlines the complete 10-step real-world workflow used to build, validate, and deploy a brand new agent platform natively with `deepagents`.
 
@@ -21,15 +29,13 @@ flowchart TD
 ## 10-Step Operational Workflow
 
 ### Step 1: Initialization & Intent Declaration
-You initiate the workflow using the headless CLI, REST API, or the UI Dashboard. You provide your core intent in natural language.
+You initiate the workflow by connecting your Dify platform to the CoReason Workspace MCP endpoint. From the Dify Chat UI, you provide your core intent in natural language.
 
-**Example using the CLI:**
-```bash
-uv run coreason build "I need an automated clinical trial matching agent platform"
-```
+**Example in Dify:**
+> "I need an automated clinical trial matching agent platform"
 
 ### Step 2: The Interrogation Loop (Context Saturation)
-Instead of blindly writing code, the `factory_ceo` orchestrator agent intercepts your request. Because it operates as a rigid state machine, it will evaluate your input against its required internal context schema. If it needs more details (e.g., "What specific databases should it query?"), it will stream clarifying questions back to you in the UI. You answer until the context is fully saturated.
+Because the CoReason workspace is strictly a headless engine, Dify handles all conversational state and RAG routing. The `factory_ceo` orchestrator agent (executing via the MCP Server) intercepts your request. Because it operates as a rigid state machine, it will evaluate your input against its required internal context schema. If it needs more details (e.g., "What specific databases should it query?"), it will pass control back to Dify, which streams clarifying questions back to you in the UI. You answer in the Dify Chat until the context is fully saturated.
 
 ### Step 3: PM & Worker Delegation
 Once the context threshold is met, the `factory_ceo` stops interrogating you. It automatically delegates the raw context payload to the `agent_pm`. The PM breaks the project down into component tasks and routes them to standard native DeepAgent workers, such as the `prompt_engineer` and `yaml_compiler`. 
@@ -40,8 +46,9 @@ The worker agents execute deterministically in the background. They do not ask y
 ### Step 5: Artifact Finalization
 Instead of using brittle AST parsers and a legacy Maker-Checker pipeline, the artifacts are generated natively through LangGraph StateGraph nodes. The system verifies Pydantic compliance and native checkpointer synchronization natively within the `deepagents` middleware.
 
-### Step 6: The Remediation & Approval Loop
-If a worker encounters an integration error, the `agent_pm` actively routes the artifact back for remediation. You can observe this loop in real-time via the SSE `state_sync` streams or the Accordion tracker list in the UI.
+### Step 6: The Remediation & HOTL Approval Loop
+If a worker encounters an integration error, the `agent_pm` actively routes the artifact back for remediation. You can observe this loop in real-time via the SSE `state_sync` streams or the Accordion tracker list in the Dify UI. 
+If the orchestrator encounters a critical junction (e.g., waiting for validation), it will pause execution. The platform natively supports **Human-On-The-Loop (HOTL)** overrides: a developer or PM can inspect the paused LangGraph thread and explicitly inject a `submit_override` payload to forcibly resume, correct, or approve the agent's state before it continues.
 
 ### Step 7: Packaging & Artifact Synthesis
 Once all artifacts are generated and finalized, the platform generates a dynamically synthesized `pyproject.toml` containing exactly the dependencies your new agents need. It packages the raw Python code and `.yaml` manifests into an immutable ZIP bundle.
@@ -55,7 +62,7 @@ uv run coreason push-project <project_id> ghcr.io/my-org/trial-agent:v1.0.0
 ```
 
 ### Step 9: Downstream Deployment
-You switch hats from "Creator" to "Operator". You pull your newly compiled agent platform onto your target server, unzip it, and run `uv run coreason dev` (or deploy via Docker). Your custom agents are now alive and exposing their own MCP/REST endpoints!
+You switch hats from "Creator" to "Operator". You can trigger the `deploy_to_test` endpoint, which automatically unzips the payload, provisions the local endpoints, and crucially fires a webhook back to the **Dify Enterprise Shell**. Dify immediately syncs with the new CoReason MCP endpoints, making your custom agents alive and instantly consumable in the enterprise chat UI!
 
 ### Step 10: Feedback & Iteration
-As you test your deployed agents, you will discover new features you want or edge cases you missed. You simply open a new session in the CoReason Workspace Environment, point it at your deployed project, and converse with the `factory_ceo` to ingest the new requirements and spin the factory floor back up for version 2.0.
+As you test your deployed agents, you will discover new features you want or edge cases you missed. You simply open a new Chat session in Dify, point it at your deployed project, and converse with the `factory_ceo` to ingest the new requirements and spin the factory floor back up for version 2.0.

@@ -1,0 +1,20 @@
+name: "agent_tester"
+type: "sub-agent"
+description: "QA and Testing agent. Generates Pytest E2E scripts and Acceptance Criteria markdown based on the generated project."
+skills: []
+tools: []
+system_prompt: |
+  You are the CoReason QA Tester Agent.
+  You receive the finalized project context from the agent_pm.
+  Your job is to generate two artifacts:
+  1. `tests/test_e2e.py` - A pytest script that tests the generated agents.
+  2. `acceptance_criteria.md` - A markdown document outlining the acceptance criteria.
+  
+  Do not ask clarifying questions. Output the content directly as file blocks.
+executor:
+  harness: deepagents
+  model: auto
+async: true
+cancellable: true
+os_env:
+  type: caller_process

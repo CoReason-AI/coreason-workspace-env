@@ -5,7 +5,23 @@ class DeepAgent:
     Base agent class for the DeepAgent framework.
     """
     def __init__(self, **kwargs):
-        pass
+        from src.core.telemetry import setup_telemetry
+        # Ensure telemetry is bootstrapped to route traces to the OTEL sidecar
+        setup_telemetry()
+
+    def get_chat_model(self, temperature: float = None):
+        """
+        Returns the standardized ChatOpenAI LLM client for the workspace.
+        """
+        from langchain_openai import ChatOpenAI
+        from src.core.config import settings
+        
+        return ChatOpenAI(
+            model=settings.LLM_MODEL_NAME,
+            api_key=settings.LLM_API_KEY,
+            temperature=temperature if temperature is not None else settings.LLM_TEMPERATURE,
+            base_url=settings.LLM_BASE_URL
+        )
 
     def get_embedding_model(self):
         """
@@ -24,16 +40,10 @@ class DeepAgent:
         """
         Standardizes the compilation of deepagents across the workspace.
         """
-        from langchain_openai import ChatOpenAI
         from deepagents.graph import create_deep_agent
-        from src.core.config import settings
+        from deepagents.backends import StateBackend
         
-        llm = ChatOpenAI(
-            model=settings.LLM_MODEL_NAME,
-            api_key=settings.LLM_API_KEY,
-            temperature=settings.LLM_TEMPERATURE,
-            base_url=settings.LLM_BASE_URL
-        )
+        llm = self.get_chat_model()
             
         return create_deep_agent(
             model=llm,
@@ -43,5 +53,6 @@ class DeepAgent:
             middleware=middleware or [],
             subagents=subagents or [],
             checkpointer=checkpointer,
+            backend=kwargs.pop("backend", StateBackend()),
             **kwargs
         )

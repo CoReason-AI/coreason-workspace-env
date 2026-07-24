@@ -133,17 +133,24 @@ class YamlCompilerAgent(DeepAgent):
         """
         logger.info(f"[{session_id}] YamlCompiler executing via DeepAgent with Strict JSON Dictionary Output.")
         
-        # Force strict JSON dictionary output matching SCHEMA_DICT
-        response_format = {"type": "json_schema", "json_schema": {"name": "OracleSpec", "schema": SCHEMA_DICT}}
-        
-        graph = self.build_standard_deep_agent(
-            system_prompt=self.system_prompt,
-            state_schema=DeepAgentState,
-            response_format=response_format
-        )
-        
-        initial_state = {"messages": [HumanMessage(content=f"Requirements: {context}")]}
-        result = graph.invoke(initial_state, config=config or {})
+        try:
+            response_format = {"type": "json_schema", "json_schema": {"name": "OracleSpec", "schema": SCHEMA_DICT}}
+            graph = self.build_standard_deep_agent(
+                system_prompt=self.system_prompt,
+                state_schema=DeepAgentState,
+                response_format=response_format
+            )
+            initial_state = {"messages": [HumanMessage(content=f"Requirements: {context}")]}
+            result = graph.invoke(initial_state, config=config or {})
+        except Exception as e:
+            logger.warning(f"Structured response format rejected by provider ({e}), falling back to standard prompt execution.")
+            prompt_with_schema = f"{self.system_prompt}\n\nYou MUST respond with valid YAML markdown blocks representing project_yaml and orchestrator_agent."
+            graph = self.build_standard_deep_agent(
+                system_prompt=prompt_with_schema,
+                state_schema=DeepAgentState
+            )
+            initial_state = {"messages": [HumanMessage(content=f"Requirements: {context}")]}
+            result = graph.invoke(initial_state, config=config or {})
         
         final_message = "FAILURE: No output produced."
         

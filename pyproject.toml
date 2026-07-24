@@ -22,6 +22,8 @@ dependencies = [
     "asyncpg>=0.31.0",
     "pydantic-settings>=2.0",
     "langgraph>=0.2.20",
+    "deepagents>=0.6.12",
+    "litellm>=1.0.0",
     "alembic>=1.13.0",
     "psycopg2-binary>=2.9.12",
     "dowhy>=0.11",
@@ -31,7 +33,6 @@ dependencies = [
     "websockets>=15.0.1",
     "prompt-toolkit>=3.0.52",
     "jsonpatch>=1.33",
-    "deepagents-code>=0.1.0",
     "fastmcp>=1.0.0",
     "typer>=0.9.0",
     "oras>=0.2.0",
@@ -48,6 +49,10 @@ dependencies = [
     "opentelemetry-exporter-otlp>=1.25.0",
     "structlog>=24.1.0",
     "opentelemetry-instrumentation-fastapi>=0.58b0",
+    "langchain-openai>=1.3.5",
+    "celery>=5.3.6",
+    "redis>=5.0.1",
+    "z3-solver>=5.0.0.0",
 ]
 
 [project.scripts]
@@ -62,7 +67,7 @@ packages = ["src"]
 [dependency-groups]
 dev = [
     "deepagents-evals",
-    "langsmith>=0.9.3,<0.10.0",
+    "langfuse>=2.50.0,<3.0.0",
     "pytest>=9.1.1",
     "pytest-asyncio>=1.4.0",
     "pytest-cov>=7.1.0",
@@ -75,6 +80,6 @@ docs = [
 ]
 
 [tool.pytest.ini_options]
-addopts = "-p no:langsmith"
+addopts = "-p no:warnings"
 
 

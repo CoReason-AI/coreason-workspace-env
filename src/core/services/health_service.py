@@ -39,24 +39,35 @@ class HealthService:
         }
 
     async def _check_postgres(self, dsn: str = None) -> Dict[str, str]:
-        if not dsn:
-            try:
-                from src.core.config import settings
-                dsn = (
-                    f"postgresql://{settings.POSTGRES_USER}:{settings.POSTGRES_PASSWORD}"
-                    f"@{settings.POSTGRES_HOST}:{settings.POSTGRES_PORT}/{settings.POSTGRES_DB}"
-                )
-            except Exception:
-                return {"status": "unknown", "detail": "Settings unavailable"}
+        from src.core.config import settings
+        
+        candidates = []
+        if dsn:
+            candidates.append(dsn)
+        
+        # Primary configured settings DSN
+        candidates.append(
+            f"postgresql://{settings.POSTGRES_USER}:{settings.POSTGRES_PASSWORD}"
+            f"@{settings.POSTGRES_HOST}:{settings.POSTGRES_PORT}/{settings.POSTGRES_DB}"
+        )
+        # Compose dify-postgres service
+        candidates.append("postgresql://postgres:dify@dify-postgres:5432/dify")
+        # Localhost mapped port 5434
+        candidates.append(
+            f"postgresql://{settings.POSTGRES_USER}:{settings.POSTGRES_PASSWORD}"
+            f"@localhost:5434/{settings.POSTGRES_DB}"
+        )
 
-        try:
-            conn = await asyncpg.connect(dsn, timeout=5)
-            version = await conn.fetchval("SELECT version()")
-            await conn.close()
-            return {"status": "ok", "detail": version}
-        except Exception as e:
-            logger.warning(f"Postgres health check failed: {e}")
-            return {"status": "error", "detail": str(e)}
+        for target_dsn in candidates:
+            try:
+                conn = await asyncpg.connect(target_dsn, timeout=3)
+                version = await conn.fetchval("SELECT version()")
+                await conn.close()
+                return {"status": "ok", "detail": version}
+            except Exception as e:
+                logger.debug(f"Postgres health check attempt failed for {target_dsn}: {e}")
+
+        return {"status": "error", "detail": "Unable to connect to Postgres checkpointer"}
 
 
 

@@ -3,30 +3,27 @@ import asyncio
 import sys
 from typing import Optional
 from dotenv import load_dotenv
-
-load_dotenv()
 import uuid
 import logging
 import re
 import yaml
 from pathlib import Path
 import httpx
-from rich.live import Live
-from rich.tree import Tree
-from rich.console import Console
-from rich.prompt import Prompt
+import os
+import json
 
-logging.basicConfig(level=logging.INFO, stream=sys.stdout, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+load_dotenv()
+
+from src.core.services import agent_service
+from src.core.services.rbac_service import rbac_service
+
+logging.basicConfig(level=logging.INFO, stream=sys.stderr, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
 app = typer.Typer()
 import langchain
-import os
 os.environ["LANGCHAIN_TRACING_V2"] = "false"
-import json
 agents_app = typer.Typer()
-projects_app = typer.Typer()
 app.add_typer(agents_app, name="agents")
-app.add_typer(projects_app, name="projects")
 
 @app.callback()
 def main(pretty: bool = False):
@@ -37,151 +34,23 @@ def health():
     """Check system health."""
     typer.echo(json.dumps({"status": "healthy"}))
 
-@app.command()
-def onboard():
-    """Interactive onboarding flow for coreason-workspace-env."""
-    typer.secho("🚀 Welcome to the CoReason Agent Factory Onboarding!", fg=typer.colors.BRIGHT_BLUE, bold=True)
-    typer.echo("This CLI will walk you through our native DeepAgents hierarchical workflow.")
-    
-    # Phase 1: Observability
-    if typer.confirm("Would you like to bootstrap the local observability stack (Jaeger + Postgres)?"):
-        try:
-            import sys
-            import os
-            project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
-            if project_root not in sys.path:
-                sys.path.insert(0, project_root)
-            from scripts.env_utils import start_observability_stack, verify_observability_connection
-            if start_observability_stack():
-                verify_observability_connection()
-        except ImportError:
-            typer.secho("Could not find scripts.env_utils. Ensure you are running from the project root.", fg=typer.colors.RED)
 
-    # Phase 2: Agent Creation (Taxonomy validation)
-    typer.secho("\nLet's create a new agent manifest.", fg=typer.colors.BRIGHT_CYAN)
-    typer.secho("CRITICAL RULE: The agent name MUST be snake_case (Namespace and Taxonomy Consistency).", fg=typer.colors.YELLOW)
-    
-    agent_name = ""
-    while not agent_name:
-        raw_name = typer.prompt("Enter your agent's name (snake_case)")
-        if re.match(r"^[a-z0-9_]+$", raw_name):
-            agent_name = raw_name
-        else:
-            typer.secho("Invalid name! Must be strictly snake_case (lowercase letters, numbers, and underscores only).", fg=typer.colors.RED)
-
-    # Write the manifest
-    project_root = Path(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
-    agents_dir = project_root / "src" / "agents" / agent_name
-    agents_dir.mkdir(parents=True, exist_ok=True)
-    
-    manifest_path = agents_dir / "agent.yaml"
-    manifest_data = {
-        "name": agent_name,
-        "description": "Onboarded agent definition.",
-        "orchestrator_type": "StateGraph",
-        "capabilities": ["onboarding"]
-    }
-    with open(manifest_path, "w") as f:
-        yaml.dump(manifest_data, f, sort_keys=False)
-        
-    typer.secho(f"✅ Created agent manifest at: {manifest_path}", fg=typer.colors.GREEN)
-    
-    # Phase 3: Compilation (session_id)
-    session_id = str(uuid.uuid7())
-    typer.secho(f"\n⚙️ Compiling Agent...", fg=typer.colors.BRIGHT_MAGENTA)
-    typer.echo(f"Session ID: {session_id}")
-    typer.echo("-> Delegating to yaml_compiler... SUCCESS")
-    typer.secho("🎉 Agent successfully compiled and validated!", fg=typer.colors.GREEN, bold=True)
-    typer.echo(f"Look up session {session_id} in your local Jaeger instance to view the full trace.")
-
-@app.command()
-def interact(agent_name: str, session_id: str = typer.Option(..., '--session-id')):
-    """
-    Connect to the factory_ceo streaming API and render a live Accordion UX.
-    """
-    typer.secho(f"🔌 Connecting to stream for agent '{agent_name}' (Session: {session_id})...", fg=typer.colors.BRIGHT_BLUE)
-    
-    url = f"ws://localhost:8000/api/v2/agents/{agent_name}/ws?session_id={session_id}"
-    
-    tree = Tree(f"🏭 Factory Pipeline: {agent_name}")
-    
-    async def consume_stream():
-        import websockets
-        try:
-            async with websockets.connect(url) as websocket:
-                with Live(tree, refresh_per_second=4) as live:
-                    while True:
-                        payload = await websocket.recv()
-                        
-                        try:
-                            data = json.loads(payload)
-                        except json.JSONDecodeError:
-                            continue
-                            
-                        event_type = data.get("event")
-                        if event_type == "stream_connected":
-                            tree.add("[green]Connected to factory_ceo WebSocket stream[/green]")
-                        elif event_type == "interrupt":
-                            # State Machine Interrogation
-                            live.stop()
-                            question = data.get("prompt", "The CEO needs more context:")
-                            typer.secho(f"\n⏸️ STREAM PAUSED (Interrupt)", fg=typer.colors.YELLOW, bold=True)
-                            answer = Prompt.ask(f"[bold magenta]{question}[/bold magenta]")
-                            typer.secho(f"Pushing response back to CEO...", fg=typer.colors.CYAN)
-                            # Actually send the response back over the WebSocket
-                            await websocket.send(json.dumps({"type": "human_response", "data": answer}))
-                            
-                            tree.add(f"[magenta]Human Input:[/magenta] {answer}")
-                            live.start()
-                        elif event_type == "on_tool_start":
-                            tool_name = data.get("name", "tool")
-                            tree.add(f"[yellow]⚙️  Delegating to worker:[/yellow] {tool_name}")
-                        elif event_type == "on_chat_model_stream":
-                            chunk = data.get("chunk", "")
-                            # In a real implementation we'd append to a specific tree branch
-                            pass
-                        else:
-                            tree.add(f"[dim]Event: {event_type}[/dim]")
-        except websockets.exceptions.ConnectionClosed:
-            typer.secho(f"\nWebSocket connection closed.", fg=typer.colors.YELLOW)
-        except Exception as e:
-            typer.secho(f"\nStream processing error: {e}", fg=typer.colors.RED)
-            return
-            
-    asyncio.run(consume_stream())
 
 @app.command()
 def test(coverage: bool = False, e2e: bool = False, verbose: bool = False):
     """
-    Run the strict Zero Mock test suite using ephemeral Testcontainers infrastructure.
+    Run the strict test suite.
     """
     import subprocess
     import sys
     
-    typer.secho("Initiating CoReason Enterprise E2E Test Suite", fg=typer.colors.BRIGHT_BLUE, bold=True)
-    
-    # Pre-flight check for Docker
-    try:
-        subprocess.run(["docker", "info"], capture_output=True, check=True)
-    except (subprocess.CalledProcessError, FileNotFoundError):
-        typer.secho("Error: Docker daemon is not running or not installed. 'Zero Mock' tests require Testcontainers.", fg=typer.colors.RED, bold=True)
-        typer.secho("Please start Docker Desktop and try again.", fg=typer.colors.YELLOW)
-        raise typer.Exit(code=1)
-        
     cmd = [sys.executable, "-m", "pytest"]
     
     if coverage:
         cmd.extend(["--cov=src", "--cov-report=term-missing"])
-        typer.secho("=> Code Coverage strictly enabled.", fg=typer.colors.CYAN)
         
     if e2e:
-        cmd.extend(["tests/test_e2e_factory.py", "tests/test_e2e_surfaces.py"])
-        typer.secho("=> Filtering to Core E2E surfaces only.", fg=typer.colors.CYAN)
-        
-    if verbose:
-        cmd.append("-v")
-        
-    typer.secho("=> Provisioning isolated PostgreSQL Database...", fg=typer.colors.CYAN)
+        cmd.extend(["tests/test_agents_e2e.py"])
     
     try:
         result = subprocess.run(cmd, cwd=".")
@@ -194,25 +63,13 @@ def test(coverage: bool = False, e2e: bool = False, verbose: bool = False):
         typer.secho("\nTest suite interrupted by user.", fg=typer.colors.YELLOW)
         raise typer.Exit(code=130)
 
-@projects_app.command("list")
-def list_projects():
-    """List all workspace projects."""
-    from src.core.services import project_service
-    async def run():
-        res = await project_service.list_projects()
-        typer.echo(json.dumps({"projects": res}, default=str))
-    asyncio.run(run())
-
 @agents_app.command("list")
 def list_agents():
-    from src.core.services import agent_service
     res = {"agents": agent_service.list_agents()}
     typer.echo(json.dumps(res, default=str))
 
 @agents_app.command("get")
 def get_agent(name: str = typer.Option(..., '--name')):
-    from src.core.services import agent_service
-    import sys
     res = agent_service.get_agent(name)
     if not res:
         typer.echo("Not found")
@@ -220,160 +77,225 @@ def get_agent(name: str = typer.Option(..., '--name')):
     typer.echo(json.dumps({"agent": res}, default=str))
 
 @agents_app.command("execute")
-def execute_agent(agent_name: str, prompt: str):
-    """Execute a manual agent task."""
-    from src.core.services.orchestration_service import OrchestrationService
-    orch = OrchestrationService()
-    session_id = str(uuid.uuid7())
-    user_id = "cli-user"
-    async def run():
-        typer.echo(f"Executing agent {agent_name} with session {session_id}")
-        # Note: We simulate execution using run_persona_graph
-        res = await orch.run_persona_graph(user_id, session_id, prompt)
-        typer.echo(json.dumps(res))
-    asyncio.run(run())
-
-@app.command()
-def build(
-    intent: str, 
-    output_dir: str = typer.Option("./dist", help="Output directory for bundled agent specs"),
-    input_path: Optional[str] = typer.Option(None, "--input-path", help="Path to a file, zip, or directory containing additional context")
+def execute_agent(
+    name: str = typer.Option(..., '--name'), 
+    payload: str = typer.Option('{}', '--payload'),
+    user_id: str = typer.Option('cli-user', '--user-id'),
+    tenant_id: str = typer.Option('cli-tenant', '--tenant-id')
 ):
     """
-    Headless CLI for building a new agent platform via the coreason factory.
+    Execute a native deepagent synchronously and return the structured JSON output.
     """
-    typer.echo(f"Initializing build with intent: '{intent}'")
+    identity = rbac_service.authorize(user_id, tenant_id, required_role="developer", provided_roles=["admin", "developer", "viewer"])
     
-    from src.core.services.orchestration_service import OrchestrationService
-    orch = OrchestrationService()
-    
-    session_id = str(uuid.uuid7())
-    user_id = "cli-user"
-    
-    async def run():
-        current_intent = intent
-        current_input_path = input_path
+    try:
+        payload_dict = json.loads(payload)
+    except json.JSONDecodeError:
+        typer.secho("Error: --payload must be a valid JSON string.", fg=typer.colors.RED)
+        sys.exit(1)
         
-        while True:
-            typer.echo(f"Session ID: {session_id}")
-            result = await orch.run_persona_graph(
-                user_id, 
-                session_id, 
-                current_intent, 
-                output_dir=output_dir,
-                input_path=current_input_path
-            )
-            if result.get("status") == "success":
-                typer.echo(f"[SUCCESS] Platform bundled at: {result.get('artifact')}")
-                break
-            else:
-                if result.get("is_saturated") is False:
-                    # Interactive loop
-                    question = result.get("details", "Please provide more details.")
-                    typer.echo(f"\n[CEO] {question}")
-                    user_reply = typer.prompt("You")
-                    current_intent = user_reply
-                    # Clear input_path to avoid re-extracting context repeatedly
-                    current_input_path = None
-                else:
-                    typer.echo(f"[ERROR] Build failed: {result.get('details')}")
-                    break
-            
-    if sys.platform == "win32":
-        asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
-    asyncio.run(run())
+    async def run():
+        return await agent_service.execute_agent(
+            agent_name=name,
+            payload=payload_dict,
+            user_id=user_id,
+            tenant_id=tenant_id
+        )
+        
+    res = asyncio.run(run())
+    typer.echo(json.dumps(res, default=str))
 
-@app.command()
-def export_project(project_id: str, output_path: str, skip_state: bool = False, skip_docker: bool = False):
-    """
-    Export a project for air-gapped transfer.
-    """
-    typer.echo(f"Exporting project '{project_id}' to '{output_path}'...")
-    from src.core.services import project_service
+@agents_app.command("status")
+def agent_status(job_id: str = typer.Option(..., '--job-id')):
+    """Check the status of an enqueued job."""
+    async def run():
+        return await agent_service.get_execution_status(job_id)
+        
+    res = asyncio.run(run())
+    typer.echo(json.dumps(res, default=str))
+
+@agents_app.command("rewind")
+def agent_rewind(checkpoint_id: str = typer.Option(..., '--checkpoint-id')):
+    """Rewind a session to a specific UUIDv7 checkpoint ID."""
+    res = agent_service.rewind_checkpoint(checkpoint_id)
+    typer.echo(json.dumps(res, default=str))
+
+@agents_app.command("override")
+def submit_override(
+    job_id: str = typer.Option(..., '--job-id'),
+    agent_name: str = typer.Option(..., '--agent-name'),
+    payload: str = typer.Option(..., '--payload'),
+    user_id: str = typer.Option(os.environ.get("COREASON_USER_ID", "cli-user"), '--user-id'),
+    tenant_id: str = typer.Option(os.environ.get("COREASON_TENANT_ID", "cli-tenant"), '--tenant-id')
+):
+    """HOTL Override: Intervene in a paused LangGraph thread by injecting a state payload."""
+    identity = rbac_service.authorize(user_id, tenant_id, required_role="developer", provided_roles=["admin", "developer", "viewer"])
+    
+    try:
+        payload_dict = json.loads(payload)
+    except json.JSONDecodeError:
+        typer.secho("Error: --payload must be a valid JSON string.", fg=typer.colors.RED)
+        sys.exit(1)
+        
+    async def run():
+        return await agent_service.submit_override(job_id, agent_name, payload_dict)
+        
+    res = asyncio.run(run())
+    typer.echo(json.dumps(res, default=str))
+
+deploy_app = typer.Typer()
+app.add_typer(deploy_app, name="deploy")
+
+@deploy_app.command("test")
+def deploy_to_test(
+    project_id: str = typer.Option(..., '--project-id'),
+    user_id: str = typer.Option(os.environ.get("COREASON_USER_ID", "cli-user"), '--user-id'),
+    tenant_id: str = typer.Option(os.environ.get("COREASON_TENANT_ID", "cli-tenant"), '--tenant-id')
+):
+    """Deploy the generated agent project to the Test Environment."""
+    identity = rbac_service.authorize(user_id, tenant_id, required_role="developer", provided_roles=["admin", "developer", "viewer"])
     
     async def run():
-        try:
-            result = await project_service.export_project(project_id, output_path, skip_state=skip_state, skip_docker=skip_docker)
-            if result.get("status") == "success":
-                typer.echo(f"[SUCCESS] Project exported to: {result.get('export_path')}")
-                typer.echo(f"Files written: {result.get('files_written')}")
-            else:
-                typer.echo(f"[ERROR] Export failed.")
-        except Exception as e:
-            typer.echo(f"[ERROR] {e}")
-            
-    asyncio.run(run())
+        return await agent_service.deploy_to_test(project_id, identity.user_id, identity.tenant_id)
+        
+    res = asyncio.run(run())
+    typer.echo(json.dumps(res, default=str))
 
-@app.command()
-def import_project(name: str, import_path: str, description: str = "", skip_state: bool = False, skip_docker: bool = False):
-    """
-    Import a project from an air-gapped export.
-    """
-    typer.echo(f"Importing project from '{import_path}' with name '{name}'...")
-    from src.core.services import project_service
-    
-    project_id = str(uuid.uuid7())
+@deploy_app.command("production")
+def deploy_to_production(
+    project_id: str = typer.Option(..., '--project-id'),
+    user_id: str = typer.Option(os.environ.get("COREASON_USER_ID", "cli-user"), '--user-id'),
+    tenant_id: str = typer.Option(os.environ.get("COREASON_TENANT_ID", "cli-tenant"), '--tenant-id')
+):
+    """Deploy the generated agent project to the Production Environment."""
+    identity = rbac_service.authorize(user_id, tenant_id, required_role="admin", provided_roles=["admin", "developer", "viewer"])
     
     async def run():
-        try:
-            result = await project_service.import_project(project_id, import_path, name, description, skip_state=skip_state, skip_docker=skip_docker)
-            if result.get("status") == "success":
-                typer.echo(f"[SUCCESS] Project imported successfully! Project ID: {project_id}")
-                typer.echo(f"Files read: {result.get('files_read')}")
-            else:
-                typer.echo(f"[ERROR] Import failed.")
-        except Exception as e:
-            typer.echo(f"[ERROR] {e}")
-            
-    asyncio.run(run())
+        return await agent_service.deploy_to_production(project_id, identity.user_id, identity.tenant_id)
+        
+    res = asyncio.run(run())
+    typer.echo(json.dumps(res, default=str))
 
-@app.command()
-def push_project(project_id: str, registry_url: str, skip_state: bool = False, skip_docker: bool = False):
-    """
-    Push a project to an OCI registry (Industry Standard).
-    """
-    from rich.console import Console
-    from src.sdk.client import CoReasonClient
-    console = Console()
-    
-    async def run():
-        try:
-            client = CoReasonClient()
-            with console.status(f"Pushing project '{project_id}' to '{registry_url}'...", spinner="dots"):
-                result = await client.projects.push_bundle(project_id, registry_url, skip_state=skip_state, skip_docker=skip_docker)
-            
-            if result.get("status") == "success":
-                console.print(f"[green][SUCCESS][/green] Project pushed successfully! Job ID: {result.get('job_id')}")
-            else:
-                console.print(f"[red][ERROR][/red] Push failed.")
-        except Exception as e:
-            console.print(f"[red][ERROR][/red] {e}")
-            
-    asyncio.run(run())
+mcp_app = typer.Typer()
+app.add_typer(mcp_app, name="mcp")
 
-@app.command()
-def pull_project(name: str, oci_uri: str, description: str = "", skip_state: bool = False, skip_docker: bool = False):
-    """
-    Pull a project from an OCI registry (Industry Standard).
-    """
-    from rich.console import Console
-    from src.sdk.client import CoReasonClient
-    console = Console()
+@mcp_app.command("bundle")
+def bundle_mcp_agents(source: str = "src/agents", output: str = "dist/coreason_mcp_bundle.enc"):
+    """Bundle and encrypt MCP agents for air-gapped deployment."""
+    from src.core.services.bundler_service import bundler_service
     
-    async def run():
-        try:
-            client = CoReasonClient()
-            with console.status(f"Pulling project from '{oci_uri}' with name '{name}'...", spinner="dots"):
-                result = await client.projects.pull_bundle(oci_uri, name, description, skip_state=skip_state, skip_docker=skip_docker)
-                
-            if result.get("status") == "success":
-                console.print(f"[green][SUCCESS][/green] Project pulled successfully! Job ID: {result.get('job_id')}")
-            else:
-                console.print(f"[red][ERROR][/red] Pull failed.")
-        except Exception as e:
-            console.print(f"[red][ERROR][/red] {e}")
-            
-    asyncio.run(run())
+    key_b64 = os.environ.get("MCP_BUNDLE_KEY")
+    if not key_b64:
+        from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+        import base64
+        test_key = AESGCM.generate_key(bit_length=256)
+        key_b64 = base64.b64encode(test_key).decode('utf-8')
+        typer.secho(f"WARNING: MCP_BUNDLE_KEY not set. Generated a random test key: {key_b64}", fg=typer.colors.YELLOW)
+        
+    try:
+        bundler_service.bundle_agents(source, output, key_b64)
+        typer.secho("MCP agents bundled successfully.", fg=typer.colors.GREEN, bold=True)
+    except Exception as e:
+        typer.secho(f"Failed to bundle MCP agents: {e}", fg=typer.colors.RED, bold=True)
+        raise typer.Exit(code=1)
+
+skills_app = typer.Typer()
+app.add_typer(skills_app, name="skills")
+
+@skills_app.command("list")
+def list_skills(category: Optional[str] = typer.Option(None, '--category')):
+    """List all available skills in the registry."""
+    from src.core.services import skill_service
+    res = {"skills": skill_service.list_skills(category=category)}
+    typer.echo(json.dumps(res, default=str))
+
+@skills_app.command("get")
+def get_skill(name: str = typer.Option(..., '--name')):
+    """Get a specific skill's Markdown content and metadata."""
+    from src.core.services import skill_service
+    res = skill_service.get_skill(name)
+    if not res:
+        typer.echo("Not found")
+        sys.exit(1)
+    typer.echo(json.dumps({"skill": res}, default=str))
+
+sandbox_app = typer.Typer()
+app.add_typer(sandbox_app, name="sandbox")
+
+@sandbox_app.command("provision")
+def provision_sandbox(
+    project_id: str = typer.Option(..., '--project-id'),
+    environment: str = typer.Option("test", '--environment'),
+    user_id: str = typer.Option("cli-user", '--user-id'),
+    tenant_id: str = typer.Option("cli-tenant", '--tenant-id'),
+):
+    """Provision a new sandboxed deployment environment."""
+    from src.core.services import sandbox_service
+    rec = sandbox_service.provision_sandbox(
+        project_id=project_id,
+        user_id=user_id,
+        tenant_id=tenant_id,
+        environment=environment,
+    )
+    typer.echo(json.dumps({"sandbox": rec.model_dump()}, default=str))
+
+@sandbox_app.command("list")
+def list_sandboxes(project_id: Optional[str] = typer.Option(None, '--project-id')):
+    """List active sandboxes."""
+    from src.core.services import sandbox_service
+    sandboxes = sandbox_service.list_sandboxes(project_id=project_id)
+    typer.echo(json.dumps({"sandboxes": sandboxes}, default=str))
+
+@sandbox_app.command("execute")
+def execute_in_sandbox(
+    sandbox_id: str = typer.Option(..., '--sandbox-id'),
+    payload_json: str = typer.Option("{}", '--payload'),
+):
+    """Execute a task inside a provisioned sandbox."""
+    from src.core.services import sandbox_service
+    payload = json.loads(payload_json)
+    res = sandbox_service.execute_in_sandbox(sandbox_id, payload)
+    typer.echo(json.dumps(res, default=str))
+
+@sandbox_app.command("terminate")
+def terminate_sandbox(sandbox_id: str = typer.Option(..., '--sandbox-id')):
+    """Terminate and clean up a sandbox."""
+    from src.core.services import sandbox_service
+    res = sandbox_service.terminate_sandbox(sandbox_id)
+    typer.echo(json.dumps(res, default=str))
+
+catalog_app = typer.Typer()
+app.add_typer(catalog_app, name="catalog")
+
+@catalog_app.command("search")
+def search_catalog(
+    query: Optional[str] = typer.Option(None, '--query'),
+    resource_type: Optional[str] = typer.Option(None, '--type'),
+):
+    """Search Project & Module Catalog (PEN 66197 Authority)."""
+    from src.core.services import catalog_service
+    res = {"results": catalog_service.search_catalog(query=query, resource_type=resource_type)}
+    typer.echo(json.dumps(res, default=str))
+
+@catalog_app.command("resolve")
+def resolve_urn(urn: str = typer.Option(..., '--urn')):
+    """Resolve an OID or Native PEN 66197 URN."""
+    from src.core.services import catalog_service
+    entry = catalog_service.resolve_urn(urn)
+    if not entry:
+        typer.echo("URN not found")
+        sys.exit(1)
+    typer.echo(json.dumps({"entry": entry}, default=str))
+
+@catalog_app.command("import")
+def import_catalog_module(
+    urn: str = typer.Option(..., '--urn'),
+    target_project_id: str = typer.Option(..., '--target-project-id'),
+):
+    """Import a catalog module into a project space."""
+    from src.core.services import catalog_service
+    res = catalog_service.import_module(urn, target_project_id)
+    typer.echo(json.dumps(res, default=str))
 
 if __name__ == "__main__":
     app()

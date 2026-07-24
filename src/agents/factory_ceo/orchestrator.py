@@ -45,32 +45,49 @@ class FactoryCeoAgent(DeepAgent):
         multi_user_prompt = """
 You are collaborating with a team of humans. The `name` field on each human message identifies the speaker.
 Resolve conflicts organically by mediating and asking the team for consensus before taking destructive actions.
+Initial Interaction Protocol:
+1. Search the built-in Project Catalog (`catalog_service`) powered by IANA PEN 66197 (`urn:oid:1.3.6.1.4.1.66197:...`).
+2. Present relevant past project exemplars to the human team so they can review, learn, and import modular building blocks.
 If the architectural summary from the librarian is present and fully resolves the topology, proceed.
 If you need more information from the team to resolve ambiguities, use the `ask_clarifying_question` tool.
 """
-        full_system_prompt = f"{base_prompt}\n{multi_user_prompt}\n<SKILL: multiple_choice_interrogation>\n{skill_content}\n</SKILL>"
+        output_architectural_opinions = """
+FRACTAL ARCHITECTURAL OPINIONS FOR GENERATED AGENTIC APPLICATIONS:
+Every agentic application synthesized by this factory MUST mirror the platform's self-similar opinionated architecture:
+1. DeepAgent Manifests & StateGraphs: PyAgentSpec-compliant YAML manifests with strict TypedDict state schemas.
+2. 5-Surface Parity: Embedded REST API, CLI, MCP Server, WebSockets/SSE, and Python SDK transport adapters over a shared core service layer.
+3. Headless & Dify Enterprise Shell Integration: Exposed natively as an MCP server to allow Dify or external AI orchestrators to control the app natively.
+4. IANA PEN 66197 Identifiers: Assigned a canonical OID URN (`urn:oid:1.3.6.1.4.1.66197:<type>:<id>`) and Coreason URL (`https://urn.coreason.ai/1.3.6.1.4.1.66197/...`).
+5. Open-Source Observability: Embedded OpenTelemetry + Langfuse tracing without proprietary SaaS lock-in.
+6. Sandboxed Testing: Self-contained execution sandboxes for multi-tenant project spaces.
+"""
+        full_system_prompt = f"{base_prompt}\n{multi_user_prompt}\n{output_architectural_opinions}\n<SKILL: multiple_choice_interrogation>\n{skill_content}\n</SKILL>"
         self.system_prompt = full_system_prompt
 
     async def execute(self, context: dict, session_id: str = None) -> Any:
         is_goal_mode = context.get("is_goal_mode", False)
-        
         prompt = self.system_prompt
-        agent_tools = [ask_clarifying_question]
+        from src.core.tools.catalog_tools import search_catalog_tool, resolve_urn_tool, import_catalog_module_tool, forge_tool_tool, forge_skill_tool, clone_skill_tool
+        agent_tools = [ask_clarifying_question, search_catalog_tool, resolve_urn_tool, import_catalog_module_tool, forge_tool_tool, forge_skill_tool, clone_skill_tool]
         agent_interrupt_on = {"ask_clarifying_question": True}
         
         if is_goal_mode:
             prompt += "\nGOAL MODE ACTIVE: You are running in fully autonomous mode. Do NOT ask for human clarification or consensus. Make the most reasonable architectural assumptions based on the context provided, be extra thorough, and delegate the final artifact compilation to `agent_pm`. Once `agent_pm` completes, you MUST repeat its output (the YAML blocks) exactly in your final response without any conversational summaries or extra explanation."
-            agent_tools = []
+            agent_tools = [search_catalog_tool, resolve_urn_tool, import_catalog_module_tool, forge_tool_tool, forge_skill_tool, clone_skill_tool]
             agent_interrupt_on = {}
 
-        from src.core.services.observability_service import ObservabilityService
-        obs = ObservabilityService()
+        from src.core.config import settings
+        pg_dsn = getattr(settings, "DATABASE_URL", None) or os.environ.get("DATABASE_URL")
+        if not pg_dsn:
+            pg_dsn = f"postgresql://{settings.POSTGRES_USER}:{settings.POSTGRES_PASSWORD}@{settings.POSTGRES_HOST}:{settings.POSTGRES_PORT}/{settings.POSTGRES_DB}"
 
         from langgraph.checkpoint.postgres.aio import AsyncPostgresSaver
         
         from src.agents.librarian_pm.orchestrator import LibrarianPmAgent
         from src.agents.agent_pm.orchestrator import AgentPmAgent
         from src.agents.research_agent.orchestrator import ResearchAgent
+        
+        from src.agents.agent_tester.orchestrator import AgentTesterAgent
         
         from langchain_core.messages import AIMessage
         from pydantic import BaseModel, Field
@@ -80,6 +97,8 @@ If you need more information from the team to resolve ambiguities, use the `ask_
             context: str = Field(description="The saturated context, architectural plan, and requirements to pass to the agent_pm for building.")
         class ResearchInput(BaseModel):
             query: str = Field(description="The search query.")
+        class AgentTesterInput(BaseModel):
+            context: str = Field(description="The finalized project context to generate E2E tests and acceptance criteria for.")
 
         # Subagents exposed to the CEO
         subagents = [
@@ -97,19 +116,18 @@ If you need more information from the team to resolve ambiguities, use the `ask_
                 "name": "research_agent",
                 "description": "Searches the internet for required factual context, news, or domain-specific information.",
                 "runnable": RunnableLambda(lambda inputs, config: {"messages": [AIMessage(content=ResearchAgent().execute(inputs, session_id=config["configurable"]["thread_id"], config=config))]}).with_types(input_type=ResearchInput)
+            },
+            {
+                "name": "agent_tester",
+                "description": "Delegates finalized project context to generate automated tests and acceptance criteria.",
+                "runnable": RunnableLambda(lambda inputs, config: {"messages": [AIMessage(content=AgentTesterAgent().execute(inputs, session_id=config["configurable"]["thread_id"], config=config))]}).with_types(input_type=AgentTesterInput)
             }
         ]
 
-        async with AsyncPostgresSaver.from_conn_string(obs.pg_dsn) as checkpointer:
+        async with AsyncPostgresSaver.from_conn_string(pg_dsn) as checkpointer:
             await checkpointer.setup()
             
-            from langchain_openai import ChatOpenAI
-            llm = ChatOpenAI(
-                model=settings.LLM_MODEL_NAME,
-                api_key=settings.LLM_API_KEY,
-                temperature=settings.LLM_TEMPERATURE,
-                base_url=settings.LLM_BASE_URL
-            )
+            llm = self.get_chat_model()
             
             # Construct the multi-user deep agent dynamically
             graph = create_deep_agent(

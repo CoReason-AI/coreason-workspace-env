@@ -6,7 +6,8 @@ import os
 from opentelemetry import context, trace
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
-from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
+from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter as OTLPHttpSpanExporter
+from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter as OTLPGrpcSpanExporter
 from opentelemetry.sdk.resources import Resource
 
 def setup_telemetry(log_level: int = logging.INFO):
@@ -16,15 +17,24 @@ def setup_telemetry(log_level: int = logging.INFO):
     and hijacks third-party standard logging so they inherit ContextVars.
     Also initializes the OpenTelemetry TracerProvider and OTLPSpanExporter.
     """
-    # 0. Initialize OpenTelemetry TracerProvider with OTLP Exporter
-    otlp_endpoint = os.environ.get("OTEL_EXPORTER_OTLP_ENDPOINT", "http://localhost:4318/v1/traces")
-    resource = Resource.create({"service.name": "coreason-workspace-env"})
-    
-    provider = TracerProvider(resource=resource)
-    otlp_exporter = OTLPSpanExporter(endpoint=otlp_endpoint)
-    span_processor = BatchSpanProcessor(otlp_exporter)
-    provider.add_span_processor(span_processor)
-    trace.set_tracer_provider(provider)
+    # 0. Initialize OpenTelemetry TracerProvider with OTLP Exporter (if enabled)
+    if os.environ.get("OTEL_SDK_DISABLED", "false").lower() != "true":
+        # Default to gRPC for the Open Shell Sandbox OTEL collector sidecar
+        otel_protocol = os.environ.get("OTEL_EXPORTER_OTLP_PROTOCOL", "grpc").lower()
+        if otel_protocol == "http/protobuf":
+            otlp_endpoint = os.environ.get("OTEL_EXPORTER_OTLP_ENDPOINT", "http://localhost:4318/v1/traces")
+            otlp_exporter = OTLPHttpSpanExporter(endpoint=otlp_endpoint)
+        else:
+            # gRPC default endpoint
+            otlp_endpoint = os.environ.get("OTEL_EXPORTER_OTLP_ENDPOINT", "http://localhost:4317")
+            otlp_exporter = OTLPGrpcSpanExporter(endpoint=otlp_endpoint, insecure=True)
+
+        resource = Resource.create({"service.name": "coreason-workspace-env"})
+        
+        provider = TracerProvider(resource=resource)
+        span_processor = BatchSpanProcessor(otlp_exporter)
+        provider.add_span_processor(span_processor)
+        trace.set_tracer_provider(provider)
 
     # 1. Configure structlog to merge ContextVars globally
     structlog.configure(

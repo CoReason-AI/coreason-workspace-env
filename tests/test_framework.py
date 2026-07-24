@@ -2,7 +2,7 @@ import os
 import hashlib
 import json
 import logging
-from testcontainers.postgres import PostgresContainer
+# from testcontainers.postgres import PostgresContainer
 # from testcontainers.minio import MinioContainer
 import unittest
 from typing import Any
@@ -19,9 +19,10 @@ class ZeroMockTestCase(unittest.IsolatedAsyncioTestCase):
     @classmethod
     def setUpClass(cls):
         logger.info("Relying on global Postgres container from conftest.py...")
-        # Check if settings are injected
         from src.core.config import settings
-        if not settings.POSTGRES_HOST or settings.POSTGRES_HOST == "localhost" and settings.POSTGRES_USER == "":
+        pg_host = getattr(settings, "POSTGRES_HOST", None)
+        pg_user = getattr(settings, "POSTGRES_USER", None)
+        if not pg_host or pg_host == "localhost" and pg_user == "":
             logger.warning("Postgres settings appear unset. Zero Mock tests may fail if global fixture didn't run.")
         
     @classmethod
